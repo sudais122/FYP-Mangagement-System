@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FYP Student Dashboard — AWKUM</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+--pr:#004b2d;--pr-dk:#003520;--sec:#1f7a5c;--gold:#bfa14a;--gold-lt:#d4b96b;
+--bg:#f8f9fa;--sur:#ffffff;--txt:#1c1c1c;--txt-s:#4a5568;--txt-m:#6c757d;
+--bdr:#e2e8f0;--bdr-s:#edf2f7;--rad:12px;--rad-lg:18px;--sw:64px;
+}
+body{font-family:"DM Sans",system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;}
+a{text-decoration:none;color:inherit;}
+button,input{font-family:inherit;cursor:pointer;}
+.page{display:none;animation:fadeIn .3s ease both;}
+.page.active{display:block;}
+.dash-page{display:none;}
+.dash-page.active{display:flex;flex-direction:column;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* NAVBAR */
+.nav{background:var(--pr);height:54px;display:flex;align-items:center;padding:0 18px;gap:12px;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(0,0,0,0.25);}
+.nav-brand{display:flex;align-items:center;gap:9px;margin-right:auto;cursor:pointer;}
+.nav-logo{width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,0.12);border:1px solid rgba(191,161,74,0.5);display:grid;place-items:center;}
+.nav-logo svg{width:17px;height:17px;color:var(--gold);}
+.nav-brand-t strong{display:block;color:#fff;font-weight:700;font-size:0.88rem;line-height:1.2;}
+.nav-brand-t small{color:rgba(191,161,74,0.85);font-size:0.6rem;font-weight:500;letter-spacing:0.04em;text-transform:uppercase;}
+.nav-links{display:flex;gap:2px;list-style:none;}
+.nav-links a{padding:6px 14px;border-radius:7px;color:rgba(255,255,255,0.8);font-size:0.8rem;font-weight:500;cursor:pointer;transition:.2s;}
+.nav-links a:hover{background:rgba(255,255,255,0.1);color:#fff;}
+.nav-links a.act{background:rgba(191,161,74,0.18);color:var(--gold-lt);}
+.nav-login{padding:7px 16px;background:var(--gold);color:var(--pr-dk);border-radius:8px;font-size:0.8rem;font-weight:700;border:none;display:flex;align-items:center;gap:6px;transition:.2s;}
+.nav-login:hover{background:var(--gold-lt);}
+.nav-login svg{width:13px;height:13px;}
+
+/* HOME */
+.hero{background:linear-gradient(135deg,var(--pr-dk),var(--pr) 50%,var(--sec));min-height:260px;display:flex;align-items:center;padding:40px 28px;position:relative;overflow:hidden;}
+.hero::after{content:"FYP";position:absolute;right:-10px;bottom:-30px;font-size:9rem;font-weight:800;color:rgba(255,255,255,0.04);pointer-events:none;}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:6px;background:rgba(191,161,74,0.18);border:1px solid rgba(191,161,74,0.35);color:var(--gold-lt);padding:4px 12px;border-radius:100px;font-size:0.65rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px;}
+.hero-eyebrow::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);animation:blink 1.8s ease infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.hero h1{font-size:1.9rem;font-weight:800;color:#fff;line-height:1.15;letter-spacing:-0.02em;margin-bottom:12px;max-width:520px;}
+.hero h1 span{color:var(--gold-lt);}
+.hero p{color:rgba(255,255,255,.75);font-size:.88rem;max-width:420px;margin-bottom:22px;line-height:1.6;}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-p{padding:10px 22px;border-radius:9px;font-size:.82rem;font-weight:700;border:none;display:inline-flex;align-items:center;gap:7px;cursor:pointer;transition:.2s;}
+.btn-p svg{width:14px;height:14px;}
+.btn-gold{background:var(--gold);color:var(--pr-dk);}
+.btn-gold:hover{background:var(--gold-lt);}
+.btn-ghost{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.3);color:#fff;}
+.btn-ghost:hover{background:rgba(255,255,255,.2);}
+.home-content{max-width:1100px;margin:0 auto;padding:40px 24px;}
+.sec-label{display:inline-flex;align-items:center;gap:7px;font-size:.65rem;font-weight:700;color:var(--sec);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:8px;}
+.sec-label::before{content:"";width:18px;height:2px;background:var(--gold);border-radius:2px;}
+.sec-title{font-size:1.5rem;font-weight:700;color:var(--pr);letter-spacing:-0.02em;margin-bottom:10px;}
+.sec-sub{color:var(--txt-s);font-size:.85rem;max-width:500px;line-height:1.65;margin-bottom:36px;}
+.ov-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:40px;}
+.ov-card{background:var(--sur);border:1px solid var(--bdr-s);border-radius:var(--rad-lg);padding:22px 20px;transition:.22s;position:relative;overflow:hidden;}
+.ov-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--pr),var(--sec));transform:scaleX(0);transform-origin:left;transition:.22s;}
+.ov-card:hover{box-shadow:0 4px 18px rgba(0,75,45,.09);transform:translateY(-3px);}
+.ov-card:hover::before{transform:scaleX(1);}
+.ov-icon{width:44px;height:44px;border-radius:12px;background:rgba(0,75,45,.07);display:grid;place-items:center;margin-bottom:14px;}
+.ov-icon svg{width:19px;height:19px;color:var(--pr);}
+.ov-card h3{font-size:.9rem;font-weight:700;color:var(--pr);margin-bottom:6px;}
+.ov-card p{font-size:.78rem;color:var(--txt-s);line-height:1.6;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);background:var(--pr);border-radius:var(--rad-lg);overflow:hidden;margin-bottom:40px;}
+.stat{padding:24px 16px;text-align:center;border-right:1px solid rgba(255,255,255,.1);}
+.stat:last-child{border-right:none;}
+.stat-n{font-size:1.8rem;font-weight:700;color:var(--gold-lt);letter-spacing:-0.03em;margin-bottom:3px;}
+.stat-l{font-size:.72rem;color:rgba(255,255,255,.6);font-weight:500;}
+
+/* LOGIN */
+.login-page{min-height:calc(100vh - 54px);display:flex;align-items:center;justify-content:center;padding:30px 16px;background:var(--bg);}
+.login-wrap{display:grid;grid-template-columns:1fr 1fr;max-width:800px;width:100%;background:var(--sur);border-radius:20px;overflow:hidden;box-shadow:0 14px 40px rgba(0,75,45,.13);border:1px solid var(--bdr-s);}
+.ll{background:linear-gradient(150deg,var(--pr-dk),var(--pr) 55%,var(--sec));padding:44px 36px;display:flex;flex-direction:column;gap:20px;}
+.ll-logo{display:flex;align-items:center;gap:10px;}
+.ll-lm{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid rgba(191,161,74,.4);display:grid;place-items:center;}
+.ll-lm svg{width:19px;height:19px;color:var(--gold);}
+.ll-lt strong{display:block;color:#fff;font-weight:700;font-size:.88rem;}
+.ll-lt small{color:rgba(191,161,74,.8);font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.ll h2{font-size:1.55rem;font-weight:700;color:#fff;line-height:1.2;}
+.ll p{color:rgba(255,255,255,.65);font-size:.82rem;line-height:1.65;}
+.perks{display:flex;flex-direction:column;gap:9px;}
+.perk{display:flex;align-items:center;gap:8px;font-size:.78rem;color:rgba(255,255,255,.75);}
+.pck{width:19px;height:19px;border-radius:50%;background:rgba(191,161,74,.2);border:1px solid rgba(191,161,74,.35);display:grid;place-items:center;flex-shrink:0;}
+.pck svg{width:9px;height:9px;color:var(--gold);}
+.lr{padding:44px 36px;}
+.lr h3{font-size:1.25rem;font-weight:700;color:var(--pr);margin-bottom:4px;}
+.lr .sub{font-size:.78rem;color:var(--txt-m);margin-bottom:24px;}
+.role-tabs{display:flex;background:var(--bg);border:1px solid var(--bdr);border-radius:9px;padding:3px;gap:2px;margin-bottom:20px;}
+.role-tab{flex:1;padding:7px;border-radius:7px;font-size:.74rem;font-weight:600;text-align:center;cursor:pointer;color:var(--txt-m);transition:.2s;display:flex;align-items:center;justify-content:center;gap:4px;border:none;background:none;}
+.role-tab svg{width:12px;height:12px;}
+.role-tab:hover{color:var(--pr);background:rgba(0,75,45,.04);}
+.role-tab.act{background:var(--pr);color:#fff;box-shadow:0 2px 8px rgba(0,75,45,.2);}
+.fg{margin-bottom:13px;}
+.fg label{display:block;font-size:.68rem;font-weight:700;color:var(--txt-s);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.iw{position:relative;}
+.iw svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--txt-m);pointer-events:none;}
+.iw input{width:100%;padding:10px 11px 10px 36px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:8px;font-size:.84rem;color:var(--txt);outline:none;transition:.2s;}
+.iw input:focus{border-color:var(--pr);background:#fff;box-shadow:0 0 0 3px rgba(0,75,45,.08);}
+.iw input::placeholder{color:var(--txt-m);}
+.btn-login{width:100%;padding:11px;background:linear-gradient(135deg,var(--pr-dk),var(--pr));color:#fff;border-radius:9px;font-size:.88rem;font-weight:700;border:none;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;transition:.2s;margin-top:8px;}
+.btn-login:hover{background:linear-gradient(135deg,var(--pr),var(--sec));}
+.btn-login svg{width:14px;height:14px;}
+
+/* DASHBOARD */
+.dash-layout{display:flex;min-height:calc(100vh - 54px);}
+.sidebar{width:var(--sw);background:var(--pr-dk);display:flex;flex-direction:column;padding:12px 0;gap:3px;position:sticky;top:54px;height:calc(100vh - 54px);overflow:hidden;transition:width .25s cubic-bezier(.4,0,.2,1);flex-shrink:0;z-index:50;}
+.sidebar:hover{width:210px;padding:12px 10px;}
+.sb{width:100%;display:flex;align-items:center;gap:10px;padding:9px 13px;border-radius:9px;cursor:pointer;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;border:none;background:none;transition:.2s;font-size:.82rem;font-weight:600;}
+.sb:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);}
+.sb.act{background:rgba(191,161,74,.15);color:var(--gold-lt);}
+.sb.act .sb-ic{color:var(--gold);}
+.sb-ic{width:18px;height:18px;flex-shrink:0;}
+.sb-lbl{opacity:0;transition:opacity .15s;}
+.sidebar:hover .sb-lbl{opacity:1;transition:opacity .15s .08s;}
+.sb-badge{background:var(--gold);color:var(--pr-dk);font-size:.58rem;font-weight:800;padding:1px 5px;border-radius:8px;margin-left:auto;flex-shrink:0;opacity:0;transition:opacity .15s;}
+.sidebar:hover .sb-badge{opacity:1;}
+.sb-div{width:calc(100% - 20px);height:1px;background:rgba(255,255,255,.07);margin:5px 10px;transition:width .25s;}
+.sidebar:hover .sb-div{width:100%;margin:5px 0;}
+.dash-main{flex:1;padding:22px 24px;overflow-y:auto;min-width:0;}
+.dash-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.dt-l h1{font-size:1.2rem;font-weight:700;color:var(--pr);letter-spacing:-0.02em;}
+.dt-l p{font-size:.75rem;color:var(--txt-m);}
+.dt-r{display:flex;align-items:center;gap:8px;}
+.tb-btn{width:34px;height:34px;border-radius:9px;background:var(--sur);border:1px solid var(--bdr);display:grid;place-items:center;cursor:pointer;color:var(--txt-m);position:relative;transition:.2s;}
+.tb-btn:hover{background:var(--bg);color:var(--pr);}
+.tb-btn svg{width:14px;height:14px;}
+.nd{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--gold);border:1.5px solid #fff;}
+.uchip{display:flex;align-items:center;gap:8px;background:var(--sur);border:1px solid var(--bdr);padding:5px 12px 5px 5px;border-radius:9px;cursor:pointer;transition:.2s;}
+.uchip:hover{border-color:rgba(0,75,45,.25);}
+.uc-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--pr),var(--sec));display:grid;place-items:center;font-size:.65rem;font-weight:700;color:var(--gold-lt);}
+.uchip span{font-size:.78rem;font-weight:600;color:var(--txt);}
+.uchip small{font-size:.64rem;color:var(--txt-m);display:block;}
+.banner{background:linear-gradient(135deg,var(--pr) 0%,var(--sec) 100%);border-radius:var(--rad-lg);padding:22px 26px;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;position:relative;overflow:hidden;}
+.banner::before{content:"";position:absolute;right:-50px;top:-50px;width:200px;height:200px;background:radial-gradient(ellipse,rgba(191,161,74,.15),transparent 70%);pointer-events:none;}
+.banner::after{content:"FYP";position:absolute;right:20px;bottom:-20px;font-size:5rem;font-weight:800;color:rgba(255,255,255,.04);pointer-events:none;letter-spacing:-.04em;}
+.banner-t h2{font-size:1.25rem;font-weight:700;color:#fff;margin-bottom:4px;letter-spacing:-.02em;}
+.banner-t p{color:rgba(255,255,255,.7);font-size:.78rem;}
+.banner-acts{display:flex;gap:8px;position:relative;z-index:1;}
+.bb{padding:8px 16px;border-radius:8px;font-size:.75rem;font-weight:700;display:flex;align-items:center;gap:5px;cursor:pointer;border:none;font-family:inherit;transition:.2s;}
+.bb svg{width:12px;height:12px;}
+.bb-gold{background:var(--gold);color:var(--pr-dk);}
+.bb-gold:hover{background:var(--gold-lt);}
+.bb-ghost{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25);color:#fff;}
+.bb-ghost:hover{background:rgba(255,255,255,.2);}
+.dstats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px;}
+.dsc{background:var(--sur);border:1px solid var(--bdr-s);border-radius:var(--rad);padding:16px;display:flex;align-items:center;gap:11px;transition:.2s;position:relative;overflow:hidden;}
+.dsc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--acc,var(--pr));border-radius:3px 0 0 3px;}
+.dsc:hover{box-shadow:0 4px 14px rgba(0,75,45,.09);transform:translateY(-2px);}
+.dsc-ic{width:38px;height:38px;border-radius:10px;background:var(--icbg,rgba(0,75,45,.08));display:grid;place-items:center;flex-shrink:0;}
+.dsc-ic svg{width:17px;height:17px;color:var(--icc,var(--pr));}
+.dsc-lbl{font-size:.65rem;font-weight:700;color:var(--txt-m);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;}
+.dsc-val{font-size:.88rem;font-weight:700;color:var(--pr);line-height:1;}
+.dsc-sub{font-size:.66rem;color:var(--txt-m);margin-top:2px;}
+.dash-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;margin-bottom:16px;}
+.dash-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.card{background:var(--sur);border:1px solid var(--bdr-s);border-radius:var(--rad-lg);overflow:hidden;}
+.ch{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bdr-s);}
+.ch h3{font-size:.82rem;font-weight:700;color:var(--pr);display:flex;align-items:center;gap:7px;}
+.ch h3 svg{width:14px;height:14px;color:var(--gold);}
+.ca{font-size:.7rem;font-weight:700;color:var(--sec);cursor:pointer;padding:4px 10px;border-radius:6px;background:rgba(0,75,45,.06);border:none;font-family:inherit;transition:.2s;}
+.ca:hover{background:rgba(0,75,45,.12);color:var(--pr);}
+.cb{padding:14px 18px;}
+.pr{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-s);}
+.pr:last-child{border-bottom:none;padding-bottom:0;}
+.pk{font-size:.68rem;font-weight:700;color:var(--txt-m);text-transform:uppercase;letter-spacing:.05em;width:110px;flex-shrink:0;padding-top:1px;}
+.pv{font-size:.8rem;color:var(--txt);font-weight:500;}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:.67rem;font-weight:700;}
+.badge::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.7;}
+.b-ok{background:rgba(0,75,45,.1);color:var(--pr);}
+.b-pend{background:rgba(234,179,8,.1);color:#a16207;}
+.b-rev{background:rgba(59,130,246,.1);color:#1d4ed8;}
+.prog{margin-bottom:11px;}
+.phd{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.pl{font-size:.75rem;font-weight:600;color:var(--txt-s);}
+.pp{font-size:.72rem;font-weight:700;color:var(--pr);}
+.pbar{height:7px;background:var(--bdr-s);border-radius:4px;overflow:hidden;}
+.pfill{height:100%;border-radius:4px;transition:width 1.2s ease;}
+.fbi{padding:11px 0;border-bottom:1px solid var(--bdr-s);}
+.fbi:last-child{border-bottom:none;padding-bottom:0;}
+.fbh{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.fbav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--pr),var(--sec));display:grid;place-items:center;font-size:.6rem;font-weight:700;color:var(--gold-lt);flex-shrink:0;}
+.fbn{font-size:.76rem;font-weight:700;color:var(--pr);}
+.fbt{font-size:.66rem;color:var(--txt-m);margin-left:auto;}
+.fbtxt{font-size:.76rem;color:var(--txt-s);line-height:1.6;padding:8px 10px;background:var(--bg);border-radius:7px;border-left:3px solid var(--gold);}
+.dli{display:flex;gap:11px;align-items:center;padding:9px 0;border-bottom:1px solid var(--bdr-s);}
+.dli:last-child{border-bottom:none;padding-bottom:0;}
+.dldt{color:#fff;border-radius:8px;padding:5px 8px;text-align:center;flex-shrink:0;min-width:40px;}
+.dlday{font-size:1.05rem;font-weight:700;line-height:1;display:block;}
+.dlmo{font-size:.52rem;font-weight:600;opacity:.7;text-transform:uppercase;}
+.dlt{font-size:.78rem;font-weight:700;color:var(--txt);margin-bottom:1px;}
+.dls{font-size:.68rem;color:var(--txt-m);}
+.dltag{margin-left:auto;flex-shrink:0;padding:2px 8px;border-radius:20px;font-size:.63rem;font-weight:700;}
+.t-urg{background:rgba(220,38,38,.08);color:#dc2626;}
+.t-near{background:rgba(234,179,8,.1);color:#a16207;}
+.t-ok{background:rgba(0,75,45,.08);color:var(--sec);}
+.ni{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr-s);align-items:flex-start;}
+.ni:last-child{border-bottom:none;padding-bottom:0;}
+.nic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex-shrink:0;}
+.nic svg{width:13px;height:13px;}
+.ni-t{font-size:.76rem;font-weight:700;color:var(--txt);margin-bottom:1px;}
+.ni-d{font-size:.7rem;color:var(--txt-m);line-height:1.45;}
+.ni-tm{font-size:.64rem;color:var(--txt-m);flex-shrink:0;margin-top:2px;}
+.sup{display:flex;gap:11px;align-items:center;padding:13px;background:rgba(0,75,45,.04);border-radius:var(--rad);border:1px solid rgba(0,75,45,.1);margin-bottom:11px;}
+.sav{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--pr),var(--sec));display:grid;place-items:center;font-size:.95rem;font-weight:700;color:var(--gold-lt);flex-shrink:0;}
+.si strong{display:block;font-size:.84rem;font-weight:700;color:var(--pr);}
+.si span{font-size:.7rem;color:var(--txt-m);}
+.bmsg{margin-left:auto;padding:6px 12px;background:var(--pr);color:#fff;border:none;border-radius:7px;font-size:.7rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;font-family:inherit;transition:.2s;}
+.bmsg:hover{background:var(--sec);}
+.bmsg svg{width:11px;height:11px;}
+.tl{display:flex;flex-direction:column;}
+.tli{display:flex;gap:11px;padding:9px 0;}
+.tll{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:28px;}
+.tldot{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;}
+.tldot svg{width:11px;height:11px;}
+.tlline{flex:1;width:2px;background:var(--bdr-s);margin:3px auto;}
+.tli:last-child .tlline{display:none;}
+.tl-done .tldot{background:rgba(0,75,45,.1);color:var(--pr);}
+.tl-act .tldot{background:var(--gold);color:var(--pr-dk);}
+.tl-up .tldot{background:var(--bdr-s);color:var(--txt-m);}
+.tl-ttl{font-size:.78rem;font-weight:700;color:var(--txt);margin-bottom:1px;}
+.tl-act .tl-ttl{color:var(--pr);}
+.tl-dt{font-size:.68rem;color:var(--txt-m);}
+.dsub{display:none;}
+.dsub.act{display:block;}
+footer{background:var(--pr-dk);padding:28px 28px 20px;}
+.fi{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:32px;margin-bottom:20px;}
+.flm{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(191,161,74,.35);display:grid;place-items:center;}
+.flm svg{width:14px;height:14px;color:var(--gold);}
+.fc h4{color:#fff;font-size:.74rem;font-weight:700;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em;}
+.fc ul{list-style:none;display:flex;flex-direction:column;gap:6px;}
+.fc a{font-size:.74rem;color:rgba(255,255,255,.45);cursor:pointer;transition:.2s;}
+.fc a:hover{color:var(--gold-lt);}
+.fbot{max-width:1100px;margin:0 auto;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:space-between;}
+.fbot p{font-size:.7rem;color:rgba(255,255,255,.3);}
+.fbot span{color:var(--gold);opacity:.7;}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr;}.dstats{grid-template-columns:1fr 1fr;}.ov-grid{grid-template-columns:1fr 1fr;}.login-wrap{grid-template-columns:1fr;}.ll{display:none;}}
+@media(max-width:600px){.dstats{grid-template-columns:1fr;}.ov-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr;}.dash-grid-2{grid-template-columns:1fr;}.sidebar{display:none;}.fi{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="nav">
+  <div class="nav-brand" onclick="go('home')">
+    <div class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+    <div class="nav-brand-t"><strong>FYP Management</strong><small>AWKUM · CS Dept</small></div>
+  </div>
+  <ul class="nav-links" id="pub-nav">
+    <li><a id="n-home" class="act" onclick="go('home')">Home</a></li>
+    <li><a id="n-faq" onclick="go('faq')">FAQs</a></li>
+    <li><a id="n-msg" onclick="go('messages')">Messages</a></li>
+    <li><a id="n-dev" onclick="go('developers')">Developers</a></li>
+  </ul>
+  <button class="nav-login" id="nav-login-btn" onclick="go('login')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Login
+  </button>
+</nav>
+
+<!-- HOME -->
+<div id="p-home" class="page active">
+  <div class="hero">
+    <div>
+      <div class="hero-eyebrow">Academic Year 2025–2026</div>
+      <h1>Welcome to the <span>FYP Management</span> System</h1>
+      <p>A centralized hub for all Final Year Project activities — from proposals and submissions to evaluations.</p>
+      <div class="hero-btns">
+        <button class="btn-p btn-gold" onclick="go('login')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Access Portal</button>
+        <button class="btn-p btn-ghost" onclick="go('faq')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Browse FAQs</button>
+      </div>
+    </div>
+  </div>
+  <div class="home-content">
+    <div class="sec-label">About the System</div>
+    <div class="sec-title">Everything You Need, In One Place</div>
+    <div class="sec-sub">Students can access structured information related to project proposals, submission deadlines, evaluations, and academic resources.</div>
+    <div class="ov-grid">
+      <div class="ov-card"><div class="ov-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><h3>Project Proposals</h3><p>Submit and track your FYP proposal through our streamlined digital workflow with real-time updates.</p></div>
+      <div class="ov-card"><div class="ov-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h3>Submission Deadlines</h3><p>Never miss an important date. View all upcoming deadlines in one calendar view.</p></div>
+      <div class="ov-card"><div class="ov-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><h3>Evaluations</h3><p>Track your project evaluation scores across all phases.</p></div>
+      <div class="ov-card"><div class="ov-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Supervisor Management</h3><p>Browse available supervisors and request supervision directly through the portal.</p></div>
+      <div class="ov-card"><div class="ov-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><h3>FAQs &amp; Guidelines</h3><p>Comprehensive answers to common questions about Coursera requirements and procedures.</p></div>
+      <div class="ov-card"><div class="ov-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>Announcements</h3><p>Stay informed with official department announcements and system notifications.</p></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-n">320+</div><div class="stat-l">Enrolled Students</div></div>
+      <div class="stat"><div class="stat-n">48</div><div class="stat-l">Faculty Supervisors</div></div>
+      <div class="stat"><div class="stat-n">150+</div><div class="stat-l">Active Projects</div></div>
+      <div class="stat"><div class="stat-n">96%</div><div class="stat-l">Submission Rate</div></div>
+    </div>
+  </div>
+  <footer>
+    <div class="fi">
+      <div><div style="display:flex;align-items:center;gap:9px;margin-bottom:10px;"><div class="flm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><div><strong style="color:#fff;font-size:.84rem;font-weight:700;display:block;">FYP Management System</strong><small style="color:rgba(191,161,74,.7);font-size:.58rem;text-transform:uppercase;letter-spacing:.06em;">Abdul Wali Khan University Mardan</small></div></div><p style="font-size:.76rem;color:rgba(255,255,255,.45);line-height:1.65;">Centralized academic platform for managing Final Year Projects.</p></div>
+      <div class="fc"><h4>Quick Links</h4><ul><li><a onclick="go('home')">Home</a></li><li><a onclick="go('faq')">FAQs</a></li><li><a onclick="go('messages')">Messages</a></li><li><a onclick="go('login')">Login Portal</a></li></ul></div>
+      <div class="fc"><h4>Contact</h4><ul><li><a>CS Department, AWKUM</a></li><li><a>Mardan, KPK</a></li><li><a>cs@awkum.edu.pk</a></li></ul></div>
+    </div>
+    <div class="fbot"><p>© 2026 <span>Abdul Wali Khan University Mardan</span> — All rights reserved.</p><p style="font-size:.7rem;color:rgba(255,255,255,.3);">FYP 2025–26</p></div>
+  </footer>
+</div>
+
+<!-- FAQ -->
+<div id="p-faq" class="page">
+  <div style="background:linear-gradient(135deg,var(--pr-dk),var(--pr));padding:44px 28px;text-align:center;">
+    <div style="display:inline-block;background:rgba(191,161,74,.15);border:1px solid rgba(191,161,74,.3);color:var(--gold-lt);padding:4px 12px;border-radius:100px;font-size:.65rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;">Final Year Project</div>
+    <h2 style="font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:8px;">Frequently Asked Questions</h2>
+    <p style="color:rgba(255,255,255,.7);font-size:.85rem;">Find answers to common queries about FYP procedures and requirements.</p>
+  </div>
+  <div style="max-width:760px;margin:0 auto;padding:36px 24px;" id="faq-c"></div>
+</div>
+
+<!-- MESSAGES -->
+<div id="p-messages" class="page">
+  <div style="background:linear-gradient(135deg,var(--pr-dk),var(--pr));padding:44px 28px;text-align:center;">
+    <h2 style="font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:8px;">Messages from Authorities</h2>
+    <p style="color:rgba(255,255,255,.7);font-size:.85rem;">Guidance and motivation from our department leadership.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:1000px;margin:36px auto;padding:0 24px;">
+    <div style="background:var(--sur);border:1px solid var(--bdr-s);border-radius:var(--rad-lg);overflow:hidden;"><div style="background:linear-gradient(135deg,var(--pr),var(--sec));padding:22px;display:flex;align-items:center;gap:14px;"><div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(191,161,74,.5);display:grid;place-items:center;font-size:1.1rem;font-weight:700;color:var(--gold-lt);">NI</div><div><strong style="color:#fff;font-size:.9rem;font-weight:700;display:block;">Dr. Nadeem Iqbal</strong><span style="color:rgba(191,161,74,.85);font-size:.7rem;">Head, Department of Computer Science</span></div></div><div style="padding:20px 22px;"><span style="font-size:2.8rem;color:var(--gold);opacity:.25;line-height:.8;display:block;margin-bottom:-6px;">"</span><p style="font-size:.82rem;color:var(--txt-s);line-height:1.75;margin-bottom:10px;">The Final Year Project represents a defining phase of your academic journey. It reflects your analytical thinking, discipline, and professional readiness. I encourage you to select projects that address real-world challenges.</p><div style="display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--txt-m);border-top:1px solid var(--bdr-s);padding-top:11px;"><div style="width:20px;height:1.5px;background:var(--gold);"></div><strong style="color:var(--pr);">Dr. Nadeem Iqbal</strong> — Chairman</div></div></div>
+    <div style="background:var(--sur);border:1px solid var(--bdr-s);border-radius:var(--rad-lg);overflow:hidden;"><div style="background:linear-gradient(135deg,var(--sec),var(--pr-dk));padding:22px;display:flex;align-items:center;gap:14px;"><div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(191,161,74,.5);display:grid;place-items:center;font-size:1.1rem;font-weight:700;color:var(--gold-lt);">AA</div><div><strong style="color:#fff;font-size:.9rem;font-weight:700;display:block;">Dr. Aftab Ahmad</strong><span style="color:rgba(191,161,74,.85);font-size:.7rem;">FYP Coordinator, CS Department</span></div></div><div style="padding:20px 22px;"><span style="font-size:2.8rem;color:var(--gold);opacity:.25;line-height:.8;display:block;margin-bottom:-6px;">"</span><p style="font-size:.82rem;color:var(--txt-s);line-height:1.75;margin-bottom:10px;">Your Final Year Project is an opportunity to apply theoretical knowledge in a practical environment. Choose your project topic wisely, remain consistent in your efforts, and seek guidance whenever necessary.</p><div style="display:flex;align-items:center;gap:7px;font-size:.74rem;color:var(--txt-m);border-top:1px solid var(--bdr-s);padding-top:11px;"><div style="width:20px;height:1.5px;background:var(--gold);"></div><strong style="color:var(--pr);">Dr. Aftab Ahmad</strong> — FYP Coordinator</div></div></div>
+  </div>
+</div>
+
+<!-- DEVELOPERS -->
+<div id="p-developers" class="page">
+  <div style="background:linear-gradient(135deg,var(--pr-dk),var(--pr));padding:44px 28px;text-align:center;">
+    <h2 style="font-size:1.7rem;font-weight:700;color:#fff;margin-bottom:8px;">Meet the Developers</h2>
+    <p style="color:rgba(255,255,255,.7);font-size:.85rem;">The talented team behind the FYP Management System.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:950px;margin:36px auto;padding:0 24px;">
+    <div style="background:var(--sur);border:1px solid var(--bdr-s);border-radius:var(--rad-lg);padding:26px 20px;text-align:center;position:relative;overflow:hidden;"><div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--pr),var(--gold));"></div><div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--pr),var(--sec));display:grid;place-items:center;margin:0 auto 13px;font-size:1.3rem;font-weight:700;color:var(--gold-lt);">MS</div><h3 style="font-size:.9rem;font-weight:700;color:var(--pr);margin-bottom:5px;">Muhammad Sudais</h3><span style="display:inline-block;background:rgba(0,75,45,.07);color:var(--sec);padding:3px 10px;border-radius:20px;font-size:.66rem;font-weight:700;margin-bottom:11px;">Full Stack Developer</span><p style="font-size:.76rem;color:var(--txt-s);line-height:1.6;">Designed and developed the FYP Management System including backend APIs, database architecture, and complete frontend.</p></div>
+    <div style="background:var(--sur);border:1px solid var(--bdr-s);border-radius:var(--rad-lg);padding:26px 20px;text-align:center;position:relative;overflow:hidden;"><div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--pr),var(--gold));"></div><div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--sec),var(--pr-dk));display:grid;place-items:center;margin:0 auto 13px;font-size:1.3rem;font-weight:700;color:var(--gold-lt);">AK</div><h3 style="font-size:.9rem;font-weight:700;color:var(--pr);margin-bottom:5px;">Ahmad Khan</h3><span style="display:inline-block;background:rgba(0,75,45,.07);color:var(--sec);padding:3px 10px;border-radius:20px;font-size:.66rem;font-weight:700;margin-bottom:11px;">Frontend Developer</span><p style="font-size:.76rem;color:var(--txt-s);line-height:1.6;">Built responsive, accessible UI components ensuring seamless experience across student, supervisor, and admin interfaces.</p></div>
+    <div style="background:var(--sur);border:1px solid var(--bdr-s);border-radius:var(--rad-lg);padding:26px 20px;text-align:center;position:relative;overflow:hidden;"><div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--pr),var(--gold));"></div><div style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#5b4a9e,var(--pr));display:grid;place-items:center;margin:0 auto 13px;font-size:1.3rem;font-weight:700;color:var(--gold-lt);">ZR</div><h3 style="font-size:.9rem;font-weight:700;color:var(--pr);margin-bottom:5px;">Zaid Rahman</h3><span style="display:inline-block;background:rgba(0,75,45,.07);color:var(--sec);padding:3px 10px;border-radius:20px;font-size:.66rem;font-weight:700;margin-bottom:11px;">Backend &amp; Database</span><p style="font-size:.76rem;color:var(--txt-s);line-height:1.6;">Architected server-side logic, database schemas, and authentication system. Handles API integration and data security.</p></div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="p-login" class="page">
+  <div class="login-page">
+    <div class="login-wrap">
+      <div class="ll">
+        <div class="ll-logo"><div class="ll-lm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="19" height="19"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div><div class="ll-lt"><strong>FYP Management</strong><small>AWKUM · CS Dept</small></div></div>
+        <div><h2>Your Academic Portal Awaits</h2><p>Log in to access your project dashboard, submit proposals, and stay on top of every deadline.</p></div>
+        <div class="perks">
+          <div class="perk"><div class="pck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Submit &amp; track project proposals</div>
+          <div class="perk"><div class="pck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Receive supervisor feedback</div>
+          <div class="perk"><div class="pck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Access evaluation results</div>
+          <div class="perk"><div class="pck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Never miss a deadline</div>
+        </div>
+        <p style="color:rgba(255,255,255,.3);font-size:.66rem;margin-top:16px;">© 2026 AWKUM — CS Department</p>
+      </div>
+      <div class="lr">
+        <h3>Welcome Back</h3><p class="sub">Sign in to continue to your FYP portal</p>
+        <div class="role-tabs">
+          <button class="role-tab act" onclick="setRole('student',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg>Student</button>
+          <button class="role-tab" onclick="setRole('supervisor',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Supervisor</button>
+          <button class="role-tab" onclick="setRole('admin',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admin</button>
+        </div>
+        <div class="fg"><label id="id-lbl">Student ID / Registration No.</label><div class="iw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="13" y2="13"/></svg><input type="text" id="lid" placeholder="e.g. CS-2022-0123"/></div></div>
+        <div class="fg"><label>Password</label><div class="iw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><input type="password" id="lpw" placeholder="Enter your password"/></div></div>
+        <button class="btn-login" id="lbtn" onclick="doLogin()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign In</button>
+        <p style="margin-top:14px;text-align:center;font-size:.74rem;color:var(--txt-m);">Having trouble? <a href="#" style="color:var(--sec);font-weight:700;">Contact IT Support</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="p-dash" class="dash-page">
+  <div class="dash-layout">
+    <aside class="sidebar" id="sb">
+      <button class="sb act" onclick="dTab('overview',this)" title="Dashboard"><svg class="sb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="sb-lbl">Dashboard</span></button>
+      <button class="sb" onclick="dTab('project',this)" title="My Project"><svg class="sb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span class="sb-lbl">My Project</span></button>
+      <button class="sb" onclick="dTab('supervisor',this)" title="Supervisor"><svg class="sb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="sb-lbl">Supervisor</span></button>
+      <button class="sb" onclick="dTab('feedback',this)" title="Feedback"><svg class="sb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="sb-lbl">Feedback</span><span class="sb-badge">2</span></button>
+      <div class="sb-div"></div>
+      <button class="sb" onclick="dTab('deadlines',this)" title="Deadlines"><svg class="sb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span class="sb-lbl">Deadlines</span></button>
+      <button class="sb" onclick="dTab('notifs',this)" title="Notifications"><svg class="sb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="sb-lbl">Notifications</span><span class="sb-badge">3</span></button>
+      <div class="sb-div"></div>
+      <button class="sb" onclick="doLogout()" title="Logout" style="margin-top:auto;"><svg class="sb-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="sb-lbl">Logout</span></button>
+    </aside>
+    <main class="dash-main">
+      <div class="dash-topbar">
+        <div class="dt-l"><h1 id="d-title">Dashboard</h1><p id="d-sub">Welcome back — here's your project overview</p></div>
+        <div class="dt-r">
+          <div class="tb-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="nd"></span></div>
+          <div class="uchip" onclick="doLogout()"><div class="uc-av" id="uc-av">AS</div><div><span id="uc-name">Ahmed Saeed</span><small>Student</small></div></div>
+        </div>
+      </div>
+      <!-- OVERVIEW -->
+      <div class="dsub act" id="ds-overview">
+        <div class="banner"><div class="banner-t"><h2>Welcome back, <span id="b-name">Ahmed Saeed</span> 👋</h2><p>Here's your project overview and recent updates.</p></div><div class="banner-acts"><button class="bb bb-gold" onclick="dTab('project',document.querySelectorAll('.sb')[1])"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>View Project</button><button class="bb bb-ghost" onclick="dTab('feedback',document.querySelectorAll('.sb')[3])"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback</button></div></div>
+        <div class="dstats">
+          <div class="dsc" style="--acc:var(--pr);--icbg:rgba(0,75,45,.08);--icc:var(--pr);"><div class="dsc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div><div class="dsc-lbl">Project Title</div><div class="dsc-val">AI Exam Proctoring</div><div class="dsc-sub">Active</div></div></div>
+          <div class="dsc" style="--acc:var(--gold);--icbg:rgba(191,161,74,.1);--icc:var(--gold);"><div class="dsc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="dsc-lbl">Supervisor</div><div class="dsc-val">Dr. Aftab Ahmad</div><div class="dsc-sub">FYP Coordinator</div></div></div>
+          <div class="dsc" style="--acc:#e97c1a;--icbg:rgba(233,124,26,.08);--icc:#e97c1a;"><div class="dsc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div><div class="dsc-lbl">Next Deadline</div><div class="dsc-val">20 Apr</div><div class="dsc-sub">Mid Evaluation</div></div></div>
+          <div class="dsc" style="--acc:#3b82f6;--icbg:rgba(59,130,246,.08);--icc:#3b82f6;"><div class="dsc-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><div class="dsc-lbl">Feedback</div><div class="dsc-val">Good Progress</div><div class="dsc-sub">2 days ago</div></div></div>
+        </div>
+        <div class="dash-grid">
+          <div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Project Overview</h3><button class="ca" onclick="dTab('project',document.querySelectorAll('.sb')[1])">Details →</button></div><div class="cb"><div class="pr"><span class="pk">Title</span><span class="pv" style="font-weight:700;color:var(--pr);">AI-Based Exam Proctoring System</span></div><div class="pr"><span class="pk">Description</span><span class="pv">Automated online exam monitoring using computer vision and ML algorithms</span></div><div class="pr"><span class="pk">Status</span><span class="pv"><span class="badge b-ok">Approved</span></span></div><div class="pr"><span class="pk">Category</span><span class="pv">AI / Machine Learning</span></div><div class="pr"><span class="pk">Group Size</span><span class="pv">3 Members</span></div><div class="pr"><span class="pk">Final Deadline</span><span class="pv">25 June 2026</span></div></div></div>
+          <div style="display:flex;flex-direction:column;gap:16px;"><div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Latest Feedback</h3><button class="ca" onclick="dTab('feedback',document.querySelectorAll('.sb')[3])">All →</button></div><div class="cb"><div class="fbi"><div class="fbh"><div class="fbav">AA</div><div><div class="fbn">Dr. Aftab Ahmad</div></div><span class="fbt">2 days ago</span></div><div class="fbtxt">Good progress on the proposal. Please refine the methodology section and add more detail to the literature review.</div></div><div class="fbi"><div class="fbh"><div class="fbav">NI</div><div><div class="fbn">Dr. Nadeem Iqbal</div></div><span class="fbt">1 week ago</span></div><div class="fbtxt">Project topic is well-chosen. Ensure the scope is well-defined before mid-evaluation.</div></div></div></div></div>
+        </div>
+        <div class="dash-grid-2">
+          <div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Upcoming Deadlines</h3><button class="ca" onclick="dTab('deadlines',document.querySelectorAll('.sb')[5])">All →</button></div><div class="cb"><div class="dli"><div class="dldt" style="background:var(--gold);"><span class="dlday">20</span><span class="dlmo">Apr</span></div><div><div class="dlt">Mid Evaluation</div><div class="dls">Progress presentation to faculty</div></div><span class="dltag t-urg">2 days</span></div><div class="dli"><div class="dldt" style="background:#5b4a9e;"><span class="dlday">10</span><span class="dlmo">Jun</span></div><div><div class="dlt">Documentation Submission</div><div class="dls">Final project documentation</div></div><span class="dltag t-near">53 days</span></div><div class="dli"><div class="dldt" style="background:#a0522d;"><span class="dlday">25</span><span class="dlmo">Jun</span></div><div><div class="dlt">Final Presentation</div><div class="dls">Defense before the faculty panel</div></div><span class="dltag t-ok">68 days</span></div></div></div>
+          <div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Notifications</h3><button class="ca" onclick="dTab('notifs',document.querySelectorAll('.sb')[6])">All →</button></div><div class="cb"><div class="ni"><div class="nic" style="background:rgba(0,75,45,.08);"><svg style="color:var(--pr);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="ni-t">Proposal Approved ✓</div><div class="ni-d">Your FYP proposal has been approved.</div></div><div class="ni-tm">1d</div></div><div class="ni"><div class="nic" style="background:rgba(234,179,8,.1);"><svg style="color:#ca8a04;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div><div class="ni-t">Mid Evaluation Reminder</div><div class="ni-d">Mid-evaluation is in 2 days.</div></div><div class="ni-tm">2d</div></div><div class="ni"><div class="nic" style="background:rgba(59,130,246,.1);"><svg style="color:#3b82f6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><div class="ni-t">New Feedback Received</div><div class="ni-d">Dr. Aftab Ahmad left feedback on your proposal.</div></div><div class="ni-tm">3d</div></div></div></div>
+        </div>
+      </div>
+      <!-- PROJECT -->
+      <div class="dsub" id="ds-project">
+        <div class="card" style="margin-bottom:16px;"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>My Project Details</h3><span class="badge b-ok" style="padding:4px 11px;">Approved</span></div><div class="cb"><div class="pr"><span class="pk">Title</span><span class="pv" style="font-weight:700;color:var(--pr);">AI-Based Exam Proctoring System</span></div><div class="pr"><span class="pk">Description</span><span class="pv">An intelligent online exam monitoring system using computer vision, facial recognition, and ML to detect suspicious behavior in real-time.</span></div><div class="pr"><span class="pk">Category</span><span class="pv">Artificial Intelligence / Machine Learning</span></div><div class="pr"><span class="pk">Stack</span><span class="pv">Python, OpenCV, TensorFlow, React, Node.js, PostgreSQL</span></div><div class="pr"><span class="pk">Group Members</span><span class="pv">Ahmed Saeed (Leader), Bilal Khan, Sana Malik</span></div><div class="pr"><span class="pk">Supervisor</span><span class="pv">Dr. Aftab Ahmad</span></div><div class="pr"><span class="pk">Submitted</span><span class="pv">12 January 2026</span></div><div class="pr"><span class="pk">Final Deadline</span><span class="pv">25 June 2026</span></div></div></div>
+        <div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Project Progress</h3></div><div class="cb">
+          <div class="prog"><div class="phd"><span class="pl">Proposal</span><span class="pp">100%</span></div><div class="pbar"><div class="pfill" style="width:100%;background:linear-gradient(90deg,var(--pr),var(--sec));"></div></div></div>
+          <div class="prog"><div class="phd"><span class="pl">Literature Review</span><span class="pp">80%</span></div><div class="pbar"><div class="pfill" style="width:80%;background:linear-gradient(90deg,var(--pr),var(--sec));"></div></div></div>
+          <div class="prog"><div class="phd"><span class="pl">System Design</span><span class="pp">60%</span></div><div class="pbar"><div class="pfill" style="width:60%;background:linear-gradient(90deg,var(--gold),var(--gold-lt));"></div></div></div>
+          <div class="prog"><div class="phd"><span class="pl">Implementation</span><span class="pp">35%</span></div><div class="pbar"><div class="pfill" style="width:35%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div></div>
+          <div class="prog"><div class="phd"><span class="pl">Testing &amp; Docs</span><span class="pp">10%</span></div><div class="pbar"><div class="pfill" style="width:10%;background:linear-gradient(90deg,#5b4a9e,#7c6fbb);"></div></div></div>
+        </div></div>
+      </div>
+      <!-- SUPERVISOR -->
+      <div class="dsub" id="ds-supervisor">
+        <div class="card" style="margin-bottom:16px;"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Supervisor</h3></div><div class="cb"><div class="sup"><div class="sav">AA</div><div class="si"><strong>Dr. Aftab Ahmad</strong><span>FYP Coordinator · Associate Professor</span></div><button class="bmsg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</button></div><div class="pr"><span class="pk">Department</span><span class="pv">Computer Science, AWKUM</span></div><div class="pr"><span class="pk">Research</span><span class="pv">AI, Machine Learning, Data Mining, NLP</span></div><div class="pr"><span class="pk">Office</span><span class="pv">CS Block, Room 204, AWKUM Mardan</span></div><div class="pr"><span class="pk">Email</span><span class="pv">aftab.ahmad@awkum.edu.pk</span></div><div class="pr"><span class="pk">Office Hours</span><span class="pv">Mon, Wed, Fri — 10:00 AM to 12:00 PM</span></div></div></div>
+        <div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Meeting Timeline</h3></div><div class="cb"><div class="tl">
+          <div class="tli tl-done"><div class="tll"><div class="tldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="tlline"></div></div><div><div class="tl-ttl">Initial Meeting — Topic Discussion</div><div class="tl-dt">January 5, 2026</div></div></div>
+          <div class="tli tl-done"><div class="tll"><div class="tldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="tlline"></div></div><div><div class="tl-ttl">Proposal Review &amp; Feedback</div><div class="tl-dt">January 18, 2026</div></div></div>
+          <div class="tli tl-act"><div class="tll"><div class="tldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" fill="currentColor"/></svg></div><div class="tlline"></div></div><div><div class="tl-ttl">Mid-Evaluation Preparation — Upcoming</div><div class="tl-dt">April 19, 2026</div></div></div>
+          <div class="tli tl-up"><div class="tll"><div class="tldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></div><div class="tlline"></div></div><div><div class="tl-ttl">Documentation Review</div><div class="tl-dt">June 5, 2026</div></div></div>
+          <div class="tli tl-up"><div class="tll"><div class="tldot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg></div></div><div><div class="tl-ttl">Final Presentation Rehearsal</div><div class="tl-dt">June 20, 2026</div></div></div>
+        </div></div></div>
+      </div>
+      <!-- FEEDBACK -->
+      <div class="dsub" id="ds-feedback">
+        <div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>All Feedback</h3><span class="badge b-ok">2 New</span></div><div class="cb">
+          <div class="fbi"><div class="fbh"><div class="fbav">AA</div><div><div class="fbn">Dr. Aftab Ahmad</div><div style="font-size:.65rem;color:var(--txt-m);">On: Proposal Document</div></div><span class="fbt">16 Apr 2026</span></div><div class="fbtxt">Good progress on the proposal. Please refine the methodology section with more technical detail. Add at least 20 recent references to the literature review.</div></div>
+          <div class="fbi"><div class="fbh"><div class="fbav">NI</div><div><div class="fbn">Dr. Nadeem Iqbal</div><div style="font-size:.65rem;color:var(--txt-m);">On: Project Scope</div></div><span class="fbt">10 Apr 2026</span></div><div class="fbtxt">Project topic is well-chosen and highly relevant. Focus on quality over quantity when it comes to features.</div></div>
+          <div class="fbi"><div class="fbh"><div class="fbav">AA</div><div><div class="fbn">Dr. Aftab Ahmad</div><div style="font-size:.65rem;color:var(--txt-m);">On: Initial Topic</div></div><span class="fbt">5 Jan 2026</span></div><div class="fbtxt">The initial idea is promising. Start working on the literature review and identify the specific algorithms you will implement.</div></div>
+        </div></div>
+      </div>
+      <!-- DEADLINES -->
+      <div class="dsub" id="ds-deadlines">
+        <div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>All Deadlines — 2025–26</h3></div><div class="cb">
+          <div class="dli"><div class="dldt" style="background:var(--pr);"><span class="dlday">15</span><span class="dlmo">Jan</span></div><div><div class="dlt">Proposal Submission</div><div class="dls">Final deadline for FYP proposal submission</div></div><span class="dltag t-ok">Done ✓</span></div>
+          <div class="dli"><div class="dldt" style="background:var(--sec);"><span class="dlday">01</span><span class="dlmo">Mar</span></div><div><div class="dlt">Supervisor Allocation</div><div class="dls">Supervisors officially assigned</div></div><span class="dltag t-ok">Done ✓</span></div>
+          <div class="dli"><div class="dldt" style="background:var(--gold);"><span class="dlday">20</span><span class="dlmo">Apr</span></div><div><div class="dlt">Mid Evaluation</div><div class="dls">Progress presentation to the committee</div></div><span class="dltag t-urg">2 days</span></div>
+          <div class="dli"><div class="dldt" style="background:#5b4a9e;"><span class="dlday">10</span><span class="dlmo">Jun</span></div><div><div class="dlt">Documentation Submission</div><div class="dls">Final project documentation due</div></div><span class="dltag t-near">53 days</span></div>
+          <div class="dli"><div class="dldt" style="background:#a0522d;"><span class="dlday">25</span><span class="dlmo">Jun</span></div><div><div class="dlt">Final Presentation</div><div class="dls">Defense before the faculty panel</div></div><span class="dltag t-ok">68 days</span></div>
+          <div class="dli"><div class="dldt" style="background:#2d6a9e;"><span class="dlday">10</span><span class="dlmo">Jul</span></div><div><div class="dlt">Results Announcement</div><div class="dls">Final grades announced via portal</div></div><span class="dltag t-ok">83 days</span></div>
+        </div></div>
+      </div>
+      <!-- NOTIFICATIONS -->
+      <div class="dsub" id="ds-notifs">
+        <div class="card"><div class="ch"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>All Notifications</h3><span class="badge b-rev">3 Unread</span></div><div class="cb">
+          <div class="ni"><div class="nic" style="background:rgba(0,75,45,.08);"><svg style="color:var(--pr);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div><div class="ni-t">Proposal Approved ✓</div><div class="ni-d">Your FYP proposal has been reviewed and approved. You may now proceed to the development phase.</div></div><div class="ni-tm">1d</div></div>
+          <div class="ni"><div class="nic" style="background:rgba(234,179,8,.1);"><svg style="color:#ca8a04;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div><div class="ni-t">Mid Evaluation Reminder ⚠</div><div class="ni-d">Your mid-evaluation is scheduled in 2 days (20 April 2026). Ensure your presentation is ready.</div></div><div class="ni-tm">2d</div></div>
+          <div class="ni"><div class="nic" style="background:rgba(59,130,246,.1);"><svg style="color:#3b82f6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><div class="ni-t">New Feedback Received</div><div class="ni-d">Dr. Aftab Ahmad has left detailed feedback on your proposal document.</div></div><div class="ni-tm">3d</div></div>
+          <div class="ni"><div class="nic" style="background:rgba(0,75,45,.08);"><svg style="color:var(--pr);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div><div class="ni-t">Supervisor Assigned</div><div class="ni-d">Dr. Aftab Ahmad has been officially assigned as your FYP supervisor.</div></div><div class="ni-tm">48d</div></div>
+        </div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+var curRole='student',isDash=false;
+function go(pg){
+  if(isDash&&pg==='home'){doLogout();return;}
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.dash-page').forEach(function(p){p.classList.remove('active');});
+  ['n-home','n-faq','n-msg','n-dev'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('act');});
+  var t=document.getElementById('p-'+pg);if(t)t.classList.add('active');
+  var n=document.getElementById('n-'+pg);if(n)n.classList.add('act');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function setRole(role,el){
+  curRole=role;
+  document.querySelectorAll('.role-tab').forEach(function(t){t.classList.remove('act');});
+  el.classList.add('act');
+  var labels={student:'Student ID / Registration No.',supervisor:'Faculty ID / Email',admin:'Admin Username'};
+  var phs={student:'e.g. CS-2022-0123',supervisor:'e.g. faculty@awkum.edu.pk',admin:'e.g. admin'};
+  document.getElementById('id-lbl').textContent=labels[role];
+  document.getElementById('lid').placeholder=phs[role];
+}
+function doLogin(){
+  var id=document.getElementById('lid').value.trim();
+  var pw=document.getElementById('lpw').value;
+  var btn=document.getElementById('lbtn');
+  if(!id||!pw){btn.style.background='#DC2626';btn.textContent='Please fill all fields';setTimeout(function(){btn.style.background='';btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign In';},2000);return;}
+  btn.textContent='Signing in…';btn.disabled=true;
+  setTimeout(function(){
+    btn.textContent='Welcome!';btn.style.background='#15803D';
+    setTimeout(function(){
+      btn.disabled=false;btn.style.background='';btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign In';
+      if(curRole==='student'){
+        isDash=true;
+        document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+        document.getElementById('p-dash').classList.add('active');
+        document.getElementById('pub-nav').style.display='none';
+        document.getElementById('nav-login-btn').style.display='none';
+        dTab('overview',document.querySelector('#sb .sb'));
+      } else {go('home');}
+    },1400);
+  },1100);
+}
+function doLogout(){
+  isDash=false;
+  document.querySelectorAll('.dash-page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('pub-nav').style.display='';
+  document.getElementById('nav-login-btn').style.display='';
+  go('home');
+}
+var dtitles={overview:'Dashboard',project:'My Project',supervisor:'Supervisor',feedback:'Feedback',deadlines:'Deadlines',notifs:'Notifications'};
+var dsubs={overview:'Welcome back — here\'s your project overview',project:'AI-Based Exam Proctoring System',supervisor:'Dr. Aftab Ahmad — FYP Coordinator',feedback:'Comments and reviews from your supervisors',deadlines:'All submission and evaluation deadlines',notifs:'Your recent alerts and updates'};
+function dTab(tab,clickedEl){
+  document.querySelectorAll('.dsub').forEach(function(el){el.classList.remove('act');});
+  var t=document.getElementById('ds-'+tab);if(t)t.classList.add('act');
+  document.querySelectorAll('.sb').forEach(function(el){el.classList.remove('act');});
+  if(clickedEl)clickedEl.classList.add('act');
+  document.getElementById('d-title').textContent=dtitles[tab]||tab;
+  document.getElementById('d-sub').textContent=dsubs[tab]||'';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+var faqData=[
+  {cat:'Coursera Courses',items:[{q:'What is the minimum number of courses required?',a:'A minimum of 3 approved Coursera courses or an equivalent 6-week internship is required as a prerequisite for FYP registration.'},{q:'How do I register for Coursera courses?',a:'Visit coursera.org and sign in with your university email. Enroll in courses from the approved list.'},{q:'What if my campus is not listed?',a:'Contact the IT helpdesk or your FYP coordinator with your enrollment details.'}]},
+  {cat:'Starting Your FYP Proposal',items:[{q:'What are the prerequisites for FYP approval?',a:'You must complete at least 120 credit hours, clear all prerequisite courses, complete Coursera courses or internship, and obtain your supervisor\'s signature.'},{q:'What is the maximum group size?',a:'The maximum group size is 3 students. Single-member projects are also allowed.'}]},
+  {cat:'Proposal Submission',items:[{q:'Which file format is allowed?',a:'Proposals must be submitted in PDF format only using the official department template.'},{q:'What happens after submission?',a:'The proposal is reviewed within 10 working days. Status will be Approved, Revision Required, or Rejected.'}]},
+];
+var openF=null;
+(function(){
+  var c=document.getElementById('faq-c');if(!c)return;
+  c.innerHTML=faqData.map(function(cat,ci){
+    return'<div style="margin-bottom:30px;"><div style="display:flex;align-items:center;gap:9px;font-size:.88rem;font-weight:700;color:var(--pr);margin-bottom:12px;padding-bottom:9px;border-bottom:2px solid var(--bdr-s);">'+(ci+1)+'. '+cat.cat+'</div>'+
+    cat.items.map(function(item,ii){var id='fq-'+ci+'-'+ii;
+      return'<div id="'+id+'" style="background:var(--sur);border:1px solid var(--bdr-s);border-radius:12px;margin-bottom:6px;overflow:hidden;"><div onclick="tFAQ(\''+id+'\')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;gap:10px;"><span style="font-size:.82rem;font-weight:600;color:var(--txt);flex:1;">'+(ci+1)+'.'+(ii+1)+' '+item.q+'</span><div style="width:24px;height:24px;border-radius:7px;background:var(--bg);border:1px solid var(--bdr);display:grid;place-items:center;flex-shrink:0;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg></div></div><div style="max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 16px;" class="fq-a"><p style="font-size:.8rem;color:var(--txt-s);line-height:1.7;padding:12px 0 14px;border-top:1px solid var(--bdr-s);">'+item.a+'</p></div></div>';
+    }).join('')+'</div>';
+  }).join('');
+})();
+function tFAQ(id){var el=document.getElementById(id);var a=el.querySelector('.fq-a');if(openF&&openF!==id){var oel=document.getElementById(openF);if(oel)oel.querySelector('.fq-a').style.maxHeight='0';}var isO=a.style.maxHeight&&a.style.maxHeight!=='0px'&&a.style.maxHeight!=='';a.style.maxHeight=isO?'0':'300px';openF=isO?null:id;}
+</script>
+</body>
+</html>
