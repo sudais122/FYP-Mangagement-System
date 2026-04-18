@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Student Dashboard — FYP Management AWKUM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary: #004b2d;
+      --primary-dark: #003520;
+      --secondary: #1f7a5c;
+      --secondary-lt: #2a9670;
+      --bg: #f8f9fa;
+      --surface: #ffffff;
+      --gold: #bfa14a;
+      --gold-lt: #d4b96b;
+      --text: #1c1c1c;
+      --text-soft: #4a5568;
+      --text-mute: #6c757d;
+      --border: #e2e8f0;
+      --border-soft: #edf2f7;
+      --shadow-sm: 0 1px 3px rgba(0,75,45,0.07);
+      --shadow: 0 4px 18px rgba(0,75,45,0.09);
+      --shadow-lg: 0 14px 40px rgba(0,75,45,0.13);
+      --radius: 12px;
+      --radius-lg: 18px;
+      --font: "DM Sans", sans-serif;
+      --font-display: "Playfair Display", serif;
+      --tr: 0.25s cubic-bezier(0.4,0,0.2,1);
+      --sidebar-w: 72px;
+      --sidebar-expanded: 240px;
+    }
+
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    button { font-family: var(--font); cursor: pointer; border: none; }
+    svg { display: block; flex-shrink: 0; }
+
+    /* ══ NAVBAR ══ */
+    .navbar { background: var(--primary); position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 20px rgba(0,0,0,0.25); }
+    .nav-inner { max-width: 1400px; margin: 0 auto; padding: 0 28px; height: 68px; display: flex; align-items: center; gap: 12px; }
+    .nav-logo-mark { width: 42px; height: 42px; border-radius: 10px; background: rgba(255,255,255,0.12); border: 1.5px solid rgba(191,161,74,0.5); display: grid; place-items: center; flex-shrink: 0; }
+    .nav-logo-mark svg { width: 22px; height: 22px; color: var(--gold); }
+    .nav-brand-text strong { display: block; color: #fff; font-weight: 700; font-size: 0.96rem; letter-spacing: -0.01em; line-height: 1.2; }
+    .nav-brand-text small { color: rgba(191,161,74,0.85); font-size: 0.68rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+    .nav-title { color: rgba(255,255,255,0.55); font-size: 0.82rem; padding-left: 16px; border-left: 1px solid rgba(255,255,255,0.15); margin-left: 4px; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .nav-notif { width: 36px; height: 36px; border-radius: 9px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); display: grid; place-items: center; cursor: pointer; position: relative; transition: var(--tr); }
+    .nav-notif:hover { background: rgba(255,255,255,0.14); }
+    .nav-notif svg { width: 16px; height: 16px; color: rgba(255,255,255,0.8); }
+    .notif-dot { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); border: 1.5px solid var(--primary); }
+    .nav-user { display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); padding: 6px 14px 6px 6px; border-radius: 10px; cursor: pointer; transition: var(--tr); }
+    .nav-user:hover { background: rgba(255,255,255,0.14); }
+    .nav-avatar { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg,var(--primary-dark),var(--secondary)); border: 1.5px solid rgba(191,161,74,0.4); display: grid; place-items: center; font-family: var(--font-display); font-size: 0.72rem; font-weight: 700; color: var(--gold-lt); flex-shrink: 0; }
+    .nav-user-info strong { display: block; color: #fff; font-size: 0.82rem; font-weight: 700; line-height: 1.2; }
+    .nav-user-info small { color: rgba(191,161,74,0.8); font-size: 0.62rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+    .nav-logout { padding: 8px 16px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; color: rgba(255,255,255,0.8); font-size: 0.78rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: var(--tr); }
+    .nav-logout:hover { background: rgba(220,38,38,0.2); border-color: rgba(220,38,38,0.3); color: #fca5a5; }
+    .nav-logout svg { width: 13px; height: 13px; }
+
+    /* ══ LAYOUT ══ */
+    .dash-layout { display: flex; min-height: calc(100vh - 68px); }
+
+    /* ══ SIDEBAR ══ */
+    .dash-sidebar {
+      width: var(--sidebar-w);
+      background: var(--primary-dark);
+      border-right: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+      gap: 4px;
+      position: sticky;
+      top: 68px;
+      height: calc(100vh - 68px);
+      overflow: hidden;
+      transition: width var(--tr);
+      z-index: 50;
+      flex-shrink: 0;
+    }
+    .dash-sidebar:hover {
+      width: var(--sidebar-expanded);
+      align-items: flex-start;
+      padding: 20px 12px;
+      box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+    }
+    .sb-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: var(--tr);
+      color: rgba(255,255,255,0.55);
+      white-space: nowrap;
+      overflow: hidden;
+      border: none;
+      background: none;
+      font-family: var(--font);
+    }
+    .sb-item:hover { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.9); }
+    .sb-item.active { background: rgba(191,161,74,0.15); color: var(--gold-lt); }
+    .sb-item.active .sb-icon { color: var(--gold); }
+    .sb-icon { width: 20px; height: 20px; flex-shrink: 0; }
+    .sb-label { font-size: 0.85rem; font-weight: 600; opacity: 0; transition: opacity 0.2s ease 0s; }
+    .dash-sidebar:hover .sb-label { opacity: 1; transition: opacity 0.2s ease 0.1s; }
+    .sb-badge { background: var(--gold); color: var(--primary-dark); font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 10px; margin-left: auto; flex-shrink: 0; opacity: 0; }
+    .dash-sidebar:hover .sb-badge { opacity: 1; }
+    .sb-divider { width: calc(100% - 24px); height: 1px; background: rgba(255,255,255,0.07); margin: 6px 12px; }
+    .dash-sidebar:hover .sb-divider { width: 100%; margin: 6px 0; }
+    .sb-item.logout-btn:hover { background: rgba(220,38,38,0.15); color: #fca5a5; }
+
+    /* ══ MAIN CONTENT ══ */
+    .dash-main { flex: 1; padding: 28px; overflow-y: auto; min-width: 0; }
+
+    /* ══ TOP BAR ══ */
+    .dash-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .dash-topbar-left h1 { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; }
+    .dash-topbar-left p { font-size: 0.82rem; color: var(--text-mute); margin-top: 2px; }
+
+    /* ══ BANNER ══ */
+    .dash-banner {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary-lt) 100%);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .dash-banner::before { content: ""; position: absolute; right: -60px; top: -60px; width: 240px; height: 240px; background: radial-gradient(ellipse,rgba(191,161,74,0.18),transparent 70%); pointer-events: none; }
+    .dash-banner::after { content: "FYP"; position: absolute; right: 32px; bottom: -20px; font-family: var(--font-display); font-size: 6rem; font-weight: 800; color: rgba(255,255,255,0.04); pointer-events: none; letter-spacing: -0.04em; }
+    .banner-text h2 { font-family: var(--font-display); font-size: 1.55rem; font-weight: 700; color: #fff; margin-bottom: 5px; letter-spacing: -0.02em; }
+    .banner-text p { color: rgba(255,255,255,0.7); font-size: 0.88rem; }
+    .banner-actions { display: flex; gap: 10px; position: relative; z-index: 1; }
+    .btn-banner { padding: 9px 20px; border-radius: 9px; font-size: 0.82rem; font-weight: 700; display: flex; align-items: center; gap: 7px; transition: var(--tr); cursor: pointer; border: none; font-family: var(--font); }
+    .btn-banner svg { width: 14px; height: 14px; }
+    .btn-banner-primary { background: var(--gold); color: var(--primary-dark); }
+    .btn-banner-primary:hover { background: var(--gold-lt); transform: translateY(-1px); }
+    .btn-banner-ghost { background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.25); color: #fff; }
+    .btn-banner-ghost:hover { background: rgba(255,255,255,0.2); }
+
+    /* ══ STAT CARDS ══ */
+    .dash-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .dstat-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius); padding: 20px; display: flex; align-items: center; gap: 14px; transition: var(--tr); position: relative; overflow: hidden; }
+    .dstat-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+    .dstat-card::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--card-accent, var(--primary)); border-radius: 3px 0 0 3px; }
+    .dstat-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--card-icon-bg, rgba(0,75,45,0.08)); display: grid; place-items: center; flex-shrink: 0; }
+    .dstat-icon svg { width: 20px; height: 20px; color: var(--card-icon-color, var(--primary)); }
+    .dstat-label { font-size: 0.72rem; font-weight: 700; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .dstat-value { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; color: var(--primary); letter-spacing: -0.02em; line-height: 1; }
+    .dstat-sub { font-size: 0.72rem; color: var(--text-mute); margin-top: 3px; }
+
+    /* ══ GRID ══ */
+    .dash-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .dash-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+    /* ══ CARDS ══ */
+    .dash-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--radius-lg); overflow: hidden; }
+    .dash-card-header { padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-soft); }
+    .dash-card-header h3 { font-size: 0.9rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+    .dash-card-header h3 svg { width: 16px; height: 16px; color: var(--gold); }
+    .card-action { font-size: 0.76rem; font-weight: 700; color: var(--secondary); cursor: pointer; padding: 5px 12px; border-radius: 6px; transition: var(--tr); background: rgba(0,75,45,0.06); border: none; font-family: var(--font); }
+    .card-action:hover { background: rgba(0,75,45,0.12); color: var(--primary); }
+    .dash-card-body { padding: 18px 22px; }
+
+    /* ══ PROJECT ROWS ══ */
+    .proj-row { display: flex; gap: 10px; align-items: flex-start; padding: 11px 0; border-bottom: 1px solid var(--border-soft); }
+    .proj-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .proj-key { font-size: 0.75rem; font-weight: 700; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; width: 140px; flex-shrink: 0; padding-top: 1px; }
+    .proj-val { font-size: 0.86rem; color: var(--text); font-weight: 500; flex: 1; }
+    .status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+    .status-badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+    .s-approved { background: rgba(0,75,45,0.1); color: var(--primary); }
+    .s-pending { background: rgba(234,179,8,0.1); color: #a16207; }
+    .s-review { background: rgba(59,130,246,0.1); color: #1d4ed8; }
+    .s-rejected { background: rgba(220,38,38,0.1); color: #dc2626; }
+
+    /* ══ PROGRESS ══ */
+    .prog-wrap { margin-bottom: 14px; }
+    .prog-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+    .prog-label { font-size: 0.8rem; font-weight: 600; color: var(--text-soft); }
+    .prog-pct { font-size: 0.78rem; font-weight: 700; color: var(--primary); }
+    .prog-bar { height: 8px; background: var(--border-soft); border-radius: 4px; overflow: hidden; }
+    .prog-fill { height: 100%; background: linear-gradient(90deg,var(--primary),var(--secondary-lt)); border-radius: 4px; }
+
+    /* ══ FEEDBACK ══ */
+    .fb-item { padding: 14px 0; border-bottom: 1px solid var(--border-soft); }
+    .fb-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .fb-head { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+    .fb-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,var(--primary),var(--secondary)); display: grid; place-items: center; font-size: 0.7rem; font-weight: 700; color: var(--gold-lt); flex-shrink: 0; }
+    .fb-name { font-size: 0.82rem; font-weight: 700; color: var(--primary); }
+    .fb-time { font-size: 0.72rem; color: var(--text-mute); margin-left: auto; }
+    .fb-text { font-size: 0.82rem; color: var(--text-soft); line-height: 1.6; padding: 10px 12px; background: var(--bg); border-radius: 8px; border-left: 3px solid var(--gold); }
+
+    /* ══ DEADLINES ══ */
+    .dl-item { display: flex; gap: 14px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border-soft); }
+    .dl-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .dl-date { background: var(--primary); color: #fff; border-radius: 9px; padding: 7px 10px; text-align: center; flex-shrink: 0; min-width: 46px; }
+    .dl-day { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; line-height: 1; display: block; }
+    .dl-mo { font-size: 0.58rem; font-weight: 600; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.06em; }
+    .dl-title { font-size: 0.84rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .dl-desc { font-size: 0.74rem; color: var(--text-mute); }
+    .dl-tag { margin-left: auto; flex-shrink: 0; padding: 3px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; }
+    .tag-urgent { background: rgba(220,38,38,0.08); color: #dc2626; }
+    .tag-near { background: rgba(234,179,8,0.1); color: #a16207; }
+    .tag-ok { background: rgba(0,75,45,0.08); color: var(--secondary); }
+
+    /* ══ NOTIFICATIONS ══ */
+    .notif-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border-soft); align-items: flex-start; }
+    .notif-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .notif-icon { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0; }
+    .notif-icon svg { width: 15px; height: 15px; }
+    .n-success .notif-icon { background: rgba(0,75,45,0.08); }
+    .n-success .notif-icon svg { color: var(--primary); }
+    .n-warn .notif-icon { background: rgba(234,179,8,0.1); }
+    .n-warn .notif-icon svg { color: #ca8a04; }
+    .notif-title { font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .notif-desc { font-size: 0.76rem; color: var(--text-mute); line-height: 1.5; }
+    .notif-time { font-size: 0.7rem; color: var(--text-mute); flex-shrink: 0; margin-top: 2px; }
+
+    /* ══ SUPERVISOR ══ */
+    .sup-card { display: flex; gap: 14px; align-items: center; padding: 16px; background: rgba(0,75,45,0.04); border-radius: var(--radius); border: 1px solid rgba(0,75,45,0.1); margin-bottom: 14px; }
+    .sup-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg,var(--primary),var(--secondary)); display: grid; place-items: center; font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--gold-lt); flex-shrink: 0; }
+    .sup-info strong { display: block; font-size: 0.9rem; font-weight: 700; color: var(--primary); }
+    .sup-info span { font-size: 0.76rem; color: var(--text-mute); }
+    .btn-msg-sup { margin-left: auto; padding: 7px 14px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: var(--tr); font-family: var(--font); }
+    .btn-msg-sup:hover { background: var(--secondary); }
+    .btn-msg-sup svg { width: 13px; height: 13px; }
+
+    /* ══ TIMELINE ══ */
+    .timeline { display: flex; flex-direction: column; }
+    .tl-item { display: flex; gap: 14px; padding: 12px 0; }
+    .tl-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 32px; }
+    .tl-dot { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
+    .tl-dot svg { width: 13px; height: 13px; }
+    .tl-line { flex: 1; width: 2px; background: var(--border-soft); margin: 4px auto; }
+    .tl-item:last-child .tl-line { display: none; }
+    .tl-done .tl-dot { background: rgba(0,75,45,0.1); color: var(--primary); }
+    .tl-active .tl-dot { background: var(--gold); color: var(--primary-dark); }
+    .tl-upcoming .tl-dot { background: var(--border-soft); color: var(--text-mute); }
+    .tl-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .tl-active .tl-title { color: var(--primary); }
+    .tl-date { font-size: 0.74rem; color: var(--text-mute); }
+
+    /* ══ SUBPAGES ══ */
+    .dash-subpage { display: none; }
+    .dash-subpage.active { display: block; }
+
+    /* ══ RESPONSIVE ══ */
+    @media(max-width:1024px) { .dash-stats { grid-template-columns: 1fr 1fr; } .dash-grid { grid-template-columns: 1fr; } .dash-grid-2 { grid-template-columns: 1fr; } }
+    @media(max-width:768px) { .dash-sidebar { display: none; } .dash-stats { grid-template-columns: 1fr 1fr; } .dash-banner { flex-direction: column; gap: 16px; align-items: flex-start; } }
+    @media(max-width:600px) { .dash-stats { grid-template-columns: 1fr; } .dash-main { padding: 16px; } }
+
+    @keyframes spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- ══ NAVBAR ══ -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </div>
+      <div class="nav-brand-text">
+        <strong>FYP Management</strong>
+        <small>AWKUM · CS Department</small>
+      </div>
+      <span class="nav-title">Student Dashboard</span>
+      <div class="nav-right">
+        <div class="nav-notif" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-dot"></span>
+        </div>
+        <div class="nav-user">
+          <div class="nav-avatar" id="nav-avatar">AS</div>
+          <div class="nav-user-info">
+            <strong id="nav-username">Ahmed Saeed</strong>
+            <small>Student</small>
+          </div>
+        </div>
+        <button class="nav-logout" onclick="window.location.href='index.html'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ DASHBOARD LAYOUT ══ -->
+  <div class="dash-layout">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="dash-sidebar" id="dash-sidebar">
+      <button class="sb-item active" onclick="switchTab('overview',this)" title="Dashboard">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span class="sb-label">Dashboard</span>
+      </button>
+      <button class="sb-item" onclick="switchTab('project',this)" title="My Project">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="sb-label">My Project</span>
+      </button>
+      <button class="sb-item" onclick="switchTab('supervisor',this)" title="Supervisor">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="sb-label">Supervisor</span>
+      </button>
+      <button class="sb-item" onclick="switchTab('feedback',this)" title="Feedback">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span class="sb-label">Feedback</span>
+        <span class="sb-badge">2</span>
+      </button>
+      <div class="sb-divider"></div>
+      <button class="sb-item" onclick="switchTab('deadlines',this)" title="Deadlines">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span class="sb-label">Deadlines</span>
+      </button>
+      <button class="sb-item" onclick="switchTab('notifications',this)" title="Notifications">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="sb-label">Notifications</span>
+        <span class="sb-badge">3</span>
+      </button>
+      <div class="sb-divider"></div>
+      <button class="sb-item logout-btn" onclick="window.location.href='index.html'" title="Logout" style="margin-top:auto;">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="sb-label">Logout</span>
+      </button>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="dash-main">
+
+      <!-- Top bar -->
+      <div class="dash-topbar">
+        <div class="dash-topbar-left">
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-sub">Welcome back — here's your project overview</p>
+        </div>
+      </div>
+
+      <!-- ═══ OVERVIEW TAB ═══ -->
+      <div class="dash-subpage active" id="tab-overview">
+        <div class="dash-banner">
+          <div class="banner-text">
+            <h2>Welcome back, <span id="banner-name">Ahmed Saeed</span> 👋</h2>
+            <p>Here's your project overview and recent updates.</p>
+          </div>
+          <div class="banner-actions">
+            <button class="btn-banner btn-banner-primary" onclick="switchTab('project',document.querySelectorAll('.sb-item')[1])">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              View Project
+            </button>
+            <button class="btn-banner btn-banner-ghost" onclick="switchTab('feedback',document.querySelectorAll('.sb-item')[3])">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              View Feedback
+            </button>
+          </div>
+        </div>
+
+        <div class="dash-stats">
+          <div class="dstat-card" style="--card-accent:var(--primary);--card-icon-bg:rgba(0,75,45,.08);--card-icon-color:var(--primary);">
+            <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div><div class="dstat-label">Project Title</div><div class="dstat-value" style="font-size:.9rem;margin-top:2px;">AI Exam Proctoring</div><div class="dstat-sub">Active Project</div></div>
+          </div>
+          <div class="dstat-card" style="--card-accent:var(--gold);--card-icon-bg:rgba(191,161,74,.1);--card-icon-color:var(--gold);">
+            <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+            <div><div class="dstat-label">Supervisor</div><div class="dstat-value" style="font-size:.9rem;margin-top:2px;">Dr. Aftab Ahmad</div><div class="dstat-sub">FYP Coordinator</div></div>
+          </div>
+          <div class="dstat-card" style="--card-accent:#e97c1a;--card-icon-bg:rgba(233,124,26,.08);--card-icon-color:#e97c1a;">
+            <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div><div class="dstat-label">Next Deadline</div><div class="dstat-value">20 Apr</div><div class="dstat-sub">Mid Evaluation</div></div>
+          </div>
+          <div class="dstat-card" style="--card-accent:#3b82f6;--card-icon-bg:rgba(59,130,246,.08);--card-icon-color:#3b82f6;">
+            <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+            <div><div class="dstat-label">Recent Feedback</div><div class="dstat-value" style="font-size:.9rem;margin-top:2px;">Good Progress</div><div class="dstat-sub">2 days ago</div></div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Project Overview</h3>
+              <button class="card-action" onclick="switchTab('project',document.querySelectorAll('.sb-item')[1])">Details →</button>
+            </div>
+            <div class="dash-card-body">
+              <div class="proj-row"><span class="proj-key">Title</span><span class="proj-val" style="font-weight:700;color:var(--primary);">AI-Based Exam Proctoring System</span></div>
+              <div class="proj-row"><span class="proj-key">Description</span><span class="proj-val">Automated online exam monitoring using computer vision and ML</span></div>
+              <div class="proj-row"><span class="proj-key">Status</span><span class="proj-val"><span class="status-badge s-approved">Approved</span></span></div>
+              <div class="proj-row"><span class="proj-key">Category</span><span class="proj-val">AI / Machine Learning</span></div>
+              <div class="proj-row"><span class="proj-key">Group Size</span><span class="proj-val">3 Members</span></div>
+              <div class="proj-row"><span class="proj-key">Submission Deadline</span><span class="proj-val">25 June 2026</span></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:20px;">
+            <div class="dash-card">
+              <div class="dash-card-header">
+                <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Latest Feedback</h3>
+                <button class="card-action" onclick="switchTab('feedback',document.querySelectorAll('.sb-item')[3])">All →</button>
+              </div>
+              <div class="dash-card-body">
+                <div class="fb-item"><div class="fb-head"><div class="fb-avatar">AA</div><div><div class="fb-name">Dr. Aftab Ahmad</div></div><span class="fb-time">2 days ago</span></div><div class="fb-text">Good progress on the proposal. Please refine the methodology section and add more detail to the literature review.</div></div>
+                <div class="fb-item"><div class="fb-head"><div class="fb-avatar">NI</div><div><div class="fb-name">Dr. Nadeem Iqbal</div></div><span class="fb-time">1 week ago</span></div><div class="fb-text">Project topic is well-chosen. Ensure the scope is well-defined before mid-evaluation.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-grid-2">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Upcoming Deadlines</h3>
+              <button class="card-action" onclick="switchTab('deadlines',document.querySelectorAll('.sb-item')[5])">All →</button>
+            </div>
+            <div class="dash-card-body">
+              <div class="dl-item"><div class="dl-date" style="background:var(--gold);"><span class="dl-day">20</span><span class="dl-mo">Apr</span></div><div><div class="dl-title">Mid Evaluation</div><div class="dl-desc">Progress presentation to faculty panel</div></div><span class="dl-tag tag-urgent">2 days</span></div>
+              <div class="dl-item"><div class="dl-date" style="background:#5b4a9e;"><span class="dl-day">10</span><span class="dl-mo">Jun</span></div><div><div class="dl-title">Documentation Submission</div><div class="dl-desc">Final project documentation</div></div><span class="dl-tag tag-near">53 days</span></div>
+              <div class="dl-item"><div class="dl-date" style="background:#a0522d;"><span class="dl-day">25</span><span class="dl-mo">Jun</span></div><div><div class="dl-title">Final Presentation</div><div class="dl-desc">Defense before the faculty panel</div></div><span class="dl-tag tag-ok">68 days</span></div>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Recent Notifications</h3>
+              <button class="card-action" onclick="switchTab('notifications',document.querySelectorAll('.sb-item')[6])">All →</button>
+            </div>
+            <div class="dash-card-body">
+              <div class="notif-item n-success"><div class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="notif-text"><div class="notif-title">Proposal Approved</div><div class="notif-desc">Your FYP proposal has been approved by the committee.</div></div><div class="notif-time">1d</div></div>
+              <div class="notif-item n-warn"><div class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="notif-text"><div class="notif-title">Mid Evaluation Reminder</div><div class="notif-desc">Mid-evaluation is in 2 days. Prepare your presentation.</div></div><div class="notif-time">2d</div></div>
+              <div class="notif-item" style="display:flex;gap:12px;padding:12px 0;align-items:flex-start;border-bottom:none;"><div class="notif-icon" style="background:rgba(59,130,246,.1);"><svg style="color:#3b82f6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="notif-text"><div class="notif-title">New Feedback Available</div><div class="notif-desc">Dr. Aftab Ahmad left feedback on your proposal.</div></div><div class="notif-time">3d</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ PROJECT TAB ═══ -->
+      <div class="dash-subpage" id="tab-project">
+        <div class="dash-card" style="margin-bottom:20px;">
+          <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>My Project Details</h3><span class="status-badge s-approved" style="padding:5px 12px;">Approved</span></div>
+          <div class="dash-card-body">
+            <div class="proj-row"><span class="proj-key">Title</span><span class="proj-val" style="font-weight:700;color:var(--primary);">AI-Based Exam Proctoring System</span></div>
+            <div class="proj-row"><span class="proj-key">Description</span><span class="proj-val">An intelligent online exam monitoring system using computer vision, facial recognition, and machine learning algorithms to detect suspicious behavior in real-time during remote examinations.</span></div>
+            <div class="proj-row"><span class="proj-key">Category</span><span class="proj-val">Artificial Intelligence / Machine Learning</span></div>
+            <div class="proj-row"><span class="proj-key">Technology Stack</span><span class="proj-val">Python, OpenCV, TensorFlow, React, Node.js, PostgreSQL</span></div>
+            <div class="proj-row"><span class="proj-key">Group Members</span><span class="proj-val">Ahmed Saeed (Leader), Bilal Khan, Sana Malik</span></div>
+            <div class="proj-row"><span class="proj-key">Supervisor</span><span class="proj-val">Dr. Aftab Ahmad</span></div>
+            <div class="proj-row"><span class="proj-key">Proposal Submitted</span><span class="proj-val">12 January 2026</span></div>
+            <div class="proj-row"><span class="proj-key">Approved On</span><span class="proj-val">22 January 2026</span></div>
+            <div class="proj-row"><span class="proj-key">Final Submission</span><span class="proj-val">25 June 2026</span></div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Project Progress</h3></div>
+          <div class="dash-card-body">
+            <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Proposal</span><span class="prog-pct">100%</span></div><div class="prog-bar"><div class="prog-fill" style="width:100%;"></div></div></div>
+            <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Literature Review</span><span class="prog-pct">80%</span></div><div class="prog-bar"><div class="prog-fill" style="width:80%;"></div></div></div>
+            <div class="prog-wrap"><div class="prog-head"><span class="prog-label">System Design</span><span class="prog-pct">60%</span></div><div class="prog-bar"><div class="prog-fill" style="width:60%;background:linear-gradient(90deg,var(--gold),var(--gold-lt));"></div></div></div>
+            <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Implementation</span><span class="prog-pct">35%</span></div><div class="prog-bar"><div class="prog-fill" style="width:35%;background:linear-gradient(90deg,#3b82f6,#60a5fa);"></div></div></div>
+            <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Testing &amp; Documentation</span><span class="prog-pct">10%</span></div><div class="prog-bar"><div class="prog-fill" style="width:10%;background:linear-gradient(90deg,#5b4a9e,#7c6fbb);"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ SUPERVISOR TAB ═══ -->
+      <div class="dash-subpage" id="tab-supervisor">
+        <div class="dash-card" style="margin-bottom:20px;">
+          <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Supervisor</h3></div>
+          <div class="dash-card-body">
+            <div class="sup-card"><div class="sup-avatar">AA</div><div class="sup-info"><strong>Dr. Aftab Ahmad</strong><span>FYP Coordinator · Associate Professor</span></div><button class="btn-msg-sup"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Message</button></div>
+            <div class="proj-row"><span class="proj-key">Department</span><span class="proj-val">Computer Science, AWKUM</span></div>
+            <div class="proj-row"><span class="proj-key">Research Interests</span><span class="proj-val">Artificial Intelligence, Machine Learning, Data Mining, NLP</span></div>
+            <div class="proj-row"><span class="proj-key">Office</span><span class="proj-val">CS Block, Room 204, AWKUM Mardan</span></div>
+            <div class="proj-row"><span class="proj-key">Email</span><span class="proj-val">aftab.ahmad@awkum.edu.pk</span></div>
+            <div class="proj-row"><span class="proj-key">Office Hours</span><span class="proj-val">Mon, Wed, Fri — 10:00 AM to 12:00 PM</span></div>
+            <div class="proj-row"><span class="proj-key">Active Projects</span><span class="proj-val">6 FYP Groups</span></div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Meeting Timeline</h3></div>
+          <div class="dash-card-body">
+            <div class="timeline">
+              <div class="tl-item tl-done"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="tl-line"></div></div><div class="tl-info"><div class="tl-title">Initial Meeting — Topic Discussion</div><div class="tl-date">January 5, 2026</div></div></div>
+              <div class="tl-item tl-done"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="tl-line"></div></div><div class="tl-info"><div class="tl-title">Proposal Review &amp; Feedback</div><div class="tl-date">January 18, 2026</div></div></div>
+              <div class="tl-item tl-active"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5" fill="currentColor"/></svg></div><div class="tl-line"></div></div><div class="tl-info"><div class="tl-title">Mid-Evaluation Preparation — Upcoming</div><div class="tl-date">April 19, 2026</div></div></div>
+              <div class="tl-item tl-upcoming"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg></div><div class="tl-line"></div></div><div class="tl-info"><div class="tl-title">Documentation Review</div><div class="tl-date">June 5, 2026</div></div></div>
+              <div class="tl-item tl-upcoming"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg></div></div><div class="tl-info"><div class="tl-title">Final Presentation Rehearsal</div><div class="tl-date">June 20, 2026</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ FEEDBACK TAB ═══ -->
+      <div class="dash-subpage" id="tab-feedback">
+        <div class="dash-card">
+          <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>All Feedback</h3><span class="status-badge s-approved">2 New</span></div>
+          <div class="dash-card-body">
+            <div class="fb-item"><div class="fb-head"><div class="fb-avatar">AA</div><div><div class="fb-name">Dr. Aftab Ahmad</div><div style="font-size:.72rem;color:var(--text-mute);">On: Proposal Document</div></div><span class="fb-time">16 Apr 2026</span></div><div class="fb-text">Good progress on the proposal. Please refine the methodology section with more technical detail. Add at least 20 recent references to the literature review.</div></div>
+            <div class="fb-item"><div class="fb-head"><div class="fb-avatar">NI</div><div><div class="fb-name">Dr. Nadeem Iqbal</div><div style="font-size:.72rem;color:var(--text-mute);">On: Project Scope</div></div><span class="fb-time">10 Apr 2026</span></div><div class="fb-text">Project topic is well-chosen and highly relevant. Focus on quality over quantity when it comes to features.</div></div>
+            <div class="fb-item"><div class="fb-head"><div class="fb-avatar">AA</div><div><div class="fb-name">Dr. Aftab Ahmad</div><div style="font-size:.72rem;color:var(--text-mute);">On: Initial Topic</div></div><span class="fb-time">5 Jan 2026</span></div><div class="fb-text">The initial idea is promising. Start working on the literature review and identify the specific algorithms you will implement.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ DEADLINES TAB ═══ -->
+      <div class="dash-subpage" id="tab-deadlines">
+        <div class="dash-card">
+          <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>All Deadlines — Academic Year 2025–26</h3></div>
+          <div class="dash-card-body">
+            <div class="dl-item"><div class="dl-date" style="background:var(--primary);"><span class="dl-day">15</span><span class="dl-mo">Jan</span></div><div><div class="dl-title">Proposal Submission</div><div class="dl-desc">Final deadline for FYP project proposal submission.</div></div><span class="dl-tag tag-ok">Done ✓</span></div>
+            <div class="dl-item"><div class="dl-date" style="background:var(--secondary);"><span class="dl-day">01</span><span class="dl-mo">Mar</span></div><div><div class="dl-title">Supervisor Allocation</div><div class="dl-desc">Supervisors officially assigned to all approved groups.</div></div><span class="dl-tag tag-ok">Done ✓</span></div>
+            <div class="dl-item"><div class="dl-date" style="background:var(--gold);"><span class="dl-day">20</span><span class="dl-mo">Apr</span></div><div><div class="dl-title">Mid Evaluation</div><div class="dl-desc">Progress presentation to the evaluation committee.</div></div><span class="dl-tag tag-urgent">2 days</span></div>
+            <div class="dl-item"><div class="dl-date" style="background:#5b4a9e;"><span class="dl-day">10</span><span class="dl-mo">Jun</span></div><div><div class="dl-title">Documentation Submission</div><div class="dl-desc">Final project documentation due.</div></div><span class="dl-tag tag-near">53 days</span></div>
+            <div class="dl-item"><div class="dl-date" style="background:#a0522d;"><span class="dl-day">25</span><span class="dl-mo">Jun</span></div><div><div class="dl-title">Final Presentation</div><div class="dl-desc">Defense before the faculty panel.</div></div><span class="dl-tag tag-ok">68 days</span></div>
+            <div class="dl-item"><div class="dl-date" style="background:#2d6a9e;"><span class="dl-day">10</span><span class="dl-mo">Jul</span></div><div><div class="dl-title">Results Announcement</div><div class="dl-desc">Final grades announced via portal.</div></div><span class="dl-tag tag-ok">83 days</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ NOTIFICATIONS TAB ═══ -->
+      <div class="dash-subpage" id="tab-notifications">
+        <div class="dash-card">
+          <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>All Notifications</h3><span class="status-badge s-review">3 Unread</span></div>
+          <div class="dash-card-body">
+            <div class="notif-item n-success"><div class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="notif-text"><div class="notif-title">Proposal Approved ✓</div><div class="notif-desc">Your FYP proposal has been reviewed and approved. You may now proceed to the development phase.</div></div><div class="notif-time">1d</div></div>
+            <div class="notif-item n-warn"><div class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="notif-text"><div class="notif-title">Mid Evaluation Reminder ⚠</div><div class="notif-desc">Your mid-evaluation is in 2 days (20 April 2026). Ensure your presentation is ready.</div></div><div class="notif-time">2d</div></div>
+            <div class="notif-item" style="display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-soft);align-items:flex-start;"><div class="notif-icon" style="background:rgba(59,130,246,.1);"><svg style="color:#3b82f6;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="notif-text"><div class="notif-title">New Feedback Received</div><div class="notif-desc">Dr. Aftab Ahmad has left detailed feedback on your proposal document.</div></div><div class="notif-time">3d</div></div>
+            <div class="notif-item n-success" style="border-bottom:none;"><div class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="notif-text"><div class="notif-title">Supervisor Assigned</div><div class="notif-desc">Dr. Aftab Ahmad has been officially assigned as your FYP supervisor.</div></div><div class="notif-time">48d</div></div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    /* ── TAB SWITCHER ── */
+    const titles = {
+      overview: 'Dashboard',
+      project: 'My Project',
+      supervisor: 'Supervisor',
+      feedback: 'Feedback',
+      deadlines: 'Deadlines',
+      notifications: 'Notifications'
+    };
+    const subs = {
+      overview: 'Welcome back — here\'s your project overview',
+      project: 'AI-Based Exam Proctoring System',
+      supervisor: 'Dr. Aftab Ahmad — FYP Coordinator',
+      feedback: 'Comments and reviews from your supervisors',
+      deadlines: 'All submission and evaluation dates',
+      notifications: 'Your recent alerts and updates'
+    };
+
+    function switchTab(tab, clickedEl) {
+      document.querySelectorAll('.dash-subpage').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('tab-' + tab);
+      if (target) target.classList.add('active');
+
+      document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+      if (clickedEl) clickedEl.classList.add('active');
+
+      document.getElementById('page-title').textContent = titles[tab] || tab;
+      document.getElementById('page-sub').textContent = subs[tab] || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

@@ -8,6 +8,58 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+/* ── REGISTER BUTTON (Student only) ── */
+.register-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 14px;
+}
+.register-divider::before,
+.register-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+.register-divider span {
+  font-size: 0.76rem;
+  color: #6c757d;
+  white-space: nowrap;
+}
+.btn-register {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--primary-dark, #003520), var(--primary, #004b2d));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 4px 16px rgba(0,75,45,0.25);
+}
+.btn-register:hover {
+  background: linear-gradient(135deg, var(--primary, #004b2d), var(--secondary, #1f7a5c));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,75,45,0.3);
+}
+.btn-register svg {
+  width: 16px;
+  height: 16px;
+}
+.student-register-section {
+  display: block;
+}
+</style>
 </head>
 <body>
 <!-- ══════════════════ NAVBAR ══════════════════ -->
@@ -22,24 +74,20 @@
         <small>AWKUM · CS Department</small>
       </div>
     </div>
-
     <ul class="nav-links">
       <li><a id="nav-home" class="active" onclick="navigate('home')">Home</a></li>
       <li><a id="nav-faq" onclick="navigate('faq')">FAQs</a></li>
       <li><a id="nav-messages" onclick="navigate('messages')">Messages</a></li>
       <li><a id="nav-developers" onclick="navigate('developers')">Developers</a></li>
     </ul>
-
     <button class="nav-btn" onclick="navigate('login')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
       Login
     </button>
-
     <div class="hamburger" onclick="toggleMobile()" id="ham">
       <span></span><span></span><span></span>
     </div>
   </div>
-
   <div class="nav-mobile" id="mob-menu">
     <a onclick="navigate('home');toggleMobile()" id="mob-home" class="active">🏠 Home</a>
     <a onclick="navigate('faq');toggleMobile()" id="mob-faq">❓ FAQs</a>
@@ -54,8 +102,6 @@
 
 <!-- ══════════════════ HOME PAGE ══════════════════ -->
 <div id="page-home" class="page active">
-
-  <!-- Hero Banner -->
   <div class="hero">
     <div class="hero-slider" id="slider">
       <div class="slide active"></div>
@@ -82,87 +128,38 @@
     <div class="slider-dots" id="dots"></div>
   </div>
 
-  <!-- Overview section -->
   <div class="section">
     <div class="reveal">
       <div class="section-label">About the System</div>
       <h2 class="section-title">Everything You Need, In One Place</h2>
       <p class="section-sub">Students can access structured information related to project proposals, submission deadlines, evaluations, and academic resources. Stay updated with announcements and ensure all submissions are completed on time.</p>
     </div>
-
     <div class="overview-grid">
-      <div class="overview-card reveal">
-        <div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-        <h3>Project Proposals</h3>
-        <p>Submit and track your FYP proposal through our streamlined digital workflow. Get real-time status updates and supervisor feedback.</p>
-      </div>
-      <div class="overview-card reveal" style="animation-delay:.08s">
-        <div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <h3>Submission Deadlines</h3>
-        <p>Never miss an important date. View all upcoming deadlines for proposals, progress reports, and final submissions in one calendar view.</p>
-      </div>
-      <div class="overview-card reveal" style="animation-delay:.16s">
-        <div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div>
-        <h3>Evaluations</h3>
-        <p>Track your project evaluation scores across all phases including mid-evaluation, final presentation, and documentation assessment.</p>
-      </div>
-      <div class="overview-card reveal" style="animation-delay:.08s">
-        <div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-        <h3>FAQs &amp; Guidelines</h3>
-        <p>Comprehensive answers to common questions about Coursera requirements, proposal formats, group sizes, and submission procedures.</p>
-      </div>
-      <div class="overview-card reveal" style="animation-delay:.16s">
-        <div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        <h3>Supervisor Management</h3>
-        <p>Browse available supervisors, view their research interests, and request supervision directly through the portal after login.</p>
-      </div>
-      <div class="overview-card reveal" style="animation-delay:.24s">
-        <div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-        <h3>Announcements</h3>
-        <p>Stay informed with official department announcements, guideline updates, and system notifications all in one dedicated section.</p>
-      </div>
+      <div class="overview-card reveal"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><h3>Project Proposals</h3><p>Submit and track your FYP proposal through our streamlined digital workflow. Get real-time status updates and supervisor feedback.</p></div>
+      <div class="overview-card reveal" style="animation-delay:.08s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h3>Submission Deadlines</h3><p>Never miss an important date. View all upcoming deadlines for proposals, progress reports, and final submissions in one calendar view.</p></div>
+      <div class="overview-card reveal" style="animation-delay:.16s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><h3>Evaluations</h3><p>Track your project evaluation scores across all phases including mid-evaluation, final presentation, and documentation assessment.</p></div>
+      <div class="overview-card reveal" style="animation-delay:.08s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><h3>FAQs &amp; Guidelines</h3><p>Comprehensive answers to common questions about Coursera requirements, proposal formats, group sizes, and submission procedures.</p></div>
+      <div class="overview-card reveal" style="animation-delay:.16s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Supervisor Management</h3><p>Browse available supervisors, view their research interests, and request supervision directly through the portal after login.</p></div>
+      <div class="overview-card reveal" style="animation-delay:.24s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>Announcements</h3><p>Stay informed with official department announcements, guideline updates, and system notifications all in one dedicated section.</p></div>
     </div>
-
-    <!-- Stats -->
     <div class="stats-row reveal">
       <div class="stat-item"><div class="stat-num">320+</div><div class="stat-lbl">Enrolled Students</div></div>
       <div class="stat-item"><div class="stat-num">48</div><div class="stat-lbl">Faculty Supervisors</div></div>
       <div class="stat-item"><div class="stat-num">150+</div><div class="stat-lbl">Active Projects</div></div>
       <div class="stat-item"><div class="stat-num">96%</div><div class="stat-lbl">Submission Rate</div></div>
     </div>
-
-    <!-- Important Dates -->
     <div class="reveal">
       <div class="section-label">Schedule</div>
       <h2 class="section-title">Important Dates</h2>
       <p class="section-sub">Key submission and evaluation deadlines for the current academic session.</p>
     </div>
-
     <div class="dates-grid">
-      <div class="date-card reveal">
-        <div class="date-badge"><span class="day">15</span><span class="month">Jan</span></div>
-        <div class="date-info"><h4>Proposal Submission</h4><p>Final deadline for FYP project proposal submission through the portal.</p></div>
-      </div>
-      <div class="date-card reveal" style="animation-delay:.06s">
-        <div class="date-badge" style="background:var(--secondary)"><span class="day">01</span><span class="month">Mar</span></div>
-        <div class="date-info"><h4>Supervisor Allocation</h4><p>Supervisors will be officially assigned to all approved project groups.</p></div>
-      </div>
-      <div class="date-card reveal" style="animation-delay:.12s">
-        <div class="date-badge" style="background:var(--gold)"><span class="day">20</span><span class="month">Apr</span></div>
-        <div class="date-info"><h4>Mid Evaluation</h4><p>Progress presentation and mid-term evaluation by the evaluation committee.</p></div>
-      </div>
-      <div class="date-card reveal" style="animation-delay:.06s">
-        <div class="date-badge" style="background:#5B4A9E"><span class="day">10</span><span class="month">Jun</span></div>
-        <div class="date-info"><h4>Documentation Submission</h4><p>Final project documentation must be submitted to the department office.</p></div>
-      </div>
-      <div class="date-card reveal" style="animation-delay:.12s">
-        <div class="date-badge" style="background:#A0522D"><span class="day">25</span><span class="month">Jun</span></div>
-        <div class="date-info"><h4>Final Presentation</h4><p>Final project defense and evaluation before the faculty panel.</p></div>
-      </div>
-      <div class="date-card reveal" style="animation-delay:.18s">
-        <div class="date-badge" style="background:#2D6A9E"><span class="day">10</span><span class="month">Jul</span></div>
-        <div class="date-info"><h4>Results Announcement</h4><p>Final grades and results will be announced via the portal and notice board.</p></div>
-      </div>
+      <div class="date-card reveal"><div class="date-badge"><span class="day">15</span><span class="month">Jan</span></div><div class="date-info"><h4>Proposal Submission</h4><p>Final deadline for FYP project proposal submission through the portal.</p></div></div>
+      <div class="date-card reveal" style="animation-delay:.06s"><div class="date-badge" style="background:var(--secondary)"><span class="day">01</span><span class="month">Mar</span></div><div class="date-info"><h4>Supervisor Allocation</h4><p>Supervisors will be officially assigned to all approved project groups.</p></div></div>
+      <div class="date-card reveal" style="animation-delay:.12s"><div class="date-badge" style="background:var(--gold)"><span class="day">20</span><span class="month">Apr</span></div><div class="date-info"><h4>Mid Evaluation</h4><p>Progress presentation and mid-term evaluation by the evaluation committee.</p></div></div>
+      <div class="date-card reveal" style="animation-delay:.06s"><div class="date-badge" style="background:#5B4A9E"><span class="day">10</span><span class="month">Jun</span></div><div class="date-info"><h4>Documentation Submission</h4><p>Final project documentation must be submitted to the department office.</p></div></div>
+      <div class="date-card reveal" style="animation-delay:.12s"><div class="date-badge" style="background:#A0522D"><span class="day">25</span><span class="month">Jun</span></div><div class="date-info"><h4>Final Presentation</h4><p>Final project defense and evaluation before the faculty panel.</p></div></div>
+      <div class="date-card reveal" style="animation-delay:.18s"><div class="date-badge" style="background:#2D6A9E"><span class="day">10</span><span class="month">Jul</span></div><div class="date-info"><h4>Results Announcement</h4><p>Final grades and results will be announced via the portal and notice board.</p></div></div>
     </div>
   </div>
 </div>
@@ -175,10 +172,7 @@
       <h2>Frequently Asked Questions</h2>
       <p>Find answers to common queries about FYP procedures, requirements, and submission guidelines.</p>
     </div>
-
-    <div class="faq-container" id="faq-container">
-      <!-- Injected by JS -->
-    </div>
+    <div class="faq-container" id="faq-container"></div>
   </div>
 </div>
 
@@ -190,47 +184,15 @@
       <h2>Messages from Authorities</h2>
       <p>Guidance and motivation from our department leadership.</p>
     </div>
-
     <div class="messages-grid">
-
-      <!-- Chairman -->
       <div class="msg-card">
-        <div class="msg-card-top">
-          <div class="msg-avatar">NI</div>
-          <div class="msg-card-meta">
-            <strong>Dr. Nadeem Iqbal</strong>
-            <span>Head, Department of Computer Science</span>
-          </div>
-        </div>
-        <div class="msg-body">
-          <span class="quote-mark">"</span>
-          <p>Dear Students,</p>
-          <p>The Final Year Project represents a defining phase of your academic journey. It reflects your analytical thinking, discipline, and professional readiness.</p>
-          <p>I encourage you to select projects that address real-world challenges and demonstrate innovation and responsibility.</p>
-          <p>Our faculty is fully committed to supporting you throughout this process. Maintain consistency, communicate effectively, and adhere to academic timelines.</p>
-          <div class="msg-sig"><strong>Dr. Nadeem Iqbal</strong> — Chairman's Message</div>
-        </div>
+        <div class="msg-card-top"><div class="msg-avatar">NI</div><div class="msg-card-meta"><strong>Dr. Nadeem Iqbal</strong><span>Head, Department of Computer Science</span></div></div>
+        <div class="msg-body"><span class="quote-mark">"</span><p>Dear Students,</p><p>The Final Year Project represents a defining phase of your academic journey. It reflects your analytical thinking, discipline, and professional readiness.</p><p>I encourage you to select projects that address real-world challenges and demonstrate innovation and responsibility.</p><p>Our faculty is fully committed to supporting you throughout this process. Maintain consistency, communicate effectively, and adhere to academic timelines.</p><div class="msg-sig"><strong>Dr. Nadeem Iqbal</strong> — Chairman's Message</div></div>
       </div>
-
-      <!-- Coordinator -->
       <div class="msg-card">
-        <div class="msg-card-top" style="background:linear-gradient(135deg,var(--secondary),var(--primary-dark))">
-          <div class="msg-avatar">AA</div>
-          <div class="msg-card-meta">
-            <strong>Dr. Aftab Ahmad</strong>
-            <span>FYP Coordinator, CS Department</span>
-          </div>
-        </div>
-        <div class="msg-body">
-          <span class="quote-mark">"</span>
-          <p>Dear Students,</p>
-          <p>Your Final Year Project is an opportunity to apply theoretical knowledge in a practical environment and demonstrate your capabilities as a future professional.</p>
-          <p>Choose your project topic wisely, remain consistent in your efforts, and seek guidance whenever necessary.</p>
-          <p>Discipline, proper documentation, and timely submissions are the key pillars of a successful FYP journey.</p>
-          <div class="msg-sig"><strong>Dr. Aftab Ahmad</strong> — FYP Coordinator's Message</div>
-        </div>
+        <div class="msg-card-top" style="background:linear-gradient(135deg,var(--secondary),var(--primary-dark))"><div class="msg-avatar">AA</div><div class="msg-card-meta"><strong>Dr. Aftab Ahmad</strong><span>FYP Coordinator, CS Department</span></div></div>
+        <div class="msg-body"><span class="quote-mark">"</span><p>Dear Students,</p><p>Your Final Year Project is an opportunity to apply theoretical knowledge in a practical environment and demonstrate your capabilities as a future professional.</p><p>Choose your project topic wisely, remain consistent in your efforts, and seek guidance whenever necessary.</p><p>Discipline, proper documentation, and timely submissions are the key pillars of a successful FYP journey.</p><div class="msg-sig"><strong>Dr. Aftab Ahmad</strong> — FYP Coordinator's Message</div></div>
       </div>
-
     </div>
   </div>
 </div>
@@ -243,43 +205,10 @@
       <h2>Meet the Developers</h2>
       <p>The talented individuals behind the FYP Management System.</p>
     </div>
-
     <div class="dev-grid">
-      <div class="dev-card">
-        <div class="dev-avatar">MS</div>
-        <h3>Muhammad Sudais</h3>
-        <span class="dev-role">Full Stack Developer</span>
-        <p>Responsible for designing and developing the FYP Management System, including backend APIs, database architecture, and the complete frontend interface.</p>
-        <div class="dev-links">
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div>
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div>
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
-        </div>
-      </div>
-
-      <div class="dev-card">
-        <div class="dev-avatar" style="background:linear-gradient(135deg,var(--secondary),var(--primary-dark))">MA</div>
-        <h3>Mahboob Ali</h3>
-        <span class="dev-role">Frontend Developer</span>
-        <p>Focused on building responsive, accessible UI components and ensuring a seamless user experience across student, supervisor, and admin interfaces.</p>
-        <div class="dev-links">
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div>
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div>
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
-        </div>
-      </div>
-
-      <div class="dev-card">
-        <div class="dev-avatar" style="background:linear-gradient(135deg,#5B4A9E,var(--primary))">ZR</div>
-        <h3>Zaid Rahman</h3>
-        <span class="dev-role">Backend &amp; Database</span>
-        <p>Architected the server-side logic, database schemas, and authentication system. Handles API integration and data security for the platform.</p>
-        <div class="dev-links">
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div>
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div>
-          <div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
-        </div>
-      </div>
+      <div class="dev-card"><div class="dev-avatar">MS</div><h3>Muhammad Sudais</h3><span class="dev-role">Full Stack Developer</span><p>Responsible for designing and developing the FYP Management System, including backend APIs, database architecture, and the complete frontend interface.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
+      <div class="dev-card"><div class="dev-avatar" style="background:linear-gradient(135deg,var(--secondary),var(--primary-dark))">MA</div><h3>Mahboob Ali</h3><span class="dev-role">Frontend Developer</span><p>Focused on building responsive, accessible UI components and ensuring a seamless user experience across student, supervisor, and admin interfaces.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
+      <div class="dev-card"><div class="dev-avatar" style="background:linear-gradient(135deg,#5B4A9E,var(--primary))">ZR</div><h3>Zaid Rahman</h3><span class="dev-role">Backend &amp; Database</span><p>Architected the server-side logic, database schemas, and authentication system. Handles API integration and data security for the platform.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
     </div>
   </div>
 </div>
@@ -300,7 +229,7 @@
           <h2>Your Academic Portal Awaits</h2>
           <p>Log in to access your project dashboard, submit proposals, and stay on top of every deadline.</p>
           <div class="login-perks">
-            <div class="perk"><div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Submit & track project proposals</div>
+            <div class="perk"><div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Submit &amp; track project proposals</div>
             <div class="perk"><div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Receive supervisor feedback</div>
             <div class="perk"><div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Access evaluation results</div>
             <div class="perk"><div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>Never miss a deadline</div>
@@ -314,7 +243,6 @@
         <h3>Welcome Back</h3>
         <p class="sub">Sign in to continue to your FYP portal</p>
 
-        <!-- Role tabs -->
         <div class="role-tabs">
           <div class="role-tab active" onclick="setRole('student',this)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg>
@@ -330,7 +258,6 @@
           </div>
         </div>
 
-        <!-- Form -->
         <div class="form-group">
           <label id="id-label">Student ID / Registration No.</label>
           <div class="input-wrap">
@@ -355,12 +282,24 @@
           <a class="forgot" href="#">Forgot password?</a>
         </div>
 
+        <a href="../Client/Student Dashboard/std.html">
         <button class="btn-login" onclick="handleLogin()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           Sign In
         </button>
+        </a>
 
-        <p style="margin-top:20px;text-align:center;font-size:.8rem;color:var(--text-mute)">
+        <!-- ══ REGISTER BUTTON — Student only ══ -->
+        <div class="student-register-section" id="student-register-section">
+          <div class="register-divider"><span>New student? Create an account</span></div>
+          <a href="../Client/Auth/register.html">
+          <button class="btn-register">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+            Register
+          </button></a>
+        </div>
+
+        <p style="margin-top:16px;text-align:center;font-size:.8rem;color:var(--text-mute)">
           Having trouble logging in? <a href="#" style="color:var(--secondary);font-weight:600">Contact IT Support</a>
         </p>
       </div>
@@ -373,17 +312,11 @@
   <div class="footer-inner">
     <div class="footer-brand">
       <div class="logo-row">
-        <div class="f-logo-mark">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-        </div>
-        <div>
-          <strong>FYP Management System</strong>
-          <small>Abdul Wali Khan University Mardan</small>
-        </div>
+        <div class="f-logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        <div><strong>FYP Management System</strong><small>Abdul Wali Khan University Mardan</small></div>
       </div>
       <p>A centralized academic platform for managing Final Year Projects — streamlining proposals, evaluations, and communications between students and faculty.</p>
     </div>
-
     <div class="footer-col">
       <h4>Quick Links</h4>
       <ul>
@@ -394,7 +327,6 @@
         <li><a onclick="navigate('login')">Login Portal</a></li>
       </ul>
     </div>
-
     <div class="footer-col">
       <h4>Contact</h4>
       <ul>
@@ -405,7 +337,6 @@
       </ul>
     </div>
   </div>
-
   <div class="footer-bottom">
     <p>© 2026 <span>Abdul Wali Khan University Mardan</span> — Department of Computer Science. All rights reserved.</p>
     <p style="font-size:.72rem">Developed by CS Students · FYP 2025–26</p>
@@ -414,51 +345,38 @@
 
 <!-- ══════════════════ JAVASCRIPT ══════════════════ -->
 <script>
-/* ── NAVIGATION ── */
 const pages = ['home','faq','messages','developers','login'];
 const navIds = ['nav-home','nav-faq','nav-messages','nav-developers'];
 const pageNames = { home:'Home', faq:'FAQs', messages:'Messages', developers:'Developers', login:'Login' };
 
 function navigate(pg) {
-  pages.forEach(p => {
-    const el = document.getElementById('page-' + p);
-    if (el) el.classList.remove('active');
-  });
-  navIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('active');
-  });
-
-  const target = document.getElementById('page-' + pg);
-  if (target) target.classList.add('active');
-  if (document.getElementById('nav-' + pg)) document.getElementById('nav-' + pg).classList.add('active');
-  if (document.getElementById('mob-' + pg)) {
+  pages.forEach(p => { const el = document.getElementById('page-'+p); if(el) el.classList.remove('active'); });
+  navIds.forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('active'); });
+  const target = document.getElementById('page-'+pg);
+  if(target) target.classList.add('active');
+  if(document.getElementById('nav-'+pg)) document.getElementById('nav-'+pg).classList.add('active');
+  if(document.getElementById('mob-'+pg)) {
     document.querySelectorAll('.nav-mobile a').forEach(a => a.classList.remove('active'));
-    document.getElementById('mob-' + pg).classList.add('active');
+    document.getElementById('mob-'+pg).classList.add('active');
   }
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top:0, behavior:'smooth' });
   document.title = pageNames[pg] + ' — FYP Management System';
   initReveal();
 }
 
-/* ── MOBILE MENU ── */
 function toggleMobile() {
-  const menu = document.getElementById('mob-menu');
-  menu.classList.toggle('open');
+  document.getElementById('mob-menu').classList.toggle('open');
 }
 
-/* ── HERO SLIDER ── */
 let currentSlide = 0;
 const slides = document.querySelectorAll('.slide');
 const dotsContainer = document.getElementById('dots');
-
-slides.forEach((_, i) => {
+slides.forEach((_,i) => {
   const d = document.createElement('div');
-  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.className = 'dot' + (i===0 ? ' active' : '');
   d.onclick = () => goSlide(i);
   dotsContainer.appendChild(d);
 });
-
 function goSlide(n) {
   slides[currentSlide].classList.remove('active');
   document.querySelectorAll('.slider-dots .dot')[currentSlide].classList.remove('active');
@@ -466,93 +384,60 @@ function goSlide(n) {
   slides[currentSlide].classList.add('active');
   document.querySelectorAll('.slider-dots .dot')[currentSlide].classList.add('active');
 }
+setInterval(() => { goSlide((currentSlide+1) % slides.length); }, 4000);
 
-setInterval(() => {
-  goSlide((currentSlide + 1) % slides.length);
-}, 4000);
-
-/* ── FAQ DATA & RENDER ── */
 const faqData = [
-  {
-    cat: 'Coursera Courses',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
-    items: [
-      { q:'Should I opt for an internship or complete Coursera courses online?', a:'Both options are acceptable. Coursera online courses are preferred if you cannot secure an internship. You must complete the required number of courses before starting your FYP to fulfill the prerequisite condition.' },
-      { q:'How do I register for Coursera courses?', a:'Visit coursera.org and sign in with your university email. Use the access link provided by your department or apply for Financial Aid. Ensure you enroll in courses from the approved list shared by the FYP coordinator.' },
-      { q:'What should I do if my campus is not listed?', a:'Contact the IT helpdesk or your FYP coordinator. Provide your enrollment details and they will manually verify your institution so you can proceed with the Coursera registration process.' },
-      { q:'What is the next step after submitting the application?', a:'After submission, you will receive an acknowledgment email. Your application will be reviewed within 5–7 working days. You will be notified of approval or any required corrections via the portal notification system.' },
-      { q:'What is the minimum number of courses required for FYP?', a:'A minimum of 3 approved Coursera courses or an equivalent 6-week internship is required as a prerequisite for FYP registration. Your coordinator will verify completion before approving your proposal.' },
-    ]
-  },
-  {
-    cat: 'Starting Your FYP Proposal',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
-    items: [
-      { q:'What are the prerequisites for FYP approval?', a:'To have your FYP approved, you must have completed at least 120 credit hours, cleared all prerequisite courses, completed the required Coursera courses or internship, and obtained your supervisor\'s signature on the proposal form.' },
-      { q:'What is the maximum group size?', a:'The maximum group size for an FYP project is 3 students. Single-member projects are also allowed. Groups of more than 3 will not be accepted unless a special exception is granted by the department.' },
-      { q:'How do I select a project category?', a:'Project categories include Web Development, Mobile Applications, AI/ML, Data Science, Cybersecurity, Embedded Systems, and others. Select a category aligned with your skills and your supervisor\'s research interests. Your coordinator can assist in finalizing the category.' },
-    ]
-  },
-  {
-    cat: 'Proposal Submission & Review',
-    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`,
-    items: [
-      { q:'Which file format is allowed for proposal submission?', a:'Proposals must be submitted in PDF format only. The file must follow the department\'s official proposal template, which can be downloaded from the portal. Other formats (Word, ZIP, etc.) will not be accepted by the system.' },
-      { q:'What happens after submission?', a:'After submission, the proposal is reviewed by the FYP committee within 10 working days. You may receive a status of Approved, Revision Required, or Rejected. For revision requests, you must address all comments and resubmit within the specified deadline.' },
-    ]
-  }
+  { cat:'Coursera Courses', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`, items:[
+    { q:'Should I opt for an internship or complete Coursera courses online?', a:'Both options are acceptable. Coursera online courses are preferred if you cannot secure an internship. You must complete the required number of courses before starting your FYP to fulfill the prerequisite condition.' },
+    { q:'How do I register for Coursera courses?', a:'Visit coursera.org and sign in with your university email. Use the access link provided by your department or apply for Financial Aid. Ensure you enroll in courses from the approved list shared by the FYP coordinator.' },
+    { q:'What should I do if my campus is not listed?', a:'Contact the IT helpdesk or your FYP coordinator. Provide your enrollment details and they will manually verify your institution so you can proceed with the Coursera registration process.' },
+    { q:'What is the next step after submitting the application?', a:'After submission, you will receive an acknowledgment email. Your application will be reviewed within 5–7 working days. You will be notified of approval or any required corrections via the portal notification system.' },
+    { q:'What is the minimum number of courses required for FYP?', a:'A minimum of 3 approved Coursera courses or an equivalent 6-week internship is required as a prerequisite for FYP registration. Your coordinator will verify completion before approving your proposal.' },
+  ]},
+  { cat:'Starting Your FYP Proposal', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`, items:[
+    { q:'What are the prerequisites for FYP approval?', a:'To have your FYP approved, you must have completed at least 120 credit hours, cleared all prerequisite courses, completed the required Coursera courses or internship, and obtained your supervisor\'s signature on the proposal form.' },
+    { q:'What is the maximum group size?', a:'The maximum group size for an FYP project is 3 students. Single-member projects are also allowed. Groups of more than 3 will not be accepted unless a special exception is granted by the department.' },
+    { q:'How do I select a project category?', a:'Project categories include Web Development, Mobile Applications, AI/ML, Data Science, Cybersecurity, Embedded Systems, and others. Select a category aligned with your skills and your supervisor\'s research interests.' },
+  ]},
+  { cat:'Proposal Submission & Review', icon:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>`, items:[
+    { q:'Which file format is allowed for proposal submission?', a:'Proposals must be submitted in PDF format only. The file must follow the department\'s official proposal template, which can be downloaded from the portal. Other formats will not be accepted.' },
+    { q:'What happens after submission?', a:'After submission, the proposal is reviewed by the FYP committee within 10 working days. You may receive a status of Approved, Revision Required, or Rejected.' },
+  ]},
 ];
 
 function renderFAQ() {
   const container = document.getElementById('faq-container');
-  container.innerHTML = faqData.map((cat, ci) => `
+  container.innerHTML = faqData.map((cat,ci) => `
     <div class="faq-category">
-      <div class="faq-cat-title">
-        <div class="faq-cat-icon">${cat.icon}</div>
-        <span class="cat-num">${ci + 1}</span>
-        ${ci + 1}. ${cat.cat}
-      </div>
-      ${cat.items.map((item, ii) => `
+      <div class="faq-cat-title"><div class="faq-cat-icon">${cat.icon}</div><span class="cat-num">${ci+1}</span>${ci+1}. ${cat.cat}</div>
+      ${cat.items.map((item,ii) => `
         <div class="faq-item" id="faq-${ci}-${ii}">
-          <div class="faq-q ${''}" onclick="toggleFAQ(${ci},${ii})">
-            <span>${ci + 1}.${ii + 1} ${item.q}</span>
-            <div class="faq-chevron">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
+          <div class="faq-q" onclick="toggleFAQ(${ci},${ii})"><span>${ci+1}.${ii+1} ${item.q}</span><div class="faq-chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div></div>
           <div class="faq-a"><p>${item.a}</p></div>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+        </div>`).join('')}
+    </div>`).join('');
 }
-
 let openFAQ = null;
-function toggleFAQ(ci, ii) {
+function toggleFAQ(ci,ii) {
   const id = `faq-${ci}-${ii}`;
   const el = document.getElementById(id);
-  if (openFAQ && openFAQ !== id) {
-    document.getElementById(openFAQ)?.classList.remove('open');
-    document.getElementById(openFAQ)?.querySelector('.faq-q')?.classList.remove('open-q');
-  }
+  if(openFAQ && openFAQ!==id) { document.getElementById(openFAQ)?.classList.remove('open'); document.getElementById(openFAQ)?.querySelector('.faq-q')?.classList.remove('open-q'); }
   const isOpen = el.classList.contains('open');
   el.classList.toggle('open');
   el.querySelector('.faq-q').classList.toggle('open-q', !isOpen);
   openFAQ = isOpen ? null : id;
 }
 
-/* ── SCROLL REVEAL ── */
 function initReveal() {
   setTimeout(() => {
     const revealEls = document.querySelectorAll('.page.active .reveal');
     const observer = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
-    }, { threshold: 0.1 });
+      entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+    }, { threshold:0.1 });
     revealEls.forEach(el => observer.observe(el));
   }, 50);
 }
 
-/* ── LOGIN ── */
 let currentRole = 'student';
 function setRole(role, el) {
   currentRole = role;
@@ -562,6 +447,10 @@ function setRole(role, el) {
   const placeholders = { student:'e.g. CS-2022-0123', supervisor:'e.g. faculty@awkum.edu.pk', admin:'e.g. admin' };
   document.getElementById('id-label').textContent = labels[role];
   document.getElementById('login-id').placeholder = placeholders[role];
+
+  /* Show Register button for Student only */
+  const regSection = document.getElementById('student-register-section');
+  regSection.style.display = role === 'student' ? 'block' : 'none';
 }
 
 function toggleLoginPw() {
@@ -593,23 +482,28 @@ function handleLogin() {
   btn.disabled = true;
 
   setTimeout(() => {
-    btn.innerHTML = `✓ Welcome, ${currentRole.charAt(0).toUpperCase()+currentRole.slice(1)}!`;
+    btn.innerHTML = `✓ Welcome, ${currentRole.charAt(0).toUpperCase() + currentRole.slice(1)}!`;
     btn.style.background = '#15803D';
+
     setTimeout(() => {
       btn.disabled = false;
       btn.style.background = '';
       btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In`;
-      navigate('home');
+
+      // ── REDIRECT BASED ON ROLE ──
+      if (currentRole === 'student') {
+        window.location.href = '/Users/mehboobali/FYP-Mangagement-System/Client/Student Dashboard/std.html';
+      } else {
+        navigate('home');
+      }
+
     }, 1600);
   }, 1200);
 }
-
-/* ── SPIN ── */
 const ss = document.createElement('style');
 ss.textContent = '@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}';
 document.head.appendChild(ss);
 
-/* ── INIT ── */
 renderFAQ();
 initReveal();
 </script>
