@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Forgot Password — FYP Management AWKUM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/forgot.css">
+</head>
+<body>
+
+<div class="card">
+  <div class="card-top">
+    <div class="logo-row">
+      <div class="lm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+      <div class="logo-txt"><strong>FYP Management</strong><small>AWKUM · CS Dept</small></div>
+    </div>
+    <div class="prog-dots">
+      <div class="prog-dot act" id="dot1"></div>
+      <div class="prog-dot" id="dot2"></div>
+      <div class="prog-dot" id="dot3"></div>
+    </div>
+    <div class="step-icon" id="top-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h2 id="top-title">Forgot password?</h2>
+    <p id="top-sub">Enter your registered email and we'll send a verification code.</p>
+  </div>
+
+  <div class="card-body">
+
+    <!-- STEP 1 -->
+    <div class="step active" id="step1">
+      <div class="cred-box">
+        <strong>Demo credentials (click to copy)</strong>
+        <div class="cred-item">Email: <code onclick="copyFill('s1-email','ahmed.saeed@awkum.edu.pk',this)">ahmed.saeed@awkum.edu.pk</code></div>
+        <div class="cred-item">Alt: <code onclick="copyFill('s1-email','bilal.khan@awkum.edu.pk',this)">bilal.khan@awkum.edu.pk</code></div>
+        <p class="cred-tip">Click any email to auto-fill below.</p>
+      </div>
+      <div class="fg">
+        <label>Registered Email</label>
+        <div class="iw">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          <input type="email" id="s1-email" placeholder="e.g. ahmed.saeed@awkum.edu.pk" oninput="clearE('s1-email','e1-email')"/>
+        </div>
+        <div class="err-msg" id="e1-email">Please enter a valid registered email address.</div>
+      </div>
+      <button class="btn btn-primary" onclick="step1Submit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Send Verification Code
+      </button>
+      <p style="margin-top:14px;text-align:center;font-size:.77rem;color:var(--txt-m);">
+        Remember it? <a href="login.html" style="color:var(--pr);font-weight:700;text-decoration:none;">Back to Login</a>
+      </p>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" id="step2">
+      <div class="back-link" onclick="goStep(1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Change email
+      </div>
+      <div class="info-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <p>A 6-digit code was sent to <strong id="otp-email-display">–</strong>.<br>Use <strong>123456</strong> as the demo OTP.</p>
+      </div>
+      <div class="fg">
+        <label>Enter Verification Code</label>
+        <div class="otp-row">
+          <input class="otp-box" id="o1" maxlength="1" oninput="otpMove(this,'o2')" onkeydown="otpBack(event,this,'')"/>
+          <input class="otp-box" id="o2" maxlength="1" oninput="otpMove(this,'o3')" onkeydown="otpBack(event,this,'o1')"/>
+          <input class="otp-box" id="o3" maxlength="1" oninput="otpMove(this,'o4')" onkeydown="otpBack(event,this,'o2')"/>
+          <input class="otp-box" id="o4" maxlength="1" oninput="otpMove(this,'o5')" onkeydown="otpBack(event,this,'o3')"/>
+          <input class="otp-box" id="o5" maxlength="1" oninput="otpMove(this,'o6')" onkeydown="otpBack(event,this,'o4')"/>
+          <input class="otp-box" id="o6" maxlength="1" oninput="otpMove(this,'')"   onkeydown="otpBack(event,this,'o5')"/>
+        </div>
+        <div class="err-msg" id="e-otp">Incorrect code. Use 123456 as the demo OTP.</div>
+      </div>
+      <button class="btn btn-primary" onclick="step2Submit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Verify Code
+      </button>
+      <div class="resend-row">Didn't receive it? <a id="resend-link" onclick="startResend()">Resend code</a></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" id="step3">
+      <div class="back-link" onclick="goStep(2)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </div>
+      <div class="fg">
+        <label>New Password</label>
+        <div class="iw">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="s3-pw" placeholder="Create a strong password" oninput="onPw(this.value);clearE('s3-pw','e3-pw')"/>
+          <button class="pw-tog" onclick="togPw('s3-pw','eye-pw')" type="button">
+            <svg id="eye-pw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="str-bars"><div class="sb" id="b1"></div><div class="sb" id="b2"></div><div class="sb" id="b3"></div><div class="sb" id="b4"></div></div>
+        <div class="str-lbl" id="str-lbl">Enter a password to check strength</div>
+        <div class="err-msg" id="e3-pw">Password must be at least 8 characters.</div>
+      </div>
+      <div class="fg">
+        <label>Confirm Password</label>
+        <div class="iw">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" id="s3-cpw" placeholder="Repeat your password" oninput="clearE('s3-cpw','e3-cpw')"/>
+          <button class="pw-tog" onclick="togPw('s3-cpw','eye-cpw')" type="button">
+            <svg id="eye-cpw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="err-msg" id="e3-cpw">Passwords do not match.</div>
+      </div>
+      <button class="btn btn-primary" onclick="step3Submit()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Reset Password
+      </button>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step" id="step4">
+      <div style="text-align:center;padding:8px 0 4px;">
+        <div class="suc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h3 style="font-size:1rem;font-weight:700;color:var(--pr);margin-bottom:6px;">Password Reset!</h3>
+        <p style="font-size:.8rem;color:var(--txt-s);line-height:1.6;margin-bottom:4px;">Your password has been updated successfully.</p>
+        <p style="font-size:.74rem;color:var(--txt-m);">You can now sign in with your new credentials.</p>
+        <a href="login.html" class="btn btn-primary" style="margin-top:18px;text-decoration:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Go to Login
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var VALID=['ahmed.saeed@awkum.edu.pk','bilal.khan@awkum.edu.pk','sana.malik@awkum.edu.pk'];
+var OTP='123456';
+var cur=1;
+var rtimer=null;
+var topT=['Forgot password?','Check your email','Set new password','All done!'];
+var topS=['Enter your registered email and we\'ll send a verification code.','Enter the 6-digit code sent to your email address.','Create a strong new password for your account.','Your password has been successfully updated.'];
+var topI=['<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>','<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>','<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>','<polyline points="20 6 9 17 4 12"/>'];
+
+function goStep(n){
+  document.getElementById('step'+cur).classList.remove('active');
+  cur=n;
+  document.getElementById('step'+n).classList.add('active');
+  document.getElementById('top-title').textContent=topT[n-1];
+  document.getElementById('top-sub').textContent=topS[n-1];
+  document.getElementById('top-icon').querySelector('svg').innerHTML=topI[n-1];
+  for(var i=1;i<=3;i++){var d=document.getElementById('dot'+i);if(d)d.className='prog-dot'+(i===n?' act':'');}
+  if(n===4)document.querySelectorAll('.prog-dot').forEach(function(d){d.className='prog-dot act';});
+}
+
+function copyFill(fid,val,el){
+  document.getElementById(fid).value=val;
+  var t=el.textContent;el.textContent='Copied!';el.style.color='#198754';
+  setTimeout(function(){el.textContent=t;el.style.color='';},1200);
+  clearE(fid,'e1-email');
+}
+
+function clearE(id,eid){
+  var i=document.getElementById(id);if(i){i.classList.remove('err');i.classList.remove('ok');}
+  var m=document.getElementById(eid);if(m)m.classList.remove('show');
+}
+
+function step1Submit(){
+  var em=document.getElementById('s1-email').value.trim().toLowerCase();
+  var btn=document.querySelector('#step1 .btn-primary');
+  if(!em||!em.includes('@')){
+    document.getElementById('e1-email').textContent='Please enter a valid email address.';
+    document.getElementById('e1-email').classList.add('show');
+    document.getElementById('s1-email').classList.add('err');return;
+  }
+  if(VALID.indexOf(em)===-1){
+    document.getElementById('e1-email').textContent='This email is not registered in our system.';
+    document.getElementById('e1-email').classList.add('show');
+    document.getElementById('s1-email').classList.add('err');return;
+  }
+  btn.disabled=true;btn.textContent='Sending…';
+  setTimeout(function(){
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Send Verification Code';
+    document.getElementById('otp-email-display').textContent=em;
+    goStep(2);startResend();
+  },1300);
+}
+
+function otpMove(el,nid){
+  el.value=el.value.replace(/[^0-9]/g,'');
+  if(el.value)el.classList.add('filled');else el.classList.remove('filled');
+  if(el.value&&nid)document.getElementById(nid).focus();
+  document.getElementById('e-otp').classList.remove('show');
+}
+function otpBack(e,el,pid){if(e.key==='Backspace'&&!el.value&&pid)document.getElementById(pid).focus();}
+
+function step2Submit(){
+  var code=['o1','o2','o3','o4','o5','o6'].map(function(id){return document.getElementById(id).value;}).join('');
+  if(code!==OTP){
+    document.getElementById('e-otp').classList.add('show');
+    ['o1','o2','o3','o4','o5','o6'].forEach(function(id){document.getElementById(id).style.borderColor='#dc3545';});
+    setTimeout(function(){['o1','o2','o3','o4','o5','o6'].forEach(function(id){document.getElementById(id).style.borderColor='';});},2000);
+    return;
+  }
+  goStep(3);
+}
+
+function startResend(){
+  var link=document.getElementById('resend-link');
+  var s=30;link.className='disabled';link.textContent='Resend in '+s+'s';
+  if(rtimer)clearInterval(rtimer);
+  rtimer=setInterval(function(){s--;if(s>0){link.textContent='Resend in '+s+'s';}else{clearInterval(rtimer);link.className='';link.textContent='Resend code';}},1000);
+}
+
+function onPw(v){
+  ['b1','b2','b3','b4'].forEach(function(id){document.getElementById(id).className='sb';});
+  var lbl=document.getElementById('str-lbl');
+  if(!v){lbl.textContent='Enter a password to check strength';lbl.style.color='#adb5bd';return;}
+  var s=0;
+  if(v.length>=8)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
+  var cls=s<=1?'w':s===2?'m':'g';
+  var labels=['Too short','Weak — add numbers & uppercase','Medium — try a special character','Strong password'];
+  var cols={w:'#dc3545',m:'#fd7e14',g:'#198754'};
+  for(var i=0;i<s;i++)document.getElementById(['b1','b2','b3','b4'][i]).classList.add(cls);
+  lbl.textContent=labels[Math.max(0,s-1)];lbl.style.color=cols[cls]||'#adb5bd';
+}
+
+function togPw(id,eid){
+  var i=document.getElementById(id);var show=i.type==='password';i.type=show?'text':'password';
+  document.getElementById(eid).innerHTML=show
+    ?'<path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.06-5.94M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    :'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+
+function step3Submit(){
+  var pw=document.getElementById('s3-pw').value;
+  var cpw=document.getElementById('s3-cpw').value;
+  var ok=true;
+  if(!pw||pw.length<8){document.getElementById('e3-pw').classList.add('show');document.getElementById('s3-pw').classList.add('err');ok=false;}
+  if(!cpw||pw!==cpw){document.getElementById('e3-cpw').classList.add('show');document.getElementById('s3-cpw').classList.add('err');ok=false;}
+  if(!ok)return;
+  var btn=document.querySelector('#step3 .btn-primary');
+  btn.disabled=true;btn.textContent='Resetting…';
+  setTimeout(function(){goStep(4);},1200);
+}
+</script>
+</body>
+</html>

@@ -1065,9 +1065,55 @@ footer {
   margin-top: 6px;
   cursor: pointer;
 }
-
-/* ══════════════════════════════════════
-   UTILS
-══════════════════════════════════════ */
 .reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
+/* ── REGISTER BUTTON (Student only) ── */
+.register-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 14px;
+}
+.register-divider::before,
+.register-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+.register-divider span {
+  font-size: 0.76rem;
+  color: #6c757d;
+  white-space: nowrap;
+}
+.btn-register {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--primary-dark, #003520), var(--primary, #004b2d));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 4px 16px rgba(0,75,45,0.25);
+}
+.btn-register:hover {
+  background: linear-gradient(135deg, var(--primary, #004b2d), var(--secondary, #1f7a5c));
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,75,45,0.3);
+}
+.btn-register svg {
+  width: 16px;
+  height: 16px;
+}
+.student-register-section {
+  display: block;
+}

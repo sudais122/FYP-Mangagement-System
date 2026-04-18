@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — FYP Management System AWKUM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/auth.css">
+</head>
+<body>
+
+<div class="login-wrap">
+
+  <!-- ══ LEFT PANEL ══ -->
+  <div class="login-left">
+    <div>
+      <div class="ll-logo">
+        <div class="ll-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
+        </div>
+        <div class="ll-logo-text">
+          <strong>FYP Management</strong>
+          <small>AWKUM · CS Dept</small>
+        </div>
+      </div>
+
+      <h2>Your Academic Portal Awaits</h2>
+      <p>Log in to access your project dashboard, submit proposals, and stay on top of every deadline.</p>
+
+      <div class="login-perks">
+        <div class="perk">
+          <div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Submit &amp; track project proposals
+        </div>
+        <div class="perk">
+          <div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Receive supervisor feedback
+        </div>
+        <div class="perk">
+          <div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Access evaluation results
+        </div>
+        <div class="perk">
+          <div class="perk-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          Never miss a deadline
+        </div>
+      </div>
+    </div>
+
+    <p class="left-footer">© 2026 AWKUM — Department of Computer Science</p>
+  </div>
+
+  <!-- ══ RIGHT PANEL ══ -->
+  <div class="login-right">
+    <h3>Welcome Back</h3>
+    <p class="sub">Sign in to continue to your FYP portal</p>
+
+    <!-- Role Tabs -->
+    <div class="role-tabs">
+      <div class="role-tab active" onclick="setRole('student',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg>
+        Student
+      </div>
+      <div class="role-tab" onclick="setRole('supervisor',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Supervisor
+      </div>
+    </div>
+
+    <!-- ID -->
+    <div class="form-group">
+      <label id="id-label">Student ID / Registration No.</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="13" y2="13"/></svg>
+        <input type="text" id="login-id" placeholder="e.g. CS-2022-0123">
+      </div>
+    </div>
+
+    <!-- Password -->
+    <div class="form-group">
+      <label>Password</label>
+      <div class="input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <input type="password" id="login-pw" placeholder="Enter your password">
+        <button class="pw-toggle" onclick="togglePw()" type="button">
+          <svg id="pw-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Remember / Forgot -->
+    <div class="form-meta">
+      <a class="forgot" href="forgot.html">Forgot password?</a>
+    </div>
+
+    <!-- Sign In -->
+    <a href="../Client/Student Dashboard/std.html" class="btn-login" id="signin-btn" onclick="handleLogin(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+        <polyline points="10 17 15 12 10 7"/>
+        <line x1="15" y1="12" x2="3" y2="12"/>
+      </svg>
+      Sign In
+    </a>
+
+    <!-- Register — Student only -->
+    <div class="student-register-section" id="student-register-section">
+      <div class="register-divider"><span>New student? Create an account</span></div>
+      <a href="register.html" class="btn-register">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <line x1="19" y1="8" x2="19" y2="14"/>
+          <line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        Register
+      </a>
+    </div>
+  </div>
+</div>
+<script src="./js/auth.js"></script>
+</body>
+</html>
