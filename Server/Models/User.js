@@ -1,34 +1,27 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
+
   name: String,
   email: { type: String, unique: true },
   password: String,
 
+  student_code: { type: String, unique: true },
+  reg_no: { type: String, unique: true },
+
   role: {
     type: String,
-    enum: ["student", "supervisor", "admin"],
-    required: true
+    default: "student"
   },
 
-  student_code: String,
-  supervisor_code: String,
-  admin_code: String,
-
-  cv_path: String,
-  discipline: String,
-  max_teams: { type: Number, default: 3 },
+  cvUrl: String,
+  cvPublicId: String,
 
   account_status: {
     type: String,
-    enum: ["active", "inactive"],
     default: "active"
-  },
-
-  created_at: {
-    type: Date,
-    default: Date.now
   }
-});
+
+}, { timestamps: true });
 
 export default mongoose.model("User", userSchema);

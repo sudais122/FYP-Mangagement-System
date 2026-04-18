@@ -1,9 +1,11 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import connectDB from "./config/db.js"; 
 
 dotenv.config();
+
+import connectDB from "./config/db.js";
+import authRoutes from "./Routes/authRoutes.js";
 
 connectDB();
 
@@ -12,12 +14,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Test Route
-app.get("/", (req, res) => {
-  res.status(200).json({
-    message: "FYP API Running Successfully 🚀"
-  });
-});
+// routes
+app.use("/api/auth", authRoutes);
 
 const PORT = process.env.PORT || 5000;
 
