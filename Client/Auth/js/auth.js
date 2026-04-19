@@ -1,244 +1,380 @@
-var VALID=['ahmed.saeed@awkum.edu.pk','bilal.khan@awkum.edu.pk','sana.malik@awkum.edu.pk'];
-var OTP='123456';
-var cur=1;
-var rtimer=null;
-var topT=['Forgot password?','Check your email','Set new password','All done!'];
-var topS=['Enter your registered email and we\'ll send a verification code.','Enter the 6-digit code sent to your email address.','Create a strong new password for your account.','Your password has been successfully updated.'];
-var topI=['<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>','<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>','<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>','<polyline points="20 6 9 17 4 12"/>'];
+const API_BASE_URL = "http://localhost:5001";
+var VALID = [
+  "ahmed.saeed@awkum.edu.pk",
+  "bilal.khan@awkum.edu.pk",
+  "sana.malik@awkum.edu.pk",
+];
+var OTP = "123456";
+var cur = 1;
+var rtimer = null;
+var topT = [
+  "Forgot password?",
+  "Check your email",
+  "Set new password",
+  "All done!",
+];
+var topS = [
+  "Enter your registered email and we'll send a verification code.",
+  "Enter the 6-digit code sent to your email address.",
+  "Create a strong new password for your account.",
+  "Your password has been successfully updated.",
+];
+var topI = [
+  '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+  '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  '<polyline points="20 6 9 17 4 12"/>',
+];
 
-function goStep(n){
-  document.getElementById('step'+cur).classList.remove('active');
-  cur=n;
-  document.getElementById('step'+n).classList.add('active');
-  document.getElementById('top-title').textContent=topT[n-1];
-  document.getElementById('top-sub').textContent=topS[n-1];
-  document.getElementById('top-icon').querySelector('svg').innerHTML=topI[n-1];
-  for(var i=1;i<=3;i++){var d=document.getElementById('dot'+i);if(d)d.className='prog-dot'+(i===n?' act':'');}
-  if(n===4)document.querySelectorAll('.prog-dot').forEach(function(d){d.className='prog-dot act';});
-}
+async function doReg() {
+  var fn = document.getElementById("r-fn").value.trim();
+  var ln = document.getElementById("r-ln").value.trim();
+  var em = document.getElementById("r-em").value.trim();
+  var pw = document.getElementById("r-pw").value;
+  var cpw = document.getElementById("r-cpw").value;
+  var cv = document.getElementById("r-cv").files[0];
 
-function copyFill(fid,val,el){
-  document.getElementById(fid).value=val;
-  var t=el.textContent;el.textContent='Copied!';el.style.color='#198754';
-  setTimeout(function(){el.textContent=t;el.style.color='';},1200);
-  clearE(fid,'e1-email');
-}
+  var ok = true;
 
-function clearE(id,eid){
-  var i=document.getElementById(id);if(i){i.classList.remove('err');i.classList.remove('ok');}
-  var m=document.getElementById(eid);if(m)m.classList.remove('show');
-}
-
-function step1Submit(){
-  var em=document.getElementById('s1-email').value.trim().toLowerCase();
-  var btn=document.querySelector('#step1 .btn-primary');
-  if(!em||!em.includes('@')){
-    document.getElementById('e1-email').textContent='Please enter a valid email address.';
-    document.getElementById('e1-email').classList.add('show');
-    document.getElementById('s1-email').classList.add('err');return;
+  if (!fn) {
+    showErr("fn", "First name is required");
+    ok = false;
   }
-  if(VALID.indexOf(em)===-1){
-    document.getElementById('e1-email').textContent='This email is not registered in our system.';
-    document.getElementById('e1-email').classList.add('show');
-    document.getElementById('s1-email').classList.add('err');return;
+  if (!ln) {
+    showErr("ln", "Last name is required");
+    ok = false;
   }
-  btn.disabled=true;btn.textContent='Sending…';
-  setTimeout(function(){
-    btn.disabled=false;
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Send Verification Code';
-    document.getElementById('otp-email-display').textContent=em;
-    goStep(2);startResend();
-  },1300);
+  if (!em) {
+    showErr("em", "Email required");
+    ok = false;
+  }
+  if (!pw || pw.length < 8) {
+    showErr("pw", "Weak password");
+    ok = false;
+  }
+  if (pw !== cpw) {
+    showErr("cpw", "Passwords not match");
+    ok = false;
+  }
+  if (!cv) {
+    showErr("cv", "Upload CV");
+    ok = false;
+  }
+
+  if (!ok) return;
+
+  var btn = document.getElementById("rbtn");
+  btn.disabled = true;
+  btn.textContent = "Registering...";
+
+  try {
+    const formData = new FormData();
+
+    formData.append("name", fn + " " + ln);
+    formData.append("email", em);
+    formData.append("password", pw);
+    formData.append("cv", cv);
+
+    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Registration failed");
+    }
+
+    // success UI
+    document.getElementById("form-area").style.display = "none";
+    document.getElementById("success-area").style.display = "block";
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Create Account";
+  }
 }
 
-function otpMove(el,nid){
-  el.value=el.value.replace(/[^0-9]/g,'');
-  if(el.value)el.classList.add('filled');else el.classList.remove('filled');
-  if(el.value&&nid)document.getElementById(nid).focus();
-  document.getElementById('e-otp').classList.remove('show');
+function copyFill(fid, val, el) {
+  document.getElementById(fid).value = val;
+  var t = el.textContent;
+  el.textContent = "Copied!";
+  el.style.color = "#198754";
+  setTimeout(function () {
+    el.textContent = t;
+    el.style.color = "";
+  }, 1200);
+  clearE(fid, "e1-email");
 }
-function otpBack(e,el,pid){if(e.key==='Backspace'&&!el.value&&pid)document.getElementById(pid).focus();}
 
-function step2Submit(){
-  var code=['o1','o2','o3','o4','o5','o6'].map(function(id){return document.getElementById(id).value;}).join('');
-  if(code!==OTP){
-    document.getElementById('e-otp').classList.add('show');
-    ['o1','o2','o3','o4','o5','o6'].forEach(function(id){document.getElementById(id).style.borderColor='#dc3545';});
-    setTimeout(function(){['o1','o2','o3','o4','o5','o6'].forEach(function(id){document.getElementById(id).style.borderColor='';});},2000);
+function clearE(id, eid) {
+  var i = document.getElementById(id);
+  if (i) {
+    i.classList.remove("err");
+    i.classList.remove("ok");
+  }
+  var m = document.getElementById(eid);
+  if (m) m.classList.remove("show");
+}
+
+function step1Submit() {
+  var em = document.getElementById("s1-email").value.trim().toLowerCase();
+  var btn = document.querySelector("#step1 .btn-primary");
+  if (!em || !em.includes("@")) {
+    document.getElementById("e1-email").textContent =
+      "Please enter a valid email address.";
+    document.getElementById("e1-email").classList.add("show");
+    document.getElementById("s1-email").classList.add("err");
+    return;
+  }
+  if (VALID.indexOf(em) === -1) {
+    document.getElementById("e1-email").textContent =
+      "This email is not registered in our system.";
+    document.getElementById("e1-email").classList.add("show");
+    document.getElementById("s1-email").classList.add("err");
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+  setTimeout(function () {
+    btn.disabled = false;
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Send Verification Code';
+    document.getElementById("otp-email-display").textContent = em;
+    goStep(2);
+    startResend();
+  }, 1300);
+}
+
+function otpMove(el, nid) {
+  el.value = el.value.replace(/[^0-9]/g, "");
+  if (el.value) el.classList.add("filled");
+  else el.classList.remove("filled");
+  if (el.value && nid) document.getElementById(nid).focus();
+  document.getElementById("e-otp").classList.remove("show");
+}
+function otpBack(e, el, pid) {
+  if (e.key === "Backspace" && !el.value && pid)
+    document.getElementById(pid).focus();
+}
+
+function step2Submit() {
+  var code = ["o1", "o2", "o3", "o4", "o5", "o6"]
+    .map(function (id) {
+      return document.getElementById(id).value;
+    })
+    .join("");
+  if (code !== OTP) {
+    document.getElementById("e-otp").classList.add("show");
+    ["o1", "o2", "o3", "o4", "o5", "o6"].forEach(function (id) {
+      document.getElementById(id).style.borderColor = "#dc3545";
+    });
+    setTimeout(function () {
+      ["o1", "o2", "o3", "o4", "o5", "o6"].forEach(function (id) {
+        document.getElementById(id).style.borderColor = "";
+      });
+    }, 2000);
     return;
   }
   goStep(3);
 }
 
-function startResend(){
-  var link=document.getElementById('resend-link');
-  var s=30;link.className='disabled';link.textContent='Resend in '+s+'s';
-  if(rtimer)clearInterval(rtimer);
-  rtimer=setInterval(function(){s--;if(s>0){link.textContent='Resend in '+s+'s';}else{clearInterval(rtimer);link.className='';link.textContent='Resend code';}},1000);
-}
-
-function onPw(v){
-  ['b1','b2','b3','b4'].forEach(function(id){document.getElementById(id).className='sb';});
-  var lbl=document.getElementById('str-lbl');
-  if(!v){lbl.textContent='Enter a password to check strength';lbl.style.color='#adb5bd';return;}
-  var s=0;
-  if(v.length>=8)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
-  var cls=s<=1?'w':s===2?'m':'g';
-  var labels=['Too short','Weak — add numbers & uppercase','Medium — try a special character','Strong password'];
-  var cols={w:'#dc3545',m:'#fd7e14',g:'#198754'};
-  for(var i=0;i<s;i++)document.getElementById(['b1','b2','b3','b4'][i]).classList.add(cls);
-  lbl.textContent=labels[Math.max(0,s-1)];lbl.style.color=cols[cls]||'#adb5bd';
-}
-
-function togPw(id,eid){
-  var i=document.getElementById(id);var show=i.type==='password';i.type=show?'text':'password';
-  document.getElementById(eid).innerHTML=show
-    ?'<path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.06-5.94M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    :'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
-}
-
-function step3Submit(){
-  var pw=document.getElementById('s3-pw').value;
-  var cpw=document.getElementById('s3-cpw').value;
-  var ok=true;
-  if(!pw||pw.length<8){document.getElementById('e3-pw').classList.add('show');document.getElementById('s3-pw').classList.add('err');ok=false;}
-  if(!cpw||pw!==cpw){document.getElementById('e3-cpw').classList.add('show');document.getElementById('s3-cpw').classList.add('err');ok=false;}
-  if(!ok)return;
-  var btn=document.querySelector('#step3 .btn-primary');
-  btn.disabled=true;btn.textContent='Resetting…';
-  setTimeout(function(){goStep(4);},1200);
-}
-  let currentRole = 'student';
-
-  function setRole(role, el) {
-    currentRole = role;
-    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
-    const labels = {
-      student:    'Student ID / Registration No.',
-      supervisor: 'Faculty ID / Email',
-      admin:      'Admin Username'
-    };
-    const placeholders = {
-      student:    'e.g. CS-2022-0123',
-      supervisor: 'e.g. faculty@awkum.edu.pk',
-      admin:      'e.g. admin'
-    };
-    document.getElementById('id-label').textContent  = labels[role];
-    document.getElementById('login-id').placeholder   = placeholders[role];
-    document.getElementById('student-register-section').style.display =
-      role === 'student' ? 'block' : 'none';
-  }
-
-  function togglePw() {
-    const inp = document.getElementById('login-pw');
-    const eye = document.getElementById('pw-eye');
-    const show = inp.type === 'password';
-    inp.type = show ? 'text' : 'password';
-    eye.innerHTML = show
-      ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`
-      : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
-  }
-
-  function handleLogin(e) {
-    const id = document.getElementById('login-id').value.trim();
-    const pw = document.getElementById('login-pw').value;
-    const btn = document.getElementById('signin-btn');
-
-    if (!id || !pw) {
-      e.preventDefault();
-      btn.style.background = '#DC2626';
-      btn.style.boxShadow  = 'none';
-      btn.innerHTML = '⚠ Please fill in all fields';
-      setTimeout(() => {
-        btn.style.background  = '';
-        btn.style.boxShadow   = '';
-        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In`;
-      }, 2200);
+function startResend() {
+  var link = document.getElementById("resend-link");
+  var s = 30;
+  link.className = "disabled";
+  link.textContent = "Resend in " + s + "s";
+  if (rtimer) clearInterval(rtimer);
+  rtimer = setInterval(function () {
+    s--;
+    if (s > 0) {
+      link.textContent = "Resend in " + s + "s";
+    } else {
+      clearInterval(rtimer);
+      link.className = "";
+      link.textContent = "Resend code";
     }
-    /* If fields are filled, the <a href> naturally navigates */
+  }, 1000);
+}
+
+function onPw(v) {
+  ["b1", "b2", "b3", "b4"].forEach(function (id) {
+    document.getElementById(id).className = "sb";
+  });
+  var lbl = document.getElementById("str-lbl");
+  if (!v) {
+    lbl.textContent = "Enter a password to check strength";
+    lbl.style.color = "#adb5bd";
+    return;
   }
-
-  //Register Javascript logic
-function togglePw(id,eyeId){
-  var i=document.getElementById(id);
-  var show=i.type==='password';
-  i.type=show?'text':'password';
-  document.getElementById(eyeId).innerHTML=show
-    ?'<path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.06-5.94M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    :'<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  var s = 0;
+  if (v.length >= 8) s++;
+  if (/[A-Z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v)) s++;
+  var cls = s <= 1 ? "w" : s === 2 ? "m" : "g";
+  var labels = [
+    "Too short",
+    "Weak — add numbers & uppercase",
+    "Medium — try a special character",
+    "Strong password",
+  ];
+  var cols = { w: "#dc3545", m: "#fd7e14", g: "#198754" };
+  for (var i = 0; i < s; i++)
+    document.getElementById(["b1", "b2", "b3", "b4"][i]).classList.add(cls);
+  lbl.textContent = labels[Math.max(0, s - 1)];
+  lbl.style.color = cols[cls] || "#adb5bd";
 }
 
-function onPw(v){
-  ['b1','b2','b3','b4'].forEach(function(id){document.getElementById(id).className='sb';});
-  var lbl=document.getElementById('str-lbl');
-  if(!v){lbl.textContent='Enter a password to check strength';lbl.style.color='#adb5bd';return;}
-  var s=0;
-  if(v.length>=8)s++;
-  if(/[A-Z]/.test(v))s++;
-  if(/[0-9]/.test(v))s++;
-  if(/[^A-Za-z0-9]/.test(v))s++;
-  var cls=s<=1?'w':s===2?'m':'g';
-  var labels=['Too short','Weak — add numbers & uppercase','Medium — try a special character','Strong password'];
-  var cols={w:'#dc3545',m:'#fd7e14',g:'#198754'};
-  for(var i=0;i<s;i++)document.getElementById(['b1','b2','b3','b4'][i]).classList.add(cls);
-  lbl.textContent=labels[Math.max(0,s-1)];
-  lbl.style.color=cols[cls]||'#adb5bd';
+function togPw(id, eid) {
+  var i = document.getElementById(id);
+  var show = i.type === "password";
+  i.type = show ? "text" : "password";
+  document.getElementById(eid).innerHTML = show
+    ? '<path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.06-5.94M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 
-function onCV(inp){
-  if(inp.files&&inp.files[0]){
-    var f=inp.files[0];
-    var kb=Math.round(f.size/1024);
-    var size=kb>1024?(Math.round(kb/102.4)/10)+' MB':kb+' KB';
-    document.getElementById('cv-zone').classList.add('has');
-    document.getElementById('cv-lbl').textContent=f.name;
-    document.getElementById('cv-sub').textContent=size+' — ready to upload';
-    clr('cv');
+function step3Submit() {
+  var pw = document.getElementById("s3-pw").value;
+  var cpw = document.getElementById("s3-cpw").value;
+  var ok = true;
+  if (!pw || pw.length < 8) {
+    document.getElementById("e3-pw").classList.add("show");
+    document.getElementById("s3-pw").classList.add("err");
+    ok = false;
+  }
+  if (!cpw || pw !== cpw) {
+    document.getElementById("e3-cpw").classList.add("show");
+    document.getElementById("s3-cpw").classList.add("err");
+    ok = false;
+  }
+  if (!ok) return;
+  var btn = document.querySelector("#step3 .btn-primary");
+  btn.disabled = true;
+  btn.textContent = "Resetting…";
+  setTimeout(function () {
+    goStep(4);
+  }, 1200);
+}
+let currentRole = "student";
+
+function setRole(role, el) {
+  currentRole = role;
+  document
+    .querySelectorAll(".role-tab")
+    .forEach((t) => t.classList.remove("active"));
+  el.classList.add("active");
+  const labels = {
+    student: "Student ID / Registration No.",
+    supervisor: "Faculty ID / Email",
+    admin: "Admin Username",
+  };
+  const placeholders = {
+    student: "e.g. CS-2022-0123",
+    supervisor: "e.g. faculty@awkum.edu.pk",
+    admin: "e.g. admin",
+  };
+  document.getElementById("id-label").textContent = labels[role];
+  document.getElementById("login-id").placeholder = placeholders[role];
+  document.getElementById("student-register-section").style.display =
+    role === "student" ? "block" : "none";
+}
+
+function togglePw() {
+  const inp = document.getElementById("login-pw");
+  const eye = document.getElementById("pw-eye");
+  const show = inp.type === "password";
+  inp.type = show ? "text" : "password";
+  eye.innerHTML = show
+    ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>`
+    : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+}
+
+function handleLogin(e) {
+  const id = document.getElementById("login-id").value.trim();
+  const pw = document.getElementById("login-pw").value;
+  const btn = document.getElementById("signin-btn");
+
+  if (!id || !pw) {
+    e.preventDefault();
+    btn.style.background = "#DC2626";
+    btn.style.boxShadow = "none";
+    btn.innerHTML = "⚠ Please fill in all fields";
+    setTimeout(() => {
+      btn.style.background = "";
+      btn.style.boxShadow = "";
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In`;
+    }, 2200);
+  }
+  /* If fields are filled, the <a href> naturally navigates */
+}
+
+//Register Javascript logic
+function togglePw(id, eyeId) {
+  var i = document.getElementById(id);
+  var show = i.type === "password";
+  i.type = show ? "text" : "password";
+  document.getElementById(eyeId).innerHTML = show
+    ? '<path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.06-5.94M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+}
+
+function onPw(v) {
+  ["b1", "b2", "b3", "b4"].forEach(function (id) {
+    document.getElementById(id).className = "sb";
+  });
+  var lbl = document.getElementById("str-lbl");
+  if (!v) {
+    lbl.textContent = "Enter a password to check strength";
+    lbl.style.color = "#adb5bd";
+    return;
+  }
+  var s = 0;
+  if (v.length >= 8) s++;
+  if (/[A-Z]/.test(v)) s++;
+  if (/[0-9]/.test(v)) s++;
+  if (/[^A-Za-z0-9]/.test(v)) s++;
+  var cls = s <= 1 ? "w" : s === 2 ? "m" : "g";
+  var labels = [
+    "Too short",
+    "Weak — add numbers & uppercase",
+    "Medium — try a special character",
+    "Strong password",
+  ];
+  var cols = { w: "#dc3545", m: "#fd7e14", g: "#198754" };
+  for (var i = 0; i < s; i++)
+    document.getElementById(["b1", "b2", "b3", "b4"][i]).classList.add(cls);
+  lbl.textContent = labels[Math.max(0, s - 1)];
+  lbl.style.color = cols[cls] || "#adb5bd";
+}
+
+function onCV(inp) {
+  if (inp.files && inp.files[0]) {
+    var f = inp.files[0];
+    var kb = Math.round(f.size / 1024);
+    var size = kb > 1024 ? Math.round(kb / 102.4) / 10 + " MB" : kb + " KB";
+    document.getElementById("cv-zone").classList.add("has");
+    document.getElementById("cv-lbl").textContent = f.name;
+    document.getElementById("cv-sub").textContent = size + " — ready to upload";
+    clr("cv");
   }
 }
 
-function clr(key){
-  var inp=document.getElementById('r-'+key);
-  var msg=document.getElementById('e-'+key);
-  if(inp)inp.classList.remove('err');
-  if(msg)msg.classList.remove('show');
+function clr(key) {
+  var inp = document.getElementById("r-" + key);
+  var msg = document.getElementById("e-" + key);
+  if (inp) inp.classList.remove("err");
+  if (msg) msg.classList.remove("show");
 }
-function showErr(key,msg){
-  var inp=document.getElementById('r-'+key);
-  var m=document.getElementById('e-'+key);
-  if(inp)inp.classList.add('err');
-  if(m){m.classList.add('show');if(msg)m.textContent=msg;}
-}
-
-function doReg(){
-  var fn=document.getElementById('r-fn').value.trim();
-  var ln=document.getElementById('r-ln').value.trim();
-  var em=document.getElementById('r-em').value.trim();
-  var pw=document.getElementById('r-pw').value;
-  var cpw=document.getElementById('r-cpw').value;
-  var cv=document.getElementById('r-cv').files[0];
-  var terms=document.getElementById('r-terms').checked;
-  var ok=true;
-
-  if(!fn){showErr('fn','First name is required');ok=false;}
-  if(!ln){showErr('ln','Last name is required');ok=false;}
-  if(!em||!em.includes('@')||!em.includes('.')){showErr('em','Enter a valid email address');ok=false;}
-  if(!pw||pw.length<8){showErr('pw','Password must be at least 8 characters');ok=false;}
-  if(!cpw||pw!==cpw){showErr('cpw','Passwords do not match');ok=false;}
-  if(!cv){showErr('cv','Please upload your CV as a PDF file');ok=false;}
-  if(!terms){document.getElementById('e-terms').classList.add('show');ok=false;}
-  if(!ok)return;
-
-  var btn=document.getElementById('rbtn');
-  btn.disabled=true;
-  btn.textContent='Creating account…';
-
-  setTimeout(function(){
-    document.getElementById('form-area').style.display='none';
-    document.getElementById('success-area').style.display='block';
-    document.getElementById('sn1').classList.add('done');
-    document.getElementById('sn2').classList.add('done');
-    document.getElementById('sn3').classList.add('done');
-  },1300);
+function showErr(key, msg) {
+  var inp = document.getElementById("r-" + key);
+  var m = document.getElementById("e-" + key);
+  if (inp) inp.classList.add("err");
+  if (m) {
+    m.classList.add("show");
+    if (msg) m.textContent = msg;
+  }
 }
