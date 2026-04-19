@@ -161,7 +161,6 @@ export const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // ✅ FIXED FIELD NAME + TYPE SAFETY
     if (user.resetOtp.toString() !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
@@ -170,7 +169,6 @@ export const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    // mark verified (optional but good)
     user.isOtpVerified = true;
     await user.save({ validateBeforeSave: false });
 
