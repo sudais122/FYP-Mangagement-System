@@ -265,25 +265,69 @@ function togglePw() {
     : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
 }
 
-function handleLogin(e) {
-  const id = document.getElementById("login-id").value.trim();
-  const pw = document.getElementById("login-pw").value;
+async function handleLogin(e) {
+  e.preventDefault();
+
+  const email = document.getElementById("login-id").value.trim();
+  const password = document.getElementById("login-pw").value;
   const btn = document.getElementById("signin-btn");
 
-  if (!id || !pw) {
-    e.preventDefault();
+  if (!email || !password) {
     btn.style.background = "#DC2626";
-    btn.style.boxShadow = "none";
-    btn.innerHTML = "⚠ Please fill in all fields";
+    btn.innerHTML = "⚠ Please fill all fields";
+
     setTimeout(() => {
       btn.style.background = "";
-      btn.style.boxShadow = "";
-      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Sign In`;
-    }, 2200);
+      btn.innerHTML = "Sign In";
+    }, 2000);
+    return;
   }
-  /* If fields are filled, the <a href> naturally navigates */
-}
 
+  btn.disabled = true;
+  btn.innerHTML = "Signing in...";
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email: email,
+        password: password
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Login failed");
+    }
+
+    // Save user (optional)
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    // Success UI
+    btn.style.background = "#16A34A";
+    btn.innerHTML = "Login Successful";
+
+    setTimeout(() => {
+      window.location.href = "../Dashboards/Student/index.html";
+    }, 1000);
+
+  } catch (err) {
+    console.log(err);
+    btn.style.background = "#DC2626";
+    btn.innerHTML = "⚠ " + err.message;
+
+    setTimeout(() => {
+      btn.style.background = "";
+      btn.innerHTML = "Sign In";
+    }, 2500);
+  } finally {
+    btn.disabled = false;
+  }
+}
 //Register Javascript logic
 function togglePw(id, eyeId) {
   var i = document.getElementById(id);

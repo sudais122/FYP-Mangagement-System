@@ -1,9 +1,15 @@
 /* ══════════════════════════════════
    STATE
 ══════════════════════════════════ */
+const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user) {
+  window.location.href = "../login.html";
+}
+
 const STATE = {
-  studentId: 'STD-2026-' + (Math.floor(Math.random() * 9000) + 1000),
-  studentName: 'Ahmed Saeed',
+  studentId: user.student_code,   
+  studentName: user.name,        
   teamId: null,
   teamName: null,
   projectTitle: null,
@@ -14,7 +20,6 @@ const STATE = {
   sentMessages: [],
   unreadNotifs: 3,
 };
-
 /* ── Fake user database ── */
 const FAKE_USERS = [
   { id:'STD-2026-1234', name:'Bilal Khan',   initials:'BK' },
@@ -106,7 +111,6 @@ document.addEventListener('click', function(e) {
     closeNotifDropdown();
   }
 });
-
 /* ══════════════════════════════════
    WEEKLY MARKS TABLE
 ══════════════════════════════════ */
@@ -366,7 +370,7 @@ function searchMember(val) {
 function _doSearch(val) {
   const res = document.getElementById('search-result');
   if (!val) { res.classList.remove('show'); return; }
-  if (!val.startsWith('STD-')) {
+  if (!val.startsWith('STD')) {
     res.innerHTML = '<div class="sr-error">⚠ Format must be STD-YEAR-####</div>';
     res.classList.add('show'); return;
   }
