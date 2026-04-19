@@ -1,58 +1,18 @@
-// ════════════════════════════════════════════════════════════
-//  models/Student.js  —  MongoDB schema
-// ════════════════════════════════════════════════════════════
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
-const studentSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
-    studentID: {
-      type:     String,
-      required: true,
-      unique:   true,
-      index:    true,
-    },
-    name: {
-      type:     String,
-      required: true,
-      trim:     true,
-    },
-    email: {
-      type:      String,
-      required:  true,
-      unique:    true,
-      lowercase: true,
-      trim:      true,
-      index:     true,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email'],
-    },
-    password: {
-      type:     String,
-      required: true,
-      minlength: 8,
-    },
-    cv: {
-      url:      { type: String, required: true },   
-      publicId: { type: String, required: true },   
-      fileName: String,
-      size:     Number,
-    },
-    role: {
-      type:    String,
-      enum:    ['student'],
-      default: 'student',
-    },
-    teamID: {
-      type:    String,
-      default: null,
+    name:     { type: String, required: true },
+    email:    { type: String, unique: true, required: true },
+    password: { type: String, required: true },
+    cv:       { type: String, required: true },
+    student_code: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
   },
-  { timestamps: true } 
+  { timestamps: true }
 );
 
-studentSchema.methods.toJSON = function () {
-  const obj = this.toObject();
-  delete obj.password;
-  return obj;
-};
-
-module.exports = mongoose.model('Student', studentSchema);
+export default mongoose.model("User", userSchema);

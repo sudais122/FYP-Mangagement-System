@@ -35,32 +35,12 @@ async function doReg() {
   var cv = document.getElementById("r-cv").files[0];
 
   var ok = true;
-
-  if (!fn) {
-    showErr("fn", "First name is required");
-    ok = false;
-  }
-  if (!ln) {
-    showErr("ln", "Last name is required");
-    ok = false;
-  }
-  if (!em) {
-    showErr("em", "Email required");
-    ok = false;
-  }
-  if (!pw || pw.length < 8) {
-    showErr("pw", "Weak password");
-    ok = false;
-  }
-  if (pw !== cpw) {
-    showErr("cpw", "Passwords not match");
-    ok = false;
-  }
-  if (!cv) {
-    showErr("cv", "Upload CV");
-    ok = false;
-  }
-
+  if (!fn)  { showErr("fn",  "First name is required"); ok = false; }
+  if (!ln)  { showErr("ln",  "Last name is required");  ok = false; }
+  if (!em)  { showErr("em",  "Email required");         ok = false; }
+  if (!pw || pw.length < 8) { showErr("pw", "Weak password"); ok = false; }
+  if (pw !== cpw) { showErr("cpw", "Passwords do not match"); ok = false; }
+  if (!cv)  { showErr("cv",  "Upload CV"); ok = false; }
   if (!ok) return;
 
   var btn = document.getElementById("rbtn");
@@ -69,7 +49,6 @@ async function doReg() {
 
   try {
     const formData = new FormData();
-
     formData.append("name", fn + " " + ln);
     formData.append("email", em);
     formData.append("password", pw);
@@ -79,24 +58,17 @@ async function doReg() {
       method: "POST",
       body: formData,
     });
-
     const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Registration failed");
 
-    if (!res.ok) {
-      throw new Error(data.message || "Registration failed");
-    }
+    window.location.href = "login.html";
 
-    // success UI
-    document.getElementById("form-area").style.display = "none";
-    document.getElementById("success-area").style.display = "block";
   } catch (err) {
     alert(err.message);
-  } finally {
     btn.disabled = false;
-    btn.textContent = "Create Account";
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Register`;
   }
 }
-
 function copyFill(fid, val, el) {
   document.getElementById(fid).value = val;
   var t = el.textContent;
