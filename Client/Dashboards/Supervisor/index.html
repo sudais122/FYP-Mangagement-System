@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Supervisor Dashboard — FYP Management AWKUM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="./css/supervisor.css">
+</head>
+<body>
+
+<!-- ══════════════ NAVBAR ══════════════ -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    </div>
+    <div class="nav-brand-text"><strong>FYP Management</strong><small>AWKUM · CS Dept</small></div>
+    <span class="nav-title">Supervisor Portal</span>
+
+    <div class="nav-right">
+      <!-- Notification Bell + Dropdown -->
+      <div class="nav-notif-wrap">
+        <div class="nav-notif" id="notif-btn" onclick="toggleNotifDropdown(event)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-dot" id="notif-dot"></span>
+        </div>
+        <div class="notif-dropdown" id="notif-dropdown">
+          <div class="nd-header">
+            <h4>Notifications</h4>
+            <button class="nd-mark-read" onclick="markAllRead()">Mark all read</button>
+          </div>
+          <div class="nd-list" id="nd-list"></div>
+        </div>
+      </div>
+
+      <div class="nav-user">
+        <div class="nav-avatar">AA</div>
+        <div class="nav-user-info">
+          <strong>Dr. Aftab Ahmad</strong>
+          <small id="nav-sup-id">SUP20260001</small>
+        </div>
+      </div>
+      <button class="nav-logout" onclick="window.location.href='index.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════ MAIN LAYOUT ══════════════ -->
+<div class="dash-layout">
+
+  <!-- Sidebar — 5 items only -->
+  <aside class="dash-sidebar">
+    <button class="sb-item active" onclick="switchTab('dashboard',this)">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+      <span class="sb-label">Dashboard</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('teams',this)">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="sb-label">Teams</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('projects',this)">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>
+      <span class="sb-label">Projects</span>
+      <span class="sb-badge" id="sb-projects-badge">2</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('reports',this)">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      <span class="sb-label">Weekly Reports</span>
+      <span class="sb-badge" id="sb-reports-badge">5</span>
+    </button>
+    <button class="sb-item" onclick="switchTab('evaluation',this)">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span class="sb-label">Evaluation</span>
+    </button>
+    <div class="sb-divider"></div>
+    <button class="sb-item logout-btn" onclick="window.location.href='index.html'">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span class="sb-label">Logout</span>
+    </button>
+  </aside>
+
+  <!-- Main content -->
+  <main class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-topbar-left">
+        <h1 id="page-title">Dashboard</h1>
+        <p id="page-sub">Overview of your assigned teams and pending actions</p>
+      </div>
+    </div>
+
+    <!-- ══════════════ DASHBOARD TAB ══════════════ -->
+    <div id="tab-dashboard" class="dash-subpage active">
+      <div class="dash-banner">
+        <div class="banner-text">
+          <h2>Welcome back, Dr. Aftab 👋</h2>
+          <p>Supervisor ID: <strong id="banner-sup-id">SUP20260001</strong> · FYP Coordinator · CS Dept</p>
+        </div>
+        <div class="banner-actions">
+          <button class="btn-banner btn-banner-primary" onclick="switchTab('projects',document.querySelectorAll('.sb-item')[2])">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Review Proposals
+          </button>
+          <button class="btn-banner btn-banner-ghost" onclick="switchTab('reports',document.querySelectorAll('.sb-item')[3])">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+            Grade Reports
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 stat cards -->
+      <div class="dash-stats">
+        <div class="dstat-card" style="--card-accent:var(--primary);--card-icon-bg:rgba(0,75,45,.08);--card-icon-color:var(--primary)">
+          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+          <div><div class="dstat-label">Total Teams</div><div class="dstat-value" id="stat-teams">5</div><div class="dstat-sub">Assigned to you</div></div>
+        </div>
+        <div class="dstat-card" style="--card-accent:var(--secondary);--card-icon-bg:rgba(31,122,92,.08);--card-icon-color:var(--secondary)">
+          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11l-3 3-3-3"/></svg></div>
+          <div><div class="dstat-label">Total Students</div><div class="dstat-value" id="stat-students">14</div><div class="dstat-sub">Across all teams</div></div>
+        </div>
+        <div class="dstat-card" style="--card-accent:#dc2626;--card-icon-bg:rgba(220,38,38,.07);--card-icon-color:#dc2626">
+          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div><div class="dstat-label">Pending Proposals</div><div class="dstat-value" id="stat-pending">2</div><div class="dstat-sub">Awaiting your review</div></div>
+        </div>
+        <div class="dstat-card" style="--card-accent:var(--gold);--card-icon-bg:rgba(191,161,74,.1);--card-icon-color:var(--gold)">
+          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg></div>
+          <div><div class="dstat-label">Reports Submitted</div><div class="dstat-value" id="stat-reports">18<span style="font-size:1rem;color:var(--text-mute);font-weight:600">/25</span></div><div class="dstat-sub">5 awaiting grading</div></div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <!-- Pending Actions -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>Pending Actions</h3>
+            <span class="sb-badge" style="opacity:1;background:#dc2626;color:#fff;font-size:.7rem;padding:4px 9px;border-radius:10px;margin-left:0">7 Total</span>
+          </div>
+          <div class="dash-card-body" id="pending-actions-list"></div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Recent Activity</h3>
+          </div>
+          <div class="dash-card-body" id="recent-activity-list"></div>
+        </div>
+      </div>
+
+      <!-- Quick teams glance -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>My Teams at a Glance</h3>
+          <button class="card-action" onclick="switchTab('teams',document.querySelectorAll('.sb-item')[1])">View All</button>
+        </div>
+        <div class="dash-card-body" id="teams-glance-list"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ TEAMS TAB ══════════════ -->
+    <div id="tab-teams" class="dash-subpage">
+      <div class="filter-bar">
+        <div class="filter-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="teams-search" placeholder="Search by team ID, name, or project…" oninput="renderTeams()">
+        </div>
+        <select class="filter-select" id="teams-filter" onchange="renderTeams()">
+          <option value="">All Status</option>
+          <option value="Approved">Approved</option>
+          <option value="Pending">Pending</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+      </div>
+      <div class="teams-grid" id="teams-grid"></div>
+    </div>
+
+    <!-- ══════════════ PROJECTS (PROPOSALS) TAB ══════════════ -->
+    <div id="tab-projects" class="dash-subpage">
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>Proposal Management</h3>
+          <select class="filter-select" id="proposals-filter" onchange="renderProposals()" style="margin-left:auto;width:160px">
+            <option value="">All Proposals</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+        <div class="dash-card-body" style="padding:0">
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Team ID</th>
+                  <th>Project Title</th>
+                  <th>Category</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  <th style="text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="proposals-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ WEEKLY REPORTS TAB ══════════════ -->
+    <div id="tab-reports" class="dash-subpage">
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Weekly Reports</h3>
+          <div style="display:flex;gap:10px;margin-left:auto">
+            <select class="filter-select" id="reports-team-filter" onchange="renderReports()" style="width:170px">
+              <option value="">All Teams</option>
+            </select>
+            <select class="filter-select" id="reports-status-filter" onchange="renderReports()" style="width:150px">
+              <option value="">All Status</option>
+              <option value="Pending Review">Pending Review</option>
+              <option value="Evaluated">Evaluated</option>
+            </select>
+          </div>
+        </div>
+        <div class="dash-card-body" style="padding:0">
+          <div class="data-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Team ID</th>
+                  <th>Team Name</th>
+                  <th>Week</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  <th>Marks</th>
+                  <th style="text-align:right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="reports-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════ EVALUATION TAB ══════════════ -->
+    <div id="tab-evaluation" class="dash-subpage">
+      <div class="eval-stats">
+        <div class="eval-stat-card" style="--e-accent:var(--primary)">
+          <div class="eval-stat-label">Teams Evaluated</div>
+          <div class="eval-stat-value" id="eval-stat-teams">5<span> teams</span></div>
+          <div class="eval-stat-sub">All active</div>
+        </div>
+        <div class="eval-stat-card" style="--e-accent:var(--gold)">
+          <div class="eval-stat-label">Class Average</div>
+          <div class="eval-stat-value" id="eval-stat-avg">—<span>/10</span></div>
+          <div class="eval-stat-sub">Across all teams</div>
+        </div>
+        <div class="eval-stat-card" style="--e-accent:var(--secondary)">
+          <div class="eval-stat-label">Top Performer</div>
+          <div class="eval-stat-value" id="eval-stat-top" style="font-size:1.1rem;line-height:1.2">—</div>
+          <div class="eval-stat-sub" id="eval-stat-top-sub">—</div>
+        </div>
+        <div class="eval-stat-card" style="--e-accent:#3b82f6">
+          <div class="eval-stat-label">Total Reports</div>
+          <div class="eval-stat-value" id="eval-stat-reports">18<span> graded</span></div>
+          <div class="eval-stat-sub">5 pending evaluation</div>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Team Performance Matrix</h3>
+          <span style="font-size:.72rem;color:var(--text-mute)">Scroll horizontally to see all weeks</span>
+        </div>
+        <div class="dash-card-body" style="padding:0">
+          <div class="data-table-wrap">
+            <table class="eval-matrix">
+              <thead>
+                <tr>
+                  <th style="min-width:170px">Team</th>
+                  <th>W1</th><th>W2</th><th>W3</th><th>W4</th><th>W5</th>
+                  <th>Total</th>
+                  <th>Average</th>
+                  <th style="min-width:160px">Final Remark</th>
+                </tr>
+              </thead>
+              <tbody id="eval-matrix-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="eval-remark-cards"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════
+   TEAM DETAILS MODAL
+══════════════════════════════════ -->
+<div class="modal-overlay" id="team-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-head">
+      <h3 id="team-modal-title">Team Details</h3>
+      <button class="modal-close" onclick="closeModal('team-modal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="team-modal-body"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+   PROPOSAL REVIEW MODAL
+══════════════════════════════════ -->
+<div class="modal-overlay" id="proposal-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-head">
+      <h3>Proposal Review</h3>
+      <button class="modal-close" onclick="closeModal('proposal-modal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="proposal-modal-body"></div>
+    <div class="modal-footer" id="proposal-modal-footer"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+   REPORT EVALUATION MODAL
+══════════════════════════════════ -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal-box modal-lg">
+    <div class="modal-head">
+      <h3>Evaluate Weekly Report</h3>
+      <button class="modal-close" onclick="closeModal('report-modal')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" id="report-modal-body"></div>
+    <div class="modal-footer" id="report-modal-footer"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+<script src="./js/supervisor.js"></script>
+</body>
+</html>
