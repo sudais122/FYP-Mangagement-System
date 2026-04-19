@@ -4,7 +4,6 @@ var VALID = [
   "bilal.khan@awkum.edu.pk",
   "sana.malik@awkum.edu.pk",
 ];
-var OTP = "123456";
 var cur = 1;
 var rtimer = null;
 var topT = [
@@ -91,35 +90,49 @@ function clearE(id, eid) {
   if (m) m.classList.remove("show");
 }
 
-function step1Submit() {
-  var em = document.getElementById("s1-email").value.trim().toLowerCase();
-  var btn = document.querySelector("#step1 .btn-primary");
-  if (!em || !em.includes("@")) {
+async function step1Submit() {
+  const email = document.getElementById("s1-email").value.trim();
+  const btn = document.querySelector("#step1 .btn-primary");
+
+  if (!email || !email.includes("@")) {
     document.getElementById("e1-email").textContent =
       "Please enter a valid email address.";
     document.getElementById("e1-email").classList.add("show");
-    document.getElementById("s1-email").classList.add("err");
     return;
   }
-  if (VALID.indexOf(em) === -1) {
-    document.getElementById("e1-email").textContent =
-      "This email is not registered in our system.";
-    document.getElementById("e1-email").classList.add("show");
-    document.getElementById("s1-email").classList.add("err");
-    return;
-  }
+
   btn.disabled = true;
-  btn.textContent = "Sending…";
-  setTimeout(function () {
-    btn.disabled = false;
-    btn.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Send Verification Code';
-    document.getElementById("otp-email-display").textContent = em;
+  btn.textContent = "Sending...";
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    document.getElementById("otp-email-display").textContent = email;
+
+    // Save email for next steps
+    localStorage.setItem("resetEmail", email);
+
     goStep(2);
     startResend();
-  }, 1300);
-}
 
+  } catch (err) {
+    document.getElementById("e1-email").textContent = err.message;
+    document.getElementById("e1-email").classList.add("show");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Send Verification Code";
+  }
+}
 function otpMove(el, nid) {
   el.value = el.value.replace(/[^0-9]/g, "");
   if (el.value) el.classList.add("filled");
@@ -131,26 +144,37 @@ function otpBack(e, el, pid) {
   if (e.key === "Backspace" && !el.value && pid)
     document.getElementById(pid).focus();
 }
-
-function step2Submit() {
-  var code = ["o1", "o2", "o3", "o4", "o5", "o6"]
-    .map(function (id) {
-      return document.getElementById(id).value;
-    })
+async function step2Submit() {
+  const code = ["o1","o2","o3","o4","o5","o6"]
+    .map(id => document.getElementById(id).value)
     .join("");
-  if (code !== OTP) {
+
+  const email = localStorage.getItem("resetEmail");
+
+  if (code.length !== 6) {
     document.getElementById("e-otp").classList.add("show");
-    ["o1", "o2", "o3", "o4", "o5", "o6"].forEach(function (id) {
-      document.getElementById(id).style.borderColor = "#dc3545";
-    });
-    setTimeout(function () {
-      ["o1", "o2", "o3", "o4", "o5", "o6"].forEach(function (id) {
-        document.getElementById(id).style.borderColor = "";
-      });
-    }, 2000);
     return;
   }
-  goStep(3);
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, otp: code }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
+    goStep(3);
+
+  } catch (err) {
+    document.getElementById("e-otp").textContent = err.message;
+    document.getElementById("e-otp").classList.add("show");
+  }
 }
 
 function startResend() {
@@ -209,27 +233,46 @@ function togPw(id, eid) {
     : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 
-function step3Submit() {
-  var pw = document.getElementById("s3-pw").value;
-  var cpw = document.getElementById("s3-cpw").value;
-  var ok = true;
-  if (!pw || pw.length < 8) {
+async function step3Submit() {
+  const password = document.getElementById("s3-pw").value;
+  const confirmPassword = document.getElementById("s3-cpw").value;
+  const email = localStorage.getItem("resetEmail");
+
+  if (!password || password.length < 8) {
     document.getElementById("e3-pw").classList.add("show");
-    document.getElementById("s3-pw").classList.add("err");
-    ok = false;
+    return;
   }
-  if (!cpw || pw !== cpw) {
+
+  if (password !== confirmPassword) {
     document.getElementById("e3-cpw").classList.add("show");
-    document.getElementById("s3-cpw").classList.add("err");
-    ok = false;
+    return;
   }
-  if (!ok) return;
-  var btn = document.querySelector("#step3 .btn-primary");
+
+  const btn = document.querySelector("#step3 .btn-primary");
   btn.disabled = true;
-  btn.textContent = "Resetting…";
-  setTimeout(function () {
+  btn.textContent = "Resetting...";
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message);
+
     goStep(4);
-  }, 1200);
+
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Reset Password";
+  }
 }
 let currentRole = "student";
 
