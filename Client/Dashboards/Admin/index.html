@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Admin Dashboard — FYP Management AWKUM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- ══ NAVBAR ══ -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+      </div>
+      <div class="nav-brand-text">
+        <strong>FYP Management</strong>
+        <small>AWKUM · CS Department</small>
+      </div>
+      <span class="nav-title">Admin Dashboard</span>
+      <div class="nav-right">
+        <div class="nav-notif" title="Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-dot"></span>
+        </div>
+        <div class="nav-user">
+          <div class="nav-avatar">AD</div>
+          <div class="nav-user-info">
+            <strong>Admin</strong>
+            <small>Administrator</small>
+          </div>
+        </div>
+        <button class="nav-logout" onclick="window.location.href='index.html'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ LAYOUT ══ -->
+  <div class="dash-layout">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="dash-sidebar">
+      <button class="sb-item active" onclick="switchTab('dashboard',this)" title="Dashboard">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span class="sb-label">Dashboard</span>
+      </button>
+      <button class="sb-item" onclick="switchTab('students',this)" title="Students">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+        <span class="sb-label">Students</span>
+      </button>
+      <button class="sb-item" onclick="switchTab('supervisors',this)" title="Supervisors">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span class="sb-label">Supervisors</span>
+      </button>
+      <button class="sb-item" onclick="switchTab('teams',this)" title="Teams">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="sb-label">Teams</span>
+      </button>
+      <div class="sb-divider"></div>
+      <button class="sb-item" onclick="switchTab('assignments',this)" title="Assignments">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <span class="sb-label">Assignments</span>
+      </button>
+      <button class="sb-item" onclick="switchTab('reports',this)" title="Reports">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="sb-label">Reports</span>
+      </button>
+      <div class="sb-divider"></div>
+      <button class="sb-item logout-btn" onclick="window.location.href='index.html'" title="Logout" style="margin-top:auto;">
+        <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span class="sb-label">Logout</span>
+      </button>
+    </aside>
+
+    <!-- ── MAIN ── -->
+    <main class="dash-main">
+
+      <div class="dash-topbar">
+        <div class="dash-topbar-left">
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-sub">Overview of FYP system activity</p>
+        </div>
+      </div>
+
+      <!-- ═══ DASHBOARD TAB ═══ -->
+      <div class="dash-subpage active" id="tab-dashboard">
+        <div class="dash-banner">
+          <div class="banner-text">
+            <h2>Welcome back, Admin 👋</h2>
+            <p>Manage all FYP activities — students, supervisors, teams, and evaluations.</p>
+          </div>
+          <div class="banner-actions">
+            <button class="btn-banner btn-banner-primary" onclick="openAddSupervisor()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Supervisor
+            </button>
+          </div>
+        </div>
+
+        <div class="dash-stats" id="admin-stats"></div>
+
+        <div class="dash-grid-2">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Unassigned Teams</h3>
+              <button class="card-action" onclick="switchTab('assignments',document.querySelectorAll('.sb-item')[4])">Go to Assignments →</button>
+            </div>
+            <div class="dash-card-body" id="unassigned-preview"></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Top Supervisors</h3>
+              <button class="card-action" onclick="switchTab('supervisors',document.querySelectorAll('.sb-item')[2])">View All →</button>
+            </div>
+            <div class="dash-card-body" id="top-supervisors"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ STUDENTS TAB ═══ -->
+      <div class="dash-subpage" id="tab-students">
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>All Students</h3>
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="student-search" placeholder="Search by name or ID..." oninput="renderStudents()"/>
+            </div>
+          </div>
+          <div class="dash-card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table class="admin-table">
+                <thead><tr>
+                  <th>Student ID</th><th>Name</th><th>Email</th><th>Team</th><th style="text-align:right;">Action</th>
+                </tr></thead>
+                <tbody id="students-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ SUPERVISORS TAB ═══ -->
+      <div class="dash-subpage" id="tab-supervisors">
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>All Supervisors</h3>
+            <div class="header-actions">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="sup-search" placeholder="Search supervisors..." oninput="renderSupervisors()"/>
+              </div>
+              <button class="btn-add" onclick="openAddSupervisor()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Supervisor
+              </button>
+            </div>
+          </div>
+          <div class="dash-card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table class="admin-table">
+                <thead><tr>
+                  <th>Supervisor ID</th><th>Name</th><th>Email</th><th>Department</th><th style="text-align:center;">Teams</th><th style="text-align:right;">Actions</th>
+                </tr></thead>
+                <tbody id="supervisors-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ TEAMS TAB ═══ -->
+      <div class="dash-subpage" id="tab-teams">
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>All Teams</h3>
+            <div class="search-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="team-search" placeholder="Search by team or project..." oninput="renderTeams()"/>
+            </div>
+          </div>
+          <div class="dash-card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table class="admin-table">
+                <thead><tr>
+                  <th>Team ID</th><th>Team Leader</th><th>Members</th><th>Project Title</th><th>Supervisor</th><th style="text-align:right;">Actions</th>
+                </tr></thead>
+                <tbody id="teams-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ASSIGNMENTS TAB ═══ -->
+      <div class="dash-subpage" id="tab-assignments">
+        <div class="dash-grid-2">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3 style="color:#c06c0a;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#c06c0a;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Unassigned Teams</h3>
+              <span class="status-badge s-pending" id="unassigned-count">0 teams</span>
+            </div>
+            <div class="dash-card-body" id="unassigned-list" style="padding:0;"></div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Current Assignments</h3>
+              <span class="status-badge s-approved" id="assigned-count">0 assigned</span>
+            </div>
+            <div class="dash-card-body" id="assigned-list" style="padding:0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ REPORTS TAB ═══ -->
+      <div class="dash-subpage" id="tab-reports">
+        <div class="dash-stats" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
+          <div class="dstat-card" style="--card-accent:var(--primary);">
+            <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <div><div class="dstat-label">Total Reports</div><div class="dstat-value" id="total-reports">0</div><div class="dstat-sub">Submitted this semester</div></div>
+          </div>
+          <div class="dstat-card" style="--card-accent:var(--gold);--card-icon-bg:rgba(191,161,74,.1);--card-icon-color:var(--gold);">
+            <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+            <div><div class="dstat-label">Average Marks</div><div class="dstat-value" id="avg-marks">0.0</div><div class="dstat-sub">Out of 10</div></div>
+          </div>
+          <div class="dstat-card" style="--card-accent:#3b82f6;--card-icon-bg:rgba(59,130,246,.08);--card-icon-color:#3b82f6;">
+            <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+            <div><div class="dstat-label">With Feedback</div><div class="dstat-value" id="with-feedback">0</div><div class="dstat-sub">Reports reviewed</div></div>
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Weekly Reports — Monitor Only</h3>
+          </div>
+          <div class="dash-card-body" style="padding:0;">
+            <div class="table-wrap">
+              <table class="admin-table">
+                <thead><tr>
+                  <th>Week</th><th>Team</th><th>Supervisor</th><th style="text-align:center;">Marks</th><th>Feedback</th><th>Submitted</th>
+                </tr></thead>
+                <tbody id="reports-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ══ MODAL ══ -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box" id="modal-box"></div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
