@@ -60,13 +60,15 @@
     <div class="hero-overlay"></div>
     <div class="hero-content">
       <div class="hero-eyebrow">Academic Year 2025–2026</div>
-      <h1>Welcome to the <span class="gold-word">FYP Management</span> System</h1>
+      <h1 style="font-family: sans-serif; font-weight: 800;">Welcome to the <span class="gold-word">FYP Management</span> System</h1>
       <p>A centralized hub for all Final Year Project activities — from proposals and submissions to evaluations and guidelines.</p>
       <div class="hero-actions">
-        <button class="btn-hero btn-hero-primary" onclick="navigate('login')">
+        <a href="./Auth/login.html">
+        <button class="btn-hero btn-hero-primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           Access Portal
         </button>
+        </a>
         <button class="btn-hero btn-hero-ghost" onclick="navigate('faq')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
           Browse FAQs
@@ -117,8 +119,8 @@
   <div class="faq-page-wrap">
     <div class="faq-hero">
       <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(191,161,74,.15);border:1px solid rgba(191,161,74,.3);color:var(--gold-lt);padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px">Final Year Project</div>
-      <h2>Frequently Asked Questions</h2>
-      <p>Find answers to common queries about FYP procedures, requirements, and submission guidelines.</p>
+      <h2 style="font-family: sans-serif;">Frequently Asked Questions</h2>
+      <p style="font-family: sans-serif;">Find answers to common queries about FYP procedures, requirements, and submission guidelines.</p>
     </div>
     <div class="faq-container" id="faq-container"></div>
   </div>
@@ -129,16 +131,16 @@
   <div class="messages-page">
     <div class="msg-hero">
       <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(191,161,74,.15);border:1px solid rgba(191,161,74,.3);color:var(--gold-lt);padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px">Official Communications</div>
-      <h2>Messages from Authorities</h2>
+      <h2 style="font-family: sans-serif;">Messages from Authorities</h2>
       <p>Guidance and motivation from our department leadership.</p>
     </div>
     <div class="messages-grid">
       <div class="msg-card">
-        <div class="msg-card-top"><div class="msg-avatar">NI</div><div class="msg-card-meta"><strong>Dr. Nadeem Iqbal</strong><span>Head, Department of Computer Science</span></div></div>
+        <div class="msg-card-top"><div class="msg-avatar"><img src="https://staging.awkum.edu.pk/img/users/7.jpg" alt=""></div><div class="msg-card-meta"><strong>Dr. Nadeem Iqbal</strong><span>Head, Department of Computer Science</span></div></div>
         <div class="msg-body"><span class="quote-mark">"</span><p>Dear Students,</p><p>The Final Year Project represents a defining phase of your academic journey. It reflects your analytical thinking, discipline, and professional readiness.</p><p>I encourage you to select projects that address real-world challenges and demonstrate innovation and responsibility.</p><p>Our faculty is fully committed to supporting you throughout this process. Maintain consistency, communicate effectively, and adhere to academic timelines.</p><div class="msg-sig"><strong>Dr. Nadeem Iqbal</strong> — Chairman's Message</div></div>
       </div>
       <div class="msg-card">
-        <div class="msg-card-top" style="background:linear-gradient(135deg,var(--secondary),var(--primary-dark))"><div class="msg-avatar">AA</div><div class="msg-card-meta"><strong>Dr. Aftab Ahmad</strong><span>FYP Coordinator, CS Department</span></div></div>
+        <div class="msg-card-top" style="background:linear-gradient(135deg,var(--secondary),var(--primary-dark))"><div class="msg-avatar"><img src="https://scholar.googleusercontent.com/citations?view_op=view_photo&user=yqvRcIsAAAAJ&citpid=6 95w,https://scholar.googleusercontent.com/citations?view_op=medium_photo&user=yqvRcIsAAAAJ&citpid=6 191w" alt=""></div><div class="msg-card-meta"><strong>Dr. Aftab Ahmad</strong><span>FYP Coordinator, CS Department</span></div></div>
         <div class="msg-body"><span class="quote-mark">"</span><p>Dear Students,</p><p>Your Final Year Project is an opportunity to apply theoretical knowledge in a practical environment and demonstrate your capabilities as a future professional.</p><p>Choose your project topic wisely, remain consistent in your efforts, and seek guidance whenever necessary.</p><p>Discipline, proper documentation, and timely submissions are the key pillars of a successful FYP journey.</p><div class="msg-sig"><strong>Dr. Aftab Ahmad</strong> — FYP Coordinator's Message</div></div>
       </div>
     </div>
@@ -150,13 +152,12 @@
   <div class="devs-page">
     <div class="dev-hero">
       <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(191,161,74,.15);border:1px solid rgba(191,161,74,.3);color:var(--gold-lt);padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px">The Team</div>
-      <h2>Meet the Developers</h2>
+      <h2 style="font-family: sans-serif;">Meet the Developers</h2>
       <p>The talented individuals behind the FYP Management System.</p>
     </div>
     <div class="dev-grid">
-      <div class="dev-card"><div class="dev-avatar">MS</div><h3>Muhammad Sudais</h3><span class="dev-role">Full Stack Developer</span><p>Responsible for designing and developing the FYP Management System, including backend APIs, database architecture, and the complete frontend interface.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
-      <div class="dev-card"><div class="dev-avatar" style="background:linear-gradient(135deg,var(--secondary),var(--primary-dark))">MA</div><h3>Mahboob Ali</h3><span class="dev-role">Frontend Developer</span><p>Focused on building responsive, accessible UI components and ensuring a seamless user experience across student, supervisor, and admin interfaces.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
-      <div class="dev-card"><div class="dev-avatar" style="background:linear-gradient(135deg,#5B4A9E,var(--primary))">ZR</div><h3>Zaid Rahman</h3><span class="dev-role">Backend &amp; Database</span><p>Architected the server-side logic, database schemas, and authentication system. Handles API integration and data security for the platform.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
+      <div class="dev-card"><div class="dev-avatar"><img src="./images/Devalopers/Sudias.jpeg"></div><h3>Muhammad Sudais</h3><span class="dev-role">Full Stack Developer</span><p>Responsible for designing and developing the FYP Management System, including backend APIs, database architecture, and the complete frontend interface.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
+      <div class="dev-card"><div class="dev-avatar"><img src="./images/Devalopers/Mehboob.jpeg"></div><h3>Mahboob Ali</h3><span class="dev-role">Frontend Developer</span><p>Focused on building responsive, accessible UI components and ensuring a seamless user experience across student, supervisor, and admin interfaces.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
     </div>
   </div>
 </div>
