@@ -8,28 +8,28 @@ if (!user) {
 }
 
 const STATE = {
-  studentId: user.student_code,   
-  studentName: user.name,        
+  studentId: user.student_code,
+  studentName: user.name,
   teamId: null,
-  teamName: null,
   projectTitle: null,
   members: [],
-  requestedSupervisor: null,
+  selectedSupervisor: null,   // <-- changed from requestedSupervisor
   teamCreated: false,
   uploadedFiles: [],
   sentMessages: [],
   unreadNotifs: 3,
 };
+
 /* ── Fake user database ── */
 const FAKE_USERS = [
-  { id:'STD-2026-1234', name:'Bilal Khan',   initials:'BK' },
-  { id:'STD-2026-5678', name:'Sara Noor',    initials:'SN' },
-  { id:'STD-2026-9012', name:'Usman Tariq',  initials:'UT' },
-  { id:'STD-2026-3456', name:'Ayesha Malik', initials:'AM' },
-  { id:'STD-2026-7890', name:'Hassan Raza',  initials:'HR' },
-  { id:'STD-2026-2345', name:'Fatima Zaidi', initials:'FZ' },
-  { id:'STD-2026-6789', name:'Zain Ahmed',   initials:'ZA' },
-  { id:'STD-2026-0123', name:'Nadia Iqbal',  initials:'NI' },
+  { id:'STD20261234', name:'Bilal Khan',   initials:'BK' },
+  { id:'STD20265678', name:'Sara Noor',    initials:'SN' },
+  { id:'STD20269012', name:'Usman Tariq',  initials:'UT' },
+  { id:'STD20263456', name:'Ayesha Malik', initials:'AM' },
+  { id:'STD20267890', name:'Hassan Raza',  initials:'HR' },
+  { id:'STD20262345', name:'Fatima Zaidi', initials:'FZ' },
+  { id:'STD20266789', name:'Zain Ahmed',   initials:'ZA' },
+  { id:'STD20260123', name:'Nadia Iqbal',  initials:'NI' },
 ];
 
 /* ── Supervisors ── */
@@ -44,10 +44,10 @@ const SUPERVISORS = [
 
 /* ── Weekly marks data ── */
 const WEEKLY_MARKS = [
-  { week:1, date:'Mar 8, 2026',  status:'submitted', marks:8, feedback:'Good start, clear project objectives defined.' },
-  { week:2, date:'Mar 15, 2026', status:'submitted', marks:7, feedback:'Improve documentation quality and add more details.' },
-  { week:3, date:'Mar 22, 2026', status:'submitted', marks:9, feedback:'Excellent progress this week! Great work on literature review.' },
-  { week:4, date:'Mar 29, 2026', status:'submitted', marks:7, feedback:'Focus more on system architecture design.' },
+  { week:1, date:'Mar 8, 2026',  status:'submitted', marks:8,    feedback:'Good start, clear project objectives defined.' },
+  { week:2, date:'Mar 15, 2026', status:'submitted', marks:7,    feedback:'Improve documentation quality and add more details.' },
+  { week:3, date:'Mar 22, 2026', status:'submitted', marks:9,    feedback:'Excellent progress this week! Great work on literature review.' },
+  { week:4, date:'Mar 29, 2026', status:'submitted', marks:7,    feedback:'Focus more on system architecture design.' },
   { week:5, date:'Apr 5, 2026',  status:'pending',   marks:null, feedback:null },
 ];
 
@@ -104,13 +104,13 @@ function markAllRead() {
   closeNotifDropdown();
 }
 
-// Close dropdown when clicking outside
 document.addEventListener('click', function(e) {
   const wrap = document.getElementById('notif-btn')?.closest('.nav-notif-wrap');
   if (wrap && !wrap.contains(e.target)) {
     closeNotifDropdown();
   }
 });
+
 /* ══════════════════════════════════
    WEEKLY MARKS TABLE
 ══════════════════════════════════ */
@@ -289,9 +289,7 @@ function renderSentMessages() {
       </div>`).join('');
 }
 
-/* ══════════════════════════════════
-   SETUP FLOW (3 steps)
-══════════════════════════════════ */
+/* SETUP FLOW (3 steps)  */
 function openSetup() {
   document.getElementById('setup-overlay').style.display = 'flex';
   document.getElementById('display-student-id').textContent = STATE.studentId;
@@ -316,10 +314,8 @@ function showStep(n) {
 
 function goStep2() {
   const proj = document.getElementById('s1-proj').value.trim();
-  const team = document.getElementById('s1-team').value.trim();
-  if (!proj || !team) { toast('Please fill in Project Title and Team Name', 'red'); return; }
+  if (!proj) { toast('Please fill in Project Title and Team Name', 'red'); return; }
   STATE.projectTitle = proj;
-  STATE.teamName = team;
   STATE.teamId = 'TEAM-' + new Date().getFullYear() + '-' + (Math.floor(Math.random() * 9000) + 1000);
   document.getElementById('display-team-id').textContent = STATE.teamId;
   STATE.members = [];
@@ -331,24 +327,48 @@ function goStep2() {
 function backStep1() { showStep(1); }
 
 function goStep3() {
-  renderSupervisors('');
+  // Reset dropdown and preview when entering step 3
+  const sel = document.getElementById('sup-select');
+  if (sel) sel.value = STATE.selectedSupervisor || '';
+  updateSupPreview(STATE.selectedSupervisor);
   showStep(3);
 }
 
 function backStep2() { showStep(2); }
 
+/* ══ Supervisor selection (dropdown) ══ */
+function selectSupervisor(id) {
+  STATE.selectedSupervisor = id || null;
+  updateSupPreview(id);
+}
+
+function updateSupPreview(id) {
+  const preview = document.getElementById('sup-preview');
+  if (!id || !preview) { if (preview) preview.style.display = 'none'; return; }
+  const sup = SUPERVISORS.find(s => s.id === id);
+  if (!sup) { preview.style.display = 'none'; return; }
+  document.getElementById('sup-preview-av').textContent   = initials(sup.name);
+  document.getElementById('sup-preview-name').textContent = sup.name;
+  document.getElementById('sup-preview-dept').textContent = sup.dept;
+  preview.style.display = 'flex';
+}
+
 function finishSetup() {
+  if (!STATE.selectedSupervisor) {
+    toast('Please select a supervisor to continue', 'red');
+    return;
+  }
   STATE.teamCreated = true;
-  const reqSup = SUPERVISORS.find(s => s.id === STATE.requestedSupervisor);
+  const selSup = SUPERVISORS.find(s => s.id === STATE.selectedSupervisor);
   const chips = [
-    { icon:'team',    text:'Team: ' + STATE.teamName },
+    { icon:'team',    text:'Team: ' },
     { icon:'id',      text:STATE.teamId },
     { icon:'proj',    text:STATE.projectTitle.length > 28 ? STATE.projectTitle.slice(0,28) + '…' : STATE.projectTitle },
     { icon:'members', text:(STATE.members.length + 1) + ' member' + (STATE.members.length !== 0 ? 's' : '') },
   ];
-  if (reqSup) chips.push({ icon:'sup', text:'Requested: ' + reqSup.name });
+  if (selSup) chips.push({ icon:'sup', text:'Supervisor: ' + selSup.name });
+
   const svgMap = {
-    team:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`,
     id:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/></svg>`,
     proj:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>`,
     members:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>`,
@@ -382,8 +402,8 @@ function _doSearch(val) {
     res.innerHTML = '<div class="sr-error">Member already added</div>';
     res.classList.add('show'); return;
   }
-  const user = FAKE_USERS.find(u => u.id === val);
-  if (!user) {
+  const foundUser = FAKE_USERS.find(u => u.id === val);
+  if (!foundUser) {
     res.innerHTML = '<div class="sr-empty">No student found with this ID</div>';
     res.classList.add('show'); return;
   }
@@ -392,9 +412,9 @@ function _doSearch(val) {
     res.classList.add('show'); return;
   }
   res.innerHTML = `<div class="sr-item">
-    <div class="sr-avatar">${user.initials}</div>
-    <div class="sr-info"><strong>${user.name}</strong><small>${user.id}</small></div>
-    <button class="sr-add" onclick="addMember('${user.id}','${user.name}','${user.initials}')">+ Add</button>
+    <div class="sr-avatar">${foundUser.initials}</div>
+    <div class="sr-info"><strong>${foundUser.name}</strong><small>${foundUser.id}</small></div>
+    <button class="sr-add" onclick="addMember('${foundUser.id}','${foundUser.name}','${foundUser.initials}')">+ Add</button>
   </div>`;
   res.classList.add('show');
 }
@@ -441,55 +461,11 @@ function renderMemberSlots() {
   document.getElementById('slot-2').style.display = STATE.members.length < 2 ? 'flex' : 'none';
 }
 
-/* ══ Supervisor rendering ══ */
-function renderSupervisors(filter) {
-  const list = document.getElementById('sup-list');
-  let sups = SUPERVISORS;
-  if (filter) sups = SUPERVISORS.filter(s => s.tags.some(t => t.toLowerCase().includes(filter.toLowerCase())));
-  list.innerHTML = sups.map(s => {
-    const isReq  = STATE.requestedSupervisor === s.id;
-    const hasReq = !!STATE.requestedSupervisor;
-    return `<div class="sup-list-item ${isReq ? 'requested' : ''}">
-      <div class="sl-avatar">${initials(s.name)}</div>
-      <div class="sl-info">
-        <div class="sl-name">${s.name}</div>
-        <div class="sl-dept">${s.dept}</div>
-        <div class="sl-tags">${s.tags.map(t => `<span class="sl-tag">${t}</span>`).join('')}</div>
-        <div class="sl-slots">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          ${s.slots} slot${s.slots !== 1 ? 's' : ''} available
-        </div>
-      </div>
-      <button class="btn-request ${isReq ? 'sent' : ''}"
-        ${isReq ? 'disabled' : ''} ${hasReq && !isReq ? 'disabled' : ''}
-        onclick="requestSupervisor('${s.id}','${s.name}')">
-        ${isReq ? '✓ Requested' : 'Send Request'}
-      </button>
-    </div>`;
-  }).join('') || '<div style="padding:24px;text-align:center;color:var(--text-mute)">No supervisors match this filter</div>';
-}
-
-function filterSupervisors(val) { renderSupervisors(val); }
-
-function requestSupervisor(id, name) {
-  if (STATE.requestedSupervisor && STATE.requestedSupervisor !== id) {
-    toast('You already sent a request — wait for response', 'red'); return;
-  }
-  STATE.requestedSupervisor = id;
-  renderSupervisors('');
-  toast('Request sent to ' + name + ' ✓', 'gold');
-}
-
 /* ══ Render team tab ══ */
 function renderTeamTab() {
   const tn = document.getElementById('team-tab-name');
   const ti = document.getElementById('team-tab-id');
   const tp = document.getElementById('team-tab-proj');
-  if (STATE.teamName) {
-    tn.textContent = STATE.teamName;
-    ti.textContent = STATE.teamId;
-    tp.textContent = STATE.projectTitle;
-  }
 
   const display = document.getElementById('team-members-display');
   if (!STATE.teamCreated) {
@@ -520,19 +496,6 @@ function renderTeamTab() {
     </div>`).join('');
 }
 
-function updateBannerForTeam() {
-  if (STATE.teamName) {
-    document.getElementById('banner-team-name').textContent  = STATE.teamName;
-    document.getElementById('banner-team-id').textContent    = STATE.teamId;
-    document.getElementById('ov-team-name').textContent      = STATE.teamName;
-    document.getElementById('ov-team-id').textContent        = STATE.teamId;
-    document.getElementById('team-tab-name').textContent     = STATE.teamName;
-    document.getElementById('team-tab-id').textContent       = STATE.teamId;
-    document.getElementById('team-tab-proj').textContent     = STATE.projectTitle;
-    document.getElementById('home-team-name').textContent    = STATE.teamName;
-  }
-}
-
 /* ══════════════════════════════════
    HELPERS
 ══════════════════════════════════ */
@@ -549,14 +512,6 @@ function toast(msg, type) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-/* ══════════════════════════════════
-   INIT
-══════════════════════════════════ */
-// Set student ID in navbar
 document.getElementById('nav-std-id').textContent = STATE.studentId;
-
-// Render weekly marks on load (so data is ready when tab is opened)
 renderWeeklyMarks();
-
-// Show setup on first load (simulate first-time login)
 setTimeout(() => openSetup(), 500);

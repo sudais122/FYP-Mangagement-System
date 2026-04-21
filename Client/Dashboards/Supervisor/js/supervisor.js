@@ -250,13 +250,6 @@ function switchTab(tab, el) {
 /* ══════════════════════════════════
    NOTIFICATIONS DROPDOWN
 ══════════════════════════════════ */
-function toggleNotifDropdown(e) {
-  e.stopPropagation();
-  document.getElementById('notif-dropdown').classList.toggle('open');
-}
-function closeNotifDropdown() {
-  document.getElementById('notif-dropdown').classList.remove('open');
-}
 function markAllRead() {
   document.getElementById('notif-dot').classList.add('hidden');
   document.querySelectorAll('.nd-item.nd-unread').forEach(el => el.classList.remove('nd-unread'));
@@ -320,34 +313,12 @@ function renderDashboard() {
     });
   });
 
-  const pendIcon = {
-    proposal:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>`,
-    report:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 15 11 17 15 13"/></svg>`,
-  };
-  document.getElementById('pending-actions-list').innerHTML = actions.length ? actions.slice(0,7).map(a => `
-    <div class="pending-item" onclick='(${a.action.toString()})()'>
-      <div class="pi-icon pi-${a.type}">${pendIcon[a.type]}</div>
-      <div style="flex:1;min-width:0">
-        <div class="pi-title"><span class="pi-team-id">${a.teamId}</span>${a.title}</div>
-        <div class="pi-desc">${a.desc}</div>
-      </div>
-      <svg class="pi-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
-    </div>`).join('') : '<div style="text-align:center;padding:32px;color:var(--text-mute);font-size:.85rem">🎉 All caught up! No pending actions.</div>';
 
   const actIcon = {
     proposal:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,
     report:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>`,
     team:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`,
   };
-  document.getElementById('recent-activity-list').innerHTML = ACTIVITY.map(a => `
-    <div class="activity-item">
-      <div class="activity-icon">${actIcon[a.icon]}</div>
-      <div style="flex:1">
-        <div class="activity-title">${a.title}</div>
-        <div class="activity-time">${a.time}</div>
-      </div>
-    </div>`).join('');
-
   document.getElementById('teams-glance-list').innerHTML = TEAMS.slice(0, 5).map(t => `
     <div class="team-glance-row" onclick="openTeamDetails('${t.teamId}')">
       <div class="tgr-avatar">${t.avatar}</div>
@@ -492,10 +463,6 @@ function openTeamDetails(teamId) {
       <div class="m-row"><span class="m-key">Status</span><span class="m-val"><span class="status-badge ${statusClass(t.status)}">${t.status}</span></span></div>
     </div>
 
-    <div class="m-section">
-      <div class="m-section-title">Students (${t.students.length}) · With Overall Average</div>
-      <div class="m-student-list">${studentsHtml}</div>
-    </div>
 
     <div class="m-section">
       <div class="m-section-title">Proposal</div>
@@ -569,50 +536,102 @@ function renderProposals() {
 function openProposalReview(teamId) {
   const t = TEAMS.find(x => x.teamId === teamId);
   if (!t) return;
+
   document.getElementById('proposal-modal-body').innerHTML = `
     <div class="m-section">
       <div class="m-section-title">Team Info</div>
-      <div class="m-row"><span class="m-key">Team ID</span><span class="m-val mono">${t.teamId}</span></div>
-      <div class="m-row"><span class="m-key">Team Name</span><span class="m-val">${t.name}</span></div>
-      <div class="m-row"><span class="m-key">Members</span><span class="m-val">${t.students.length} students</span></div>
+      <div class="m-row">
+        <span class="m-key">Team ID</span>
+        <span class="m-val mono">${t.teamId}</span>
+      </div>
+      <div class="m-row">
+        <span class="m-key">Members</span>
+        <span class="m-val">${t.students.length} students</span>
+      </div>
     </div>
+
     <div class="m-section">
       <div class="m-section-title">Proposal Details</div>
-      <div class="m-row"><span class="m-key">Title</span><span class="m-val" style="font-weight:700;color:var(--primary)">${t.projectTitle}</span></div>
-      <div class="m-row"><span class="m-key">Category</span><span class="m-val">${t.category}</span></div>
-      <div class="m-row"><span class="m-key">Tech Stack</span><span class="m-val">${t.proposal.tech}</span></div>
-      <div class="m-row"><span class="m-key">Submitted</span><span class="m-val">${t.proposal.submittedOn}</span></div>
-      <div class="m-row"><span class="m-key">Status</span><span class="m-val"><span class="status-badge ${statusClass(t.proposal.status)}">${t.proposal.status}</span></span></div>
+
+      <div class="m-row">
+        <span class="m-key">Title</span>
+        <span class="m-val" style="font-weight:700;color:var(--primary)">
+          ${t.projectTitle}
+        </span>
+      </div>
+
+      <div class="m-row">
+        <span class="m-key">Category</span>
+        <span class="m-val">${t.category}</span>
+      </div>
+
+      <div class="m-row">
+        <span class="m-key">Tech Stack</span>
+        <span class="m-val">${t.proposal.tech}</span>
+      </div>
+
+      <div class="m-row">
+        <span class="m-key">Submitted</span>
+        <span class="m-val">${t.proposal.submittedOn}</span>
+      </div>
+
+      <div class="m-row">
+        <span class="m-key">Status</span>
+        <span class="m-val">
+          <span class="status-badge ${statusClass(t.proposal.status)}">
+            ${t.proposal.status}
+          </span>
+        </span>
+      </div>
+
       <div class="m-file-card">
-        <div class="m-file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="m-file-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+
         <div style="flex:1;min-width:0">
           <div class="m-file-name">${t.proposal.file}</div>
           <div class="m-file-meta">PDF · ${t.proposal.size}</div>
         </div>
+
         <button class="m-file-download" onclick="toast('Download started (demo)')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
           Download
         </button>
       </div>
-      <div style="margin-top:10px"><div class="m-abstract-box">${t.proposal.abstract}</div></div>
-    </div>
-    <div class="m-section">
-      <div class="m-section-title">Your Feedback</div>
-      <textarea class="sf-input" id="proposal-feedback" rows="3" placeholder="Write your feedback for the team…" style="resize:vertical"></textarea>
     </div>
   `;
 
   const isPending = t.proposal.status === 'Pending';
+
   document.getElementById('proposal-modal-footer').innerHTML = isPending ? `
-    <button class="btn btn-sm btn-danger"  onclick="decideProposal('${t.teamId}','Rejected')">Reject Proposal</button>
-    <button class="btn btn-sm btn-success" onclick="decideProposal('${t.teamId}','Approved')">Approve Proposal</button>
+    <button class="btn btn-sm btn-danger"
+      onclick="decideProposal('${t.teamId}','Rejected')">
+      Reject Proposal
+    </button>
+
+    <button class="btn btn-sm btn-success"
+      onclick="decideProposal('${t.teamId}','Approved')">
+      Approve Proposal
+    </button>
   ` : `
-    <button class="btn btn-sm btn-ghost" onclick="closeModal('proposal-modal')">Close</button>
-    <button class="btn btn-sm btn-primary" onclick="sendFeedback('${t.teamId}')">Send Feedback</button>
+    <button class="btn btn-sm btn-ghost"
+      onclick="closeModal('proposal-modal')">
+      Close
+    </button>
   `;
+
   openModal('proposal-modal');
 }
-
 function decideProposal(teamId, decision) {
   const t = TEAMS.find(x => x.teamId === teamId);
   if (!t) return;

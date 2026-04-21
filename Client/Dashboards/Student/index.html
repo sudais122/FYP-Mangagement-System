@@ -75,7 +75,7 @@
 <!-- ══════════════ MAIN LAYOUT ══════════════ -->
 <div class="dash-layout">
 
-  <!-- Sidebar — 5 items only -->
+  <!-- Sidebar -->
   <aside class="dash-sidebar">
     <button class="sb-item active" onclick="switchTab('home',this)">
       <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
@@ -163,7 +163,6 @@
           <div class="dash-card-body">
             <div class="proj-row"><span class="proj-key">Project Title</span><span class="proj-val">AI-Based Exam Proctoring System</span></div>
             <div class="proj-row"><span class="proj-key">Category</span><span class="proj-val">Artificial Intelligence / Computer Vision</span></div>
-            <div class="proj-row"><span class="proj-key">Team Name</span><span class="proj-val" id="ov-team-name">AI Proctors</span></div>
             <div class="proj-row"><span class="proj-key">Team ID</span><span class="proj-val" id="ov-team-id" style="font-family:monospace">TEAM-2026-8372</span></div>
             <div class="proj-row"><span class="proj-key">Team Leader</span><span class="proj-val">Ahmed Saeed (You)</span></div>
             <div class="proj-row"><span class="proj-key">Next Deadline</span><span class="proj-val"><span class="status-badge" style="background:rgba(220,38,38,.08);color:#dc2626">Mid Evaluation — Apr 20</span></span></div>
@@ -219,7 +218,6 @@
           <button class="card-action" onclick="openSetup()">Edit Team</button>
         </div>
         <div class="dash-card-body">
-          <div class="proj-row"><span class="proj-key">Team Name</span><span class="proj-val" id="team-tab-name">AI Proctors</span></div>
           <div class="proj-row"><span class="proj-key">Team ID</span><span class="proj-val" id="team-tab-id" style="font-family:monospace;color:var(--primary);font-weight:700">TEAM-2026-8372</span></div>
           <div class="proj-row"><span class="proj-key">Project Title</span><span class="proj-val" id="team-tab-proj">AI-Based Exam Proctoring System</span></div>
           <div class="proj-row"><span class="proj-key">Created</span><span class="proj-val">April 2026</span></div>
@@ -238,7 +236,6 @@
     <!-- ══════════════ MY PROJECT TAB ══════════════ -->
     <div id="tab-project" class="dash-subpage">
 
-      <!-- Project Details -->
       <div class="dash-card">
         <div class="dash-card-header">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Project Details</h3>
@@ -259,7 +256,6 @@
           <span class="status-badge s-approved" id="proposal-status-badge">Submitted & Approved</span>
         </div>
         <div class="dash-card-body">
-          <!-- Approved state -->
           <div id="proposal-approved-view">
             <div class="proposal-success-banner">
               <div class="psb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
@@ -272,7 +268,6 @@
             <div class="proj-row"><span class="proj-key">Abstract</span><span class="proj-val">This system utilizes computer vision and machine learning to monitor students during online exams, detecting suspicious behaviors like face switching, multiple people in frame, and unusual eye movements.</span></div>
             <div class="proj-row"><span class="proj-key">References</span><span class="proj-val">5 papers cited</span></div>
           </div>
-          <!-- Submit state — shown if not submitted -->
           <div id="proposal-submit-view" style="display:none">
             <div class="sf-group">
               <label>Proposal Title *</label>
@@ -315,7 +310,7 @@
         </div>
       </div>
 
-      <!-- Deadlines (moved inside My Project) -->
+      <!-- Deadlines -->
       <div class="dash-card">
         <div class="dash-card-header">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Academic Deadlines</h3>
@@ -333,7 +328,6 @@
 
     <!-- ══════════════ SUPERVISOR TAB ══════════════ -->
     <div id="tab-supervisor" class="dash-subpage">
-      <!-- Supervisor Info -->
       <div class="dash-card">
         <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Supervisor</h3></div>
         <div class="dash-card-body">
@@ -349,7 +343,6 @@
         </div>
       </div>
 
-      <!-- Send Message / Query -->
       <div class="dash-card">
         <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>Send Message / Query</h3></div>
         <div class="dash-card-body">
@@ -368,12 +361,10 @@
               Send Message
             </button>
           </div>
-          <!-- Sent messages -->
           <div id="sent-messages-list"></div>
         </div>
       </div>
 
-      <!-- Supervisor Feedback -->
       <div class="dash-card">
         <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Supervisor Feedback</h3><span class="sb-badge" style="opacity:1;font-size:.7rem;padding:4px 9px;border-radius:10px;background:var(--gold);color:var(--primary-dark)">3 Comments</span></div>
         <div class="dash-card-body">
@@ -392,7 +383,6 @@
         </div>
       </div>
 
-      <!-- Meeting Timeline -->
       <div class="dash-card">
         <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Meeting Timeline</h3></div>
         <div class="dash-card-body">
@@ -409,8 +399,6 @@
 
     <!-- ══════════════ PROGRESS & EVALUATION TAB ══════════════ -->
     <div id="tab-progress" class="dash-subpage">
-
-      <!-- Summary stats -->
       <div class="eval-stats">
         <div class="eval-stat-card" style="--e-accent:var(--primary)">
           <div class="eval-stat-label">Average Marks</div>
@@ -434,7 +422,6 @@
         </div>
       </div>
 
-      <!-- Weekly marks table -->
       <div class="dash-card">
         <div class="dash-card-header">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Weekly Report & Marks</h3>
@@ -451,15 +438,12 @@
                   <th>Supervisor Feedback</th>
                 </tr>
               </thead>
-              <tbody id="marks-tbody">
-                <!-- Filled by JS -->
-              </tbody>
+              <tbody id="marks-tbody"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- Phase Progress -->
       <div class="dash-card">
         <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Phase-wise Progress</h3></div>
         <div class="dash-card-body">
@@ -486,7 +470,7 @@
       <div class="setup-header">
         <div class="step-indicator"><div class="step-pip active"></div><div class="step-pip"></div><div class="step-pip"></div></div>
         <h2>Create Your Team</h2>
-        <p>Step 1 of 3 — Enter your project title and team name to get started.</p>
+        <p>Step 1 of 3 — Enter your project title to get started.</p>
       </div>
       <div class="setup-body">
         <div class="id-box">
@@ -496,7 +480,6 @@
         </div>
         <div class="sf-group"><label>Project Title *</label><input class="sf-input" id="s1-proj" placeholder="e.g. AI-Based Exam Proctoring System"></div>
         <div class="sf-row">
-          <div class="sf-group"><label>Team Name *</label><input class="sf-input" id="s1-team" placeholder="e.g. AI Proctors"></div>
           <div class="sf-group">
             <label>Category</label>
             <select class="sf-input" id="s1-cat">
@@ -556,25 +539,39 @@
       </div>
     </div>
 
-    <!-- STEP 3 -->
+    <!-- STEP 3 — SUPERVISOR DROPDOWN (updated) -->
     <div id="setup-step-3" style="display:none">
       <div class="setup-header">
         <div class="step-indicator"><div class="step-pip done"></div><div class="step-pip done"></div><div class="step-pip active"></div></div>
-        <h2>Request a Supervisor</h2>
-        <p>Step 3 of 3 — Browse available supervisors and send one request.</p>
+        <h2>Select Your Supervisor</h2>
+        <p>Step 3 of 3 — Choose a supervisor from the list below.</p>
       </div>
       <div class="setup-body">
-        <div class="info-note" style="margin-bottom:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>You can only send <strong>one supervisor request at a time</strong>. If rejected, you may request another.</div>
-        <div class="sf-group" style="margin-bottom:14px">
-          <label>Filter by Research Interest</label>
-          <select class="sf-input" onchange="filterSupervisors(this.value)">
-            <option value="">All Supervisors</option>
-            <option value="AI">Artificial Intelligence</option><option value="Web">Web Development</option>
-            <option value="Data">Data Science</option><option value="Security">Cybersecurity</option>
-            <option value="Network">Networking</option>
+        <div class="sf-group">
+          <label>Supervisor *</label>
+          <select class="sf-input" id="sup-select" onchange="selectSupervisor(this.value)">
+            <option value="">— Choose a supervisor —</option>
+            <option value="SUP-001">Dr. Aftab Ahmad — AI, ML, Computer Vision</option>
+            <option value="SUP-002">Dr. Nadeem Iqbal — Networks, Security, IoT</option>
+            <option value="SUP-003">Dr. Sara Khan — Web Dev, Cloud, Software Eng</option>
+            <option value="SUP-004">Dr. Bilal Hussain — Data Science, Big Data</option>
+            <option value="SUP-005">Dr. Zara Mahmood — Mobile Dev, Flutter, Android</option>
+            <option value="SUP-006">Dr. Faisal Mehmood — Cybersecurity, Cryptography</option>
           </select>
         </div>
-        <div class="sup-list" id="sup-list"></div>
+        <!-- Selected supervisor preview -->
+        <div id="sup-preview" style="display:none" class="sup-card">
+          <div class="sup-avatar" id="sup-preview-av"></div>
+          <div class="sup-info">
+            <strong id="sup-preview-name"></strong>
+            <span id="sup-preview-dept"></span>
+          </div>
+          <span class="status-badge s-approved">Selected</span>
+        </div>
+        <div class="info-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Select a supervisor whose research interests match your project topic.
+        </div>
       </div>
       <div class="setup-footer">
         <button class="btn btn-ghost" onclick="backStep2()">← Back</button>
@@ -587,7 +584,7 @@
       <div class="setup-header" style="border-radius:22px 22px 0 0">
         <div class="step-indicator"><div class="step-pip done"></div><div class="step-pip done"></div><div class="step-pip done"></div></div>
         <h2>You're All Set!</h2>
-        <p>Your team has been created and your supervisor request has been sent.</p>
+        <p>Your team has been created and your supervisor has been assigned.</p>
       </div>
       <div class="setup-body">
         <div class="setup-success">

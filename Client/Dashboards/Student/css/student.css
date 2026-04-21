@@ -397,7 +397,6 @@ input,select,textarea { font-family:var(--font) }
 .sf-input { width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:.9rem;color:var(--text);background:var(--bg);outline:none;transition:var(--tr) }
 .sf-input:focus { border-color:var(--primary);background:#fff;box-shadow:0 0 0 3px rgba(0,75,45,.08) }
 .sf-input::placeholder { color:var(--text-mute) }
-.sf-row { display:grid;grid-template-columns:1fr 1fr;gap:14px }
 .id-box { display:flex;align-items:center;gap:12px;padding:12px 16px;background:rgba(0,75,45,.05);border:1.5px dashed rgba(0,75,45,.25);border-radius:10px;margin-bottom:18px }
 .id-box-icon { width:36px;height:36px;border-radius:9px;background:var(--primary);display:grid;place-items:center;flex-shrink:0 }
 .id-box-icon svg { width:16px;height:16px;color:var(--gold) }
@@ -478,7 +477,6 @@ input,select,textarea { font-family:var(--font) }
 @media(max-width:1024px) {
     .dash-stats { grid-template-columns:1fr 1fr }
     .dash-grid,.dash-grid-2 { grid-template-columns:1fr }
-    .sf-row { grid-template-columns:1fr }
     .notif-dropdown { width:300px }
 }
 @media(max-width:768px) {
