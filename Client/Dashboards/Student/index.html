@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="./css/student.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -21,7 +22,7 @@
     <span class="nav-title">Student Portal</span>
 
     <div class="nav-right">
-      <!-- Notification Bell + Dropdown -->
+      <!-- Notification Bell -->
       <div class="nav-notif-wrap">
         <div class="nav-notif" id="notif-btn" onclick="toggleNotifDropdown(event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -38,20 +39,8 @@
               <div class="nd-content"><div class="nd-title">Mid Evaluation in 12 days</div><div class="nd-desc">Ensure your presentation is ready.</div><div class="nd-time">5 hours ago</div></div>
             </div>
             <div class="nd-item nd-unread">
-              <div class="nd-icon nd-success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-              <div class="nd-content"><div class="nd-title">New Feedback from Supervisor</div><div class="nd-desc">Dr. Aftab Ahmad left a comment on your project.</div><div class="nd-time">2 days ago</div></div>
-            </div>
-            <div class="nd-item nd-unread">
               <div class="nd-icon nd-success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
               <div class="nd-content"><div class="nd-title">Proposal Approved</div><div class="nd-desc">Your FYP proposal has been officially approved.</div><div class="nd-time">2 days ago</div></div>
-            </div>
-            <div class="nd-item">
-              <div class="nd-icon nd-success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
-              <div class="nd-content"><div class="nd-title">Supervisor Assigned</div><div class="nd-desc">Dr. Aftab Ahmad has been assigned as your supervisor.</div><div class="nd-time">2 weeks ago</div></div>
-            </div>
-            <div class="nd-item">
-              <div class="nd-icon nd-success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-              <div class="nd-content"><div class="nd-title">Team Member Added</div><div class="nd-desc">Bilal Khan joined your team.</div><div class="nd-time">1 week ago</div></div>
             </div>
           </div>
         </div>
@@ -61,7 +50,7 @@
         <div class="nav-avatar" id="nav-initials">AS</div>
         <div class="nav-user-info">
           <strong id="nav-name">Ahmed Saeed</strong>
-          <small id="nav-std-id">STD-2026-4731</small>
+          <small id="nav-std-id">STD20264731</small>
         </div>
       </div>
       <button class="nav-logout" onclick="window.location.href='Client/index.html'">
@@ -115,11 +104,21 @@
 
     <!-- ══════════════ HOME TAB ══════════════ -->
     <div id="tab-home" class="dash-subpage active">
+
+      <!-- Banner with highlighted IDs -->
       <div class="dash-banner">
         <div class="banner-text">
-          <h2>Welcome back, <span id="banner-name"></span></h2>
-          <p>Your ID: <span id="student-id"></span></p>
-          <p>Team: <strong id="banner-team-name">AI Proctors</strong> · <span id="banner-team-id">TEAM-2026-8372</span></p>
+          <h2>Welcome back, <span id="banner-name">Ahmed Saeed</span></h2>
+          <div class="banner-ids">
+            <span class="id-highlight id-highlight-student">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+              <span id="student-id">STD20264731</span>
+            </span>
+            <span class="id-highlight id-highlight-team">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              <span id="banner-team-id">TEAM20268372</span>
+            </span>
+          </div>
         </div>
         <div class="banner-actions">
           <button class="btn-banner btn-banner-primary" onclick="switchTab('project',document.querySelectorAll('.sb-item')[2])">
@@ -133,12 +132,8 @@
         </div>
       </div>
 
-      <!-- 4 stat cards -->
+      <!-- 2 stat cards -->
       <div class="dash-stats">
-        <div class="dstat-card" style="--card-accent:var(--primary);--card-icon-bg:rgba(0,75,45,.08);--card-icon-color:var(--primary)">
-          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-          <div><div class="dstat-label">Team</div><div class="dstat-value" style="font-size:1rem;line-height:1.2" id="home-team-name">AI Proctors</div><div class="dstat-sub"><span class="status-badge s-approved">3 Members</span></div></div>
-        </div>
         <div class="dstat-card" style="--card-accent:var(--gold);--card-icon-bg:rgba(191,161,74,.1);--card-icon-color:var(--gold)">
           <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
           <div><div class="dstat-label">Project Status</div><div class="dstat-value" style="font-size:1rem;line-height:1.2">AI Exam Proctoring</div><div class="dstat-sub"><span class="status-badge s-approved">Approved</span></div></div>
@@ -147,65 +142,24 @@
           <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           <div><div class="dstat-label">Supervisor</div><div class="dstat-value" style="font-size:1rem;line-height:1.2">Dr. Aftab Ahmad</div><div class="dstat-sub"><span class="status-badge s-approved">Assigned</span></div></div>
         </div>
-        <div class="dstat-card" style="--card-accent:#3b82f6;--card-icon-bg:rgba(59,130,246,.08);--card-icon-color:#3b82f6">
-          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
-          <div><div class="dstat-label">Overall Progress</div><div class="dstat-value">46%</div><div class="dstat-sub">Avg. marks: 7.75/10</div></div>
-        </div>
       </div>
 
-      <div class="dash-grid">
-        <!-- Project Overview -->
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Project Overview</h3>
-            <button class="card-action" onclick="switchTab('project',document.querySelectorAll('.sb-item')[2])">Open</button>
-          </div>
-          <div class="dash-card-body">
-            <div class="proj-row"><span class="proj-key">Project Title</span><span class="proj-val">AI-Based Exam Proctoring System</span></div>
-            <div class="proj-row"><span class="proj-key">Category</span><span class="proj-val">Artificial Intelligence / Computer Vision</span></div>
-            <div class="proj-row"><span class="proj-key">Team ID</span><span class="proj-val" id="ov-team-id" style="font-family:monospace">TEAM-2026-8372</span></div>
-            <div class="proj-row"><span class="proj-key">Team Leader</span><span class="proj-val">Ahmed Saeed (You)</span></div>
-            <div class="proj-row"><span class="proj-key">Next Deadline</span><span class="proj-val"><span class="status-badge" style="background:rgba(220,38,38,.08);color:#dc2626">Mid Evaluation — Apr 20</span></span></div>
-          </div>
-        </div>
-
-        <!-- Recent notifications -->
-        <div class="dash-card">
-          <div class="dash-card-header">
-            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Recent Notifications</h3>
-          </div>
-          <div class="dash-card-body">
-            <div class="notif-item n-warn">
-              <div class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-              <div><div class="notif-title">Deadline Reminder</div><div class="notif-desc">Mid Evaluation is in 12 days.</div></div>
-              <span class="notif-time">5h ago</span>
-            </div>
-            <div class="notif-item n-success">
-              <div class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-              <div><div class="notif-title">New Feedback</div><div class="notif-desc">Dr. Aftab Ahmad left a comment.</div></div>
-              <span class="notif-time">2d ago</span>
-            </div>
-            <div class="notif-item n-success">
-              <div class="notif-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div><div class="notif-title">Proposal Approved</div><div class="notif-desc">Your FYP proposal has been approved.</div></div>
-              <span class="notif-time">2d ago</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Phase progress mini -->
+      <!-- Project Overview card -->
       <div class="dash-card">
         <div class="dash-card-header">
-          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Project Progress</h3>
-          <button class="card-action" onclick="switchTab('progress',document.querySelectorAll('.sb-item')[4])">View Details</button>
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Project Overview</h3>
+          <button class="card-action" onclick="switchTab('project',document.querySelectorAll('.sb-item')[2])">Open</button>
         </div>
-        <div class="dash-card-body" style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px">
-          <div class="phase-mini"><div class="phase-mini-bar"><div class="phase-mini-fill" style="height:100%"></div></div><div class="phase-mini-label">Proposal</div><div class="phase-mini-pct">100%</div></div>
-          <div class="phase-mini"><div class="phase-mini-bar"><div class="phase-mini-fill" style="height:75%"></div></div><div class="phase-mini-label">Lit. Review</div><div class="phase-mini-pct">75%</div></div>
-          <div class="phase-mini"><div class="phase-mini-bar"><div class="phase-mini-fill" style="height:40%"></div></div><div class="phase-mini-label">Development</div><div class="phase-mini-pct">40%</div></div>
-          <div class="phase-mini"><div class="phase-mini-bar"><div class="phase-mini-fill" style="height:10%"></div></div><div class="phase-mini-label">Testing</div><div class="phase-mini-pct">10%</div></div>
-          <div class="phase-mini"><div class="phase-mini-bar"><div class="phase-mini-fill" style="height:5%"></div></div><div class="phase-mini-label">Documentation</div><div class="phase-mini-pct">5%</div></div>
+        <div class="dash-card-body">
+          <div class="proj-row"><span class="proj-key">Project Title</span><span class="proj-val">AI-Based Exam Proctoring System</span></div>
+          <div class="proj-row"><span class="proj-key">Category</span><span class="proj-val">Artificial Intelligence / Computer Vision</span></div>
+          <div class="proj-row"><span class="proj-key">Team ID</span>
+            <span class="proj-val"><span class="id-highlight id-highlight-team" id="ov-team-id">TEAM20268372</span></span>
+          </div>
+          <div class="proj-row"><span class="proj-key">Student ID</span>
+            <span class="proj-val"><span class="id-highlight id-highlight-student">STD20264731</span></span>
+          </div>
+          <div class="proj-row"><span class="proj-key">Next Deadline</span><span class="proj-val"><span class="status-badge" style="background:rgba(220,38,38,.08);color:#dc2626">Mid Evaluation — Apr 20</span></span></div>
         </div>
       </div>
     </div>
@@ -214,11 +168,14 @@
     <div id="tab-team" class="dash-subpage">
       <div class="dash-card">
         <div class="dash-card-header">
-          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Team Information</h3>
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Team & Project Info</h3>
           <button class="card-action" onclick="openSetup()">Edit Team</button>
         </div>
         <div class="dash-card-body">
-          <div class="proj-row"><span class="proj-key">Team ID</span><span class="proj-val" id="team-tab-id" style="font-family:monospace;color:var(--primary);font-weight:700">TEAM-2026-8372</span></div>
+          <div class="proj-row">
+            <span class="proj-key">Team ID</span>
+            <span class="proj-val"><span class="id-highlight id-highlight-team" id="team-tab-id">TEAM20268372</span></span>
+          </div>
           <div class="proj-row"><span class="proj-key">Project Title</span><span class="proj-val" id="team-tab-proj">AI-Based Exam Proctoring System</span></div>
           <div class="proj-row"><span class="proj-key">Created</span><span class="proj-val">April 2026</span></div>
           <div class="proj-row"><span class="proj-key">Status</span><span class="proj-val"><span class="status-badge s-approved">Active</span></span></div>
@@ -245,47 +202,33 @@
           <div class="proj-row"><span class="proj-key">Title</span><span class="proj-val">AI-Based Exam Proctoring System</span></div>
           <div class="proj-row"><span class="proj-key">Category</span><span class="proj-val">Artificial Intelligence / Computer Vision</span></div>
           <div class="proj-row"><span class="proj-key">Supervisor</span><span class="proj-val">Dr. Aftab Ahmad</span></div>
-          <div class="proj-row"><span class="proj-key">Description</span><span class="proj-val">An AI-powered system to monitor online examinations using facial recognition and behavioral analytics to detect and prevent cheating.</span></div>
+          <div class="proj-row">
+            <span class="proj-key">Your ID</span>
+            <span class="proj-val"><span class="id-highlight id-highlight-student">STD20264731</span></span>
+          </div>
+          <div class="proj-row">
+            <span class="proj-key">Team ID</span>
+            <span class="proj-val"><span class="id-highlight id-highlight-team">TEAM20268372</span></span>
+          </div>
         </div>
       </div>
 
-      <!-- Proposal Section -->
+      <!-- Proposal Upload Section (simplified — upload only, states: idle/pending/approved/rejected) -->
       <div class="dash-card">
         <div class="dash-card-header">
           <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Proposal Submission</h3>
-          <span class="status-badge s-approved" id="proposal-status-badge">Submitted & Approved</span>
+          <span class="status-badge" id="proposal-status-badge" style="background:rgba(0,75,45,.1);color:var(--primary)">Approved</span>
         </div>
         <div class="dash-card-body">
-          <div id="proposal-approved-view">
-            <div class="proposal-success-banner">
-              <div class="psb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
-              <div>
-                <div class="psb-title">Proposal Approved by Committee</div>
-                <div class="psb-desc">Submitted on March 15, 2026 · Approved on March 20, 2026</div>
-              </div>
-            </div>
-            <div class="proj-row"><span class="proj-key">Proposal Title</span><span class="proj-val">AI-Based Exam Proctoring System Using Facial Recognition</span></div>
-            <div class="proj-row"><span class="proj-key">Abstract</span><span class="proj-val">This system utilizes computer vision and machine learning to monitor students during online exams, detecting suspicious behaviors like face switching, multiple people in frame, and unusual eye movements.</span></div>
-            <div class="proj-row"><span class="proj-key">References</span><span class="proj-val">5 papers cited</span></div>
-          </div>
-          <div id="proposal-submit-view" style="display:none">
-            <div class="sf-group">
-              <label>Proposal Title *</label>
-              <input class="sf-input" id="prop-title" placeholder="Enter your project proposal title">
-            </div>
-            <div class="sf-group">
-              <label>Abstract / Description *</label>
-              <textarea class="sf-input" id="prop-abstract" rows="4" placeholder="Describe your project idea, objectives, and expected outcomes…" style="resize:vertical"></textarea>
-            </div>
-            <div class="sf-group">
-              <label>Technology Stack</label>
-              <input class="sf-input" id="prop-tech" placeholder="e.g. Python, TensorFlow, React, Node.js">
-            </div>
-            <div style="display:flex;justify-content:flex-end;margin-top:8px">
-              <button class="btn btn-primary" onclick="submitProposal()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
-                Submit Proposal
-              </button>
+          <div id="proposal-state-area"></div>
+          <!-- Demo controls -->
+          <div style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--border-soft)">
+            <p style="font-size:.7rem;font-weight:700;color:var(--text-mute);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Simulate State (Demo)</p>
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <button class="btn btn-ghost btn-xs" onclick="setProposalState('idle')">No Upload</button>
+              <button class="btn btn-ghost btn-xs" onclick="setProposalState('pending')">Pending</button>
+              <button class="btn btn-ghost btn-xs" onclick="setProposalState('approved')">Approved</button>
+              <button class="btn btn-ghost btn-xs" onclick="setProposalState('rejected')">Rejected</button>
             </div>
           </div>
         </div>
@@ -326,7 +269,7 @@
       </div>
     </div>
 
-    <!-- ══════════════ SUPERVISOR TAB ══════════════ -->
+    <!-- ══════════════ SUPERVISOR TAB (info only) ══════════════ -->
     <div id="tab-supervisor" class="dash-subpage">
       <div class="dash-card">
         <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>My Supervisor</h3></div>
@@ -342,126 +285,98 @@
           <div class="proj-row"><span class="proj-key">Research Areas</span><span class="proj-val">AI, Machine Learning, Computer Vision, NLP</span></div>
         </div>
       </div>
-
-      <div class="dash-card">
-        <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>Send Message / Query</h3></div>
-        <div class="dash-card-body">
-          <div class="sf-group">
-            <label>Subject</label>
-            <input class="sf-input" id="msg-subject" placeholder="e.g. Question about system architecture">
-          </div>
-          <div class="sf-group">
-            <label>Message</label>
-            <textarea class="sf-input" id="msg-body" rows="4" placeholder="Write your query or message to your supervisor…" style="resize:vertical"></textarea>
-          </div>
-          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px">
-            <button class="btn btn-ghost btn-sm" onclick="clearMessage()">Clear</button>
-            <button class="btn btn-primary btn-sm" onclick="sendMessage()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
-              Send Message
-            </button>
-          </div>
-          <div id="sent-messages-list"></div>
-        </div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Supervisor Feedback</h3><span class="sb-badge" style="opacity:1;font-size:.7rem;padding:4px 9px;border-radius:10px;background:var(--gold);color:var(--primary-dark)">3 Comments</span></div>
-        <div class="dash-card-body">
-          <div class="fb-item">
-            <div class="fb-head"><div class="fb-avatar">AA</div><span class="fb-name">Dr. Aftab Ahmad</span><span class="fb-time">Apr 2, 2026</span></div>
-            <div class="fb-text">Good progress on the proposal. Please add more detail to the system architecture section before the next meeting.</div>
-          </div>
-          <div class="fb-item">
-            <div class="fb-head"><div class="fb-avatar">AA</div><span class="fb-name">Dr. Aftab Ahmad</span><span class="fb-time">Mar 18, 2026</span></div>
-            <div class="fb-text">Initial proposal accepted. Start working on the literature review and technology stack selection. Schedule our next meeting within the week.</div>
-          </div>
-          <div class="fb-item">
-            <div class="fb-head"><div class="fb-avatar">AA</div><span class="fb-name">Dr. Aftab Ahmad</span><span class="fb-time">Mar 5, 2026</span></div>
-            <div class="fb-text">Your topic selection is very relevant to current industry needs. Please refine your problem statement and come prepared with 3–5 reference papers for our next session.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="dash-card">
-        <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Meeting Timeline</h3></div>
-        <div class="dash-card-body">
-          <div class="timeline">
-            <div class="tl-item tl-done"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="tl-line"></div></div><div><div class="tl-title">Initial Meeting</div><div class="tl-date">March 5, 2026</div></div></div>
-            <div class="tl-item tl-done"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="tl-line"></div></div><div><div class="tl-title">Proposal Review</div><div class="tl-date">March 18, 2026</div></div></div>
-            <div class="tl-item tl-active"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg></div><div class="tl-line"></div></div><div><div class="tl-title">Progress Check</div><div class="tl-date">April 2, 2026 — Upcoming</div></div></div>
-            <div class="tl-item tl-upcoming"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg></div><div class="tl-line"></div></div><div><div class="tl-title">Mid Evaluation Prep</div><div class="tl-date">April 15, 2026</div></div></div>
-            <div class="tl-item tl-upcoming"><div class="tl-left"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg></div><div class="tl-line"></div></div><div><div class="tl-title">Final Review Meeting</div><div class="tl-date">June 5, 2026</div></div></div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- ══════════════ PROGRESS & EVALUATION TAB ══════════════ -->
     <div id="tab-progress" class="dash-subpage">
-      <div class="eval-stats">
-        <div class="eval-stat-card" style="--e-accent:var(--primary)">
-          <div class="eval-stat-label">Average Marks</div>
-          <div class="eval-stat-value">7.75<span>/10</span></div>
-          <div class="eval-stat-sub">Over 4 evaluated weeks</div>
-        </div>
-        <div class="eval-stat-card" style="--e-accent:var(--gold)">
-          <div class="eval-stat-label">Best Week</div>
-          <div class="eval-stat-value">9<span>/10</span></div>
-          <div class="eval-stat-sub">Week 3 — Excellent!</div>
-        </div>
-        <div class="eval-stat-card" style="--e-accent:var(--secondary)">
-          <div class="eval-stat-label">Total Weeks</div>
-          <div class="eval-stat-value">5<span> wks</span></div>
-          <div class="eval-stat-sub">4 evaluated · 1 pending</div>
-        </div>
-        <div class="eval-stat-card" style="--e-accent:#3b82f6">
-          <div class="eval-stat-label">Total Score</div>
-          <div class="eval-stat-value">31<span>/40</span></div>
-          <div class="eval-stat-sub">Cumulative marks</div>
-        </div>
-      </div>
 
-      <div class="dash-card">
-        <div class="dash-card-header">
-          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Weekly Report & Marks</h3>
-        </div>
-        <div class="dash-card-body" style="padding:0">
-          <div class="marks-table-wrap">
-            <table class="marks-table">
-              <thead>
-                <tr>
-                  <th>Week</th>
-                  <th>Date</th>
-                  <th>Report Status</th>
-                  <th>Marks (/10)</th>
-                  <th>Supervisor Feedback</th>
-                </tr>
-              </thead>
-              <tbody id="marks-tbody"></tbody>
-            </table>
+      <!-- Student Selector -->
+      <div class="dash-card" style="margin-bottom:20px">
+        <div class="dash-card-body" style="padding:16px 22px">
+          <div class="student-selector-wrap" style="margin-bottom:0">
+            <label>View Marks For</label>
+            <div class="student-tabs" id="student-tabs"></div>
           </div>
         </div>
       </div>
 
+      <!-- Total Score Card -->
+      <div class="eval-total-card" id="eval-total-card">
+        <div class="eval-total-left">
+          <div class="label">Total Score</div>
+          <div class="score"><span id="eval-total-val">0</span><span> / 200</span></div>
+          <div class="sub" id="eval-student-name-label">Ahmed Saeed</div>
+        </div>
+        <div class="eval-total-right">
+          <div class="eval-pct-ring" id="eval-pct-ring">0%</div>
+          <div class="pct-label">of total marks</div>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="dash-card" style="margin-bottom:20px">
+        <div class="dash-card-body" style="padding:20px 22px">
+          <div class="eval-prog-wrap" style="margin-bottom:0">
+            <div class="eval-prog-head">
+              <span class="eval-prog-label">Overall Progress</span>
+              <span class="eval-prog-pct" id="prog-bar-pct">0%</span>
+            </div>
+            <div class="eval-prog-bar">
+              <div class="eval-prog-fill" id="eval-prog-fill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="marks-chart-section">
+        <div class="chart-card">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+            Marks Distribution
+          </h4>
+          <div class="chart-canvas-wrap">
+            <canvas id="marksChart"></canvas>
+          </div>
+          <div class="chart-legend" id="chart-legend"></div>
+        </div>
+        <div class="chart-card">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            Score Breakdown
+          </h4>
+          <div style="padding-top:8px">
+            <div id="breakdown-list" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Marks Table -->
       <div class="dash-card">
-        <div class="dash-card-header"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Phase-wise Progress</h3></div>
-        <div class="dash-card-body">
-          <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Proposal & Planning</span><span class="prog-pct">100%</span></div><div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div></div>
-          <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Literature Review</span><span class="prog-pct">75%</span></div><div class="prog-bar"><div class="prog-fill" style="width:75%"></div></div></div>
-          <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Development</span><span class="prog-pct">40%</span></div><div class="prog-bar"><div class="prog-fill" style="width:40%"></div></div></div>
-          <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Testing & Evaluation</span><span class="prog-pct">10%</span></div><div class="prog-bar"><div class="prog-fill" style="width:10%"></div></div></div>
-          <div class="prog-wrap"><div class="prog-head"><span class="prog-label">Final Documentation</span><span class="prog-pct">5%</span></div><div class="prog-bar"><div class="prog-fill" style="width:5%"></div></div></div>
+        <div class="dash-card-header">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Detailed Marks</h3>
+          <span class="status-badge s-none">Semester 7 — 2025/26</span>
+        </div>
+        <div class="dash-card-body" style="padding:0">
+          <div style="overflow-x:auto">
+            <table class="marks-comp-table" id="marks-comp-table">
+              <thead>
+                <tr>
+                  <th style="width:50%">Component</th>
+                  <th style="text-align:right">Max</th>
+                  <th style="text-align:right;min-width:160px">Marks Obtained</th>
+                </tr>
+              </thead>
+              <tbody id="marks-comp-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-
   </main>
 </div>
 
-<!-- ══════════════════════════════════
-   TEAM SETUP FLOW (3 steps)
-══════════════════════════════════ -->
+<!-- ══════════════ TEAM SETUP FLOW (3 steps) ══════════════ -->
 <div class="setup-overlay" id="setup-overlay" style="display:none">
   <div class="setup-modal" id="setup-modal">
 
@@ -475,22 +390,20 @@
       <div class="setup-body">
         <div class="id-box">
           <div class="id-box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div>
-          <div><div class="id-box-label">Your Student ID</div><div class="id-box-value" id="display-student-id">STD-2026-4731</div></div>
+          <div><div class="id-box-label">Your Student ID</div><div class="id-box-value" id="display-student-id">STD20264731</div></div>
           <div style="margin-left:auto;padding:4px 10px;background:rgba(0,75,45,.1);border-radius:20px;font-size:.68rem;font-weight:700;color:var(--primary)">Team Leader</div>
         </div>
         <div class="sf-group"><label>Project Title *</label><input class="sf-input" id="s1-proj" placeholder="e.g. AI-Based Exam Proctoring System"></div>
-        <div class="sf-row">
-          <div class="sf-group">
-            <label>Category</label>
-            <select class="sf-input" id="s1-cat">
-              <option value="">Select category…</option>
-              <option>Artificial Intelligence</option><option>Web Development</option><option>Mobile Application</option>
-              <option>Data Science</option><option>Cybersecurity</option><option>Embedded Systems</option>
-              <option>Networking</option><option>Other</option>
-            </select>
-          </div>
+        <div class="sf-group">
+          <label>Category</label>
+          <select class="sf-input" id="s1-cat">
+            <option value="">Select category…</option>
+            <option>Artificial Intelligence</option><option>Web Development</option><option>Mobile Application</option>
+            <option>Data Science</option><option>Cybersecurity</option><option>Embedded Systems</option>
+            <option>Networking</option><option>Other</option>
+          </select>
         </div>
-        <div class="info-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>A unique <strong>Team ID</strong> (format: TEAM-YEAR-####) will be auto-generated after you create your team.</div>
+        <div class="info-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>A unique <strong>Team ID</strong> (format: TEAM20261234) will be auto-generated after you create your team.</div>
       </div>
       <div class="setup-footer">
         <span class="setup-footer-note">All fields marked * are required</span>
@@ -503,19 +416,19 @@
       <div class="setup-header">
         <div class="step-indicator"><div class="step-pip done"></div><div class="step-pip active"></div><div class="step-pip"></div></div>
         <h2>Add Team Members</h2>
-        <p>Step 2 of 3 — Search students by their ID and add up to 2 members.</p>
+        <p>Step 2 of 3 — Search students by ID and add up to 2 members.</p>
       </div>
       <div class="setup-body">
         <div class="id-box" style="margin-bottom:22px">
           <div class="id-box-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
-          <div><div class="id-box-label">Generated Team ID</div><div class="id-box-value" id="display-team-id">TEAM-2026-8372</div></div>
+          <div><div class="id-box-label">Generated Team ID</div><div class="id-box-value" id="display-team-id">TEAM20268372</div></div>
           <div style="margin-left:auto;padding:4px 10px;background:rgba(191,161,74,.15);border-radius:20px;font-size:.68rem;font-weight:700;color:var(--gold)">Auto-Generated</div>
         </div>
         <div class="sf-group">
           <label>Search Member by Student ID</label>
           <div class="member-search-wrap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input class="member-search-input" id="member-search" placeholder="e.g. STD-2026-1234" oninput="searchMember(this.value)">
+            <input class="member-search-input" id="member-search" placeholder="e.g. STD20261234" oninput="searchMember(this.value)">
           </div>
           <div class="search-result" id="search-result"></div>
         </div>
@@ -524,7 +437,7 @@
           <div id="members-list">
             <div class="tm-item">
               <div class="tm-av" id="leader-av">AS</div>
-              <div><div class="tm-name" id="leader-name">Ahmed Saeed</div><div class="tm-id" id="leader-std-id">STD-2026-4731</div></div>
+              <div><div class="tm-name" id="leader-name">Ahmed Saeed</div><div class="tm-id" id="leader-std-id">STD20264731</div></div>
               <span class="tm-role tm-lead">Team Leader</span>
             </div>
           </div>
@@ -539,7 +452,7 @@
       </div>
     </div>
 
-    <!-- STEP 3 — SUPERVISOR DROPDOWN (updated) -->
+    <!-- STEP 3 -->
     <div id="setup-step-3" style="display:none">
       <div class="setup-header">
         <div class="step-indicator"><div class="step-pip done"></div><div class="step-pip done"></div><div class="step-pip active"></div></div>
@@ -559,7 +472,6 @@
             <option value="SUP-006">Dr. Faisal Mehmood — Cybersecurity, Cryptography</option>
           </select>
         </div>
-        <!-- Selected supervisor preview -->
         <div id="sup-preview" style="display:none" class="sup-card">
           <div class="sup-avatar" id="sup-preview-av"></div>
           <div class="sup-info">
@@ -590,7 +502,7 @@
         <div class="setup-success">
           <div class="success-icon-wrap"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg></div>
           <h3>Team Created Successfully</h3>
-          <p id="success-summary-text">Your team is ready. You can now track your project, communicate with your supervisor, and manage all FYP activities from your dashboard.</p>
+          <p>Your team is ready. You can now track your project, communicate with your supervisor, and manage all FYP activities from your dashboard.</p>
           <div class="summary-chips" id="summary-chips"></div>
         </div>
       </div>
