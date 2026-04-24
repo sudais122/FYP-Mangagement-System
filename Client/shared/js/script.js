@@ -30,25 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // -------- FAQ accordion (one open at a time) --------
-  const faqItems = document.querySelectorAll(".faq-item");
-  faqItems.forEach((item) => {
-    const q = item.querySelector(".faq-q");
-    const a = item.querySelector(".faq-a");
-    q.addEventListener("click", () => {
-      const isOpen = item.classList.contains("open");
-      // close all
-      faqItems.forEach((i) => {
-        i.classList.remove("open");
-        i.querySelector(".faq-a").style.maxHeight = null;
-      });
-      // open clicked (if it wasn't already open)
-      if (!isOpen) {
-        item.classList.add("open");
-        a.style.maxHeight = a.scrollHeight + "px";
-      }
-    });
-  });
 
   // -------- Login role switcher --------
   const roleButtons = document.querySelectorAll(".role-switch button");
@@ -219,17 +200,25 @@ let openFAQ = null;
 function toggleFAQ(ci, ii) {
   const id = `faq-${ci}-${ii}`;
   const el = document.getElementById(id);
+  const answer = el.querySelector(".faq-a");
+
   if (openFAQ && openFAQ !== id) {
-    document.getElementById(openFAQ)?.classList.remove("open");
-    document
-      .getElementById(openFAQ)
-      ?.querySelector(".faq-q")
-      ?.classList.remove("open-q");
+    const prev = document.getElementById(openFAQ);
+    prev.classList.remove("open");
+    prev.querySelector(".faq-a").style.maxHeight = null;
   }
+
   const isOpen = el.classList.contains("open");
-  el.classList.toggle("open");
-  el.querySelector(".faq-q").classList.toggle("open-q", !isOpen);
-  openFAQ = isOpen ? null : id;
+
+  if (isOpen) {
+    el.classList.remove("open");
+    answer.style.maxHeight = null;
+    openFAQ = null;
+  } else {
+    el.classList.add("open");
+    answer.style.maxHeight = answer.scrollHeight + "px";
+    openFAQ = id;
+  }
 }
 
 function initReveal() {

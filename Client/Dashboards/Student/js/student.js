@@ -1,6 +1,4 @@
-/* ══════════════════════════════════
-   STATE
-══════════════════════════════════ */
+
 const user = JSON.parse(localStorage.getItem("user"));
 
 if (!user) {
@@ -59,17 +57,14 @@ const SUPERVISORS = [
 ══════════════════════════════════ */
 const MARKS_TEMPLATE = [
   // Section: Monthly Meetings
-  { section: 'Monthly Meetings', component: 'October Meeting',   max: 5 },
-  { section: 'Monthly Meetings', component: 'November Meeting',  max: 5 },
-  { section: 'Monthly Meetings', component: 'December Meeting',  max: 5 },
-  { section: 'Monthly Meetings', component: 'February Meeting',  max: 5 },
-  { section: 'Monthly Meetings', component: 'March Meeting',     max: 5 },
-  { section: 'Monthly Meetings', component: 'April Meeting',     max: 5 },
-  { section: 'Monthly Meetings', component: 'May Meeting',       max: 5 },
+  { section: 'Monthly Meetings', component: 'October',   max: 10 },
+  { section: 'Monthly Meetings', component: 'November',  max: 10 },
+  { section: 'Monthly Meetings', component: 'December',  max: 10 },
+  { section: 'Monthly Meetings', component: 'February',  max: 10 },
+  { section: 'Monthly Meetings', component: 'March',     max: 10 },
   // Section: Submissions
-  { section: 'Submissions', component: 'Proposal',         max: 15 },
+  { section: 'Submissions', component: 'Proposal Submission', max: 10 },
   { section: 'Submissions', component: 'Progress Report',  max: 20 },
-  { section: 'Submissions', component: 'Documentation',    max: 30 },
   // Section: Viva
   { section: 'Viva', component: 'Internal Viva 1', max: 25 },
   { section: 'Viva', component: 'Internal Viva 2', max: 25 },
