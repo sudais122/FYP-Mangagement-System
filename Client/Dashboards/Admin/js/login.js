@@ -1,185 +1,231 @@
-/* =============================================
-   ADMIN LOGIN — script.js
-   ============================================= */
+function goStep(id) {
+  document
+    .querySelectorAll(".step")
+    .forEach((s) => s.classList.remove("active"));
+  const el = document.getElementById("step-" + id);
+  if (el) el.classList.add("active");
+  setTimeout(() => {
+    const inp = el?.querySelector("input");
+    if (inp) inp.focus();
+  }, 100);
+}
+function togglePw(inputId, btn) {
+  const inp = document.getElementById(inputId);
+  const o = btn.querySelector(".eye-o"),
+    c = btn.querySelector(".eye-c");
+  if (inp.type === "password") {
+    inp.type = "text";
+    o.style.display = "none";
+    c.style.display = "block";
+  } else {
+    inp.type = "password";
+    o.style.display = "block";
+    c.style.display = "none";
+  }
+}
+function clearErr(g, e) {
+  document.getElementById(g)?.classList.remove("has-error");
+  const el = document.getElementById(e);
+  if (el) el.textContent = "";
+}
+function setErr(g, e, m) {
+  document.getElementById(g)?.classList.add("has-error");
+  const el = document.getElementById(e);
+  if (el) el.textContent = m;
+}
+function isEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+}
+function btnLoad(id, on) {
+  const b = document.getElementById(id);
+  if (on) b.classList.add("loading");
+  else b.classList.remove("loading");
+}
 
-// ── DOM References ──────────────────────────
-const form       = document.getElementById('loginForm');
-const emailInput = document.getElementById('email');
-const pwInput    = document.getElementById('password');
-const togglePw   = document.getElementById('togglePw');
-const eyeOpen    = document.getElementById('eye-open');
-const eyeClosed  = document.getElementById('eye-closed');
-const btnLogin   = document.getElementById('btnLogin');
-const spinner    = document.getElementById('spinner');
-const toast      = document.getElementById('toast');
-
-// ── Password Visibility Toggle ───────────────
-togglePw.addEventListener('click', () => {
-    const isPassword = pwInput.type === 'password';
-    pwInput.type     = isPassword ? 'text' : 'password';
-    eyeOpen.style.display   = isPassword ? 'none'  : 'block';
-    eyeClosed.style.display = isPassword ? 'block' : 'none';
+// LOGIN
+document.getElementById("loginForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  let ok = true;
+  clearErr("grp-login-email", "err-login-email");
+  clearErr("grp-login-pw", "err-login-pw");
+  const em = document.getElementById("login-email").value.trim(),
+    pw = document.getElementById("login-pw").value;
+  if (!em) {
+    setErr("grp-login-email", "err-login-email", "Email is required");
+    ok = false;
+  } else if (!isEmail(em)) {
+    setErr("grp-login-email", "err-login-email", "Enter a valid email");
+    ok = false;
+  }
+  if (!pw) {
+    setErr("grp-login-pw", "err-login-pw", "Password is required");
+    ok = false;
+  } else if (pw.length < 6) {
+    setErr("grp-login-pw", "err-login-pw", "Minimum 6 characters");
+    ok = false;
+  }
+  if (!ok) return;
+  btnLoad("btn-login", true);
+  setTimeout(() => {
+    btnLoad("btn-login", false);
+    toast("Login successful! Redirecting…", "green");
+    setTimeout(() => {
+      window.location.href = "supervisor.html";
+    }, 1200);
+  }, 1600);
 });
 
-// ── Validation Helpers ────────────────────────
-function setError(fieldId, message) {
-    const group = document.getElementById('group-' + fieldId);
-    const err   = document.getElementById('err-'   + fieldId);
-    group.classList.add('has-error');
-    err.textContent = message;
-}
+// FORGOT
+document.getElementById("forgotForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  clearErr("grp-forgot-email", "err-forgot-email");
+  const em = document.getElementById("forgot-email").value.trim();
+  if (!em) {
+    setErr("grp-forgot-email", "err-forgot-email", "Email is required");
+    return;
+  }
+  if (!isEmail(em)) {
+    setErr("grp-forgot-email", "err-forgot-email", "Enter a valid email");
+    return;
+  }
+  btnLoad("btn-send-otp", true);
+  setTimeout(() => {
+    btnLoad("btn-send-otp", false);
+    document.getElementById("otp-email-display").textContent = em;
+    goStep("otp");
+    startOtpTimer();
+    toast("Verification code sent to " + em, "green");
+  }, 1500);
+});
 
-function clearError(fieldId) {
-    const group = document.getElementById('group-' + fieldId);
-    const err   = document.getElementById('err-'   + fieldId);
-    group.classList.remove('has-error');
-    err.textContent = '';
-}
-
-function isValidEmail(value) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
-
-function validate() {
-    let valid = true;
-
-    // Email
-    if (!emailInput.value.trim()) {
-        setError('email', 'Email address is required.');
-        valid = false;
-    } else if (!isValidEmail(emailInput.value)) {
-        setError('email', 'Please enter a valid email address.');
-        valid = false;
-    } else {
-        clearError('email');
+// OTP INPUTS
+const otpInputs = document.querySelectorAll(".otp-input");
+otpInputs.forEach((inp, i) => {
+  inp.addEventListener("input", function () {
+    this.value = this.value.replace(/\D/g, "");
+    if (this.value) {
+      this.classList.add("filled");
+      if (i < 5) otpInputs[i + 1].focus();
+    } else this.classList.remove("filled");
+  });
+  inp.addEventListener("keydown", function (e) {
+    if (e.key === "Backspace" && !this.value && i > 0) {
+      otpInputs[i - 1].focus();
+      otpInputs[i - 1].value = "";
+      otpInputs[i - 1].classList.remove("filled");
     }
-
-    // Password
-    if (!pwInput.value) {
-        setError('password', 'Password is required.');
-        valid = false;
-    } else if (pwInput.value.length < 6) {
-        setError('password', 'Password must be at least 6 characters.');
-        valid = false;
-    } else {
-        clearError('password');
-    }
-
-    return valid;
-}
-
-// ── Clear errors on input ─────────────────────
-emailInput.addEventListener('input', () => clearError('email'));
-pwInput.addEventListener('input',    () => clearError('password'));
-
-// ── Simulate Login (replace with real API call) ─
-function simulateLogin() {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            // Demo: accept any valid email + password ≥ 6 chars
-            // In production, replace this with a real fetch() to your backend
-            const demoEmail = emailInput.value.trim().toLowerCase();
-            const demoPass  = pwInput.value;
-
-            if (demoEmail && demoPass.length >= 6) {
-                resolve({ success: true, user: demoEmail });
-            } else {
-                reject(new Error('Invalid credentials.'));
-            }
-        }, 1800);
-    });
-}
-
-// ── Show / Hide Toast ─────────────────────────
-function showToast() {
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
-}
-
-// ── Form Submit ───────────────────────────────
-form.addEventListener('submit', async (e) => {
+  });
+  inp.addEventListener("paste", function (e) {
     e.preventDefault();
-
-    if (!validate()) return;
-
-    // Loading state
-    btnLogin.classList.add('loading');
-    btnLogin.querySelector('.btn-text').textContent = 'Signing in…';
-
-    try {
-        const result = await simulateLogin();
-
-        if (result.success) {
-            showToast();
-
-            // Redirect after toast (replace '#' with your dashboard URL)
-            setTimeout(() => {
-                window.location.href = '#dashboard';
-            }, 2200);
-        }
-    } catch (err) {
-        // Show server-level error on password field
-        setError('password', 'Incorrect email or password. Please try again.');
-        shake(btnLogin);
-    } finally {
-        btnLogin.classList.remove('loading');
-        btnLogin.querySelector('.btn-text').textContent = 'Sign In';
-    }
+    const d = (e.clipboardData || window.clipboardData)
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
+    d.split("").forEach((ch, j) => {
+      if (otpInputs[j]) {
+        otpInputs[j].value = ch;
+        otpInputs[j].classList.add("filled");
+      }
+    });
+    if (d.length > 0) otpInputs[Math.min(d.length, 5)].focus();
+  });
 });
 
-// ── Shake animation on error ──────────────────
-function shake(el) {
-    el.style.animation = 'none';
-    el.offsetHeight; // reflow
-    el.style.animation = 'shake .45s cubic-bezier(.36,.07,.19,.97) both';
-    el.addEventListener('animationend', () => el.style.animation = '', { once: true });
+// OTP TIMER
+let otpInterval;
+function startOtpTimer() {
+  clearInterval(otpInterval);
+  let sec = 120;
+  const el = document.getElementById("otp-countdown"),
+    rb = document.getElementById("resend-btn");
+  rb.disabled = true;
+  document.getElementById("otp-timer").style.display = "";
+  otpInterval = setInterval(() => {
+    sec--;
+    const m = Math.floor(sec / 60),
+      s = sec % 60;
+    el.textContent =
+      String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    if (sec <= 0) {
+      clearInterval(otpInterval);
+      rb.disabled = false;
+      document.getElementById("otp-timer").style.display = "none";
+    }
+  }, 1000);
+}
+function resendOtp() {
+  otpInputs.forEach((i) => {
+    i.value = "";
+    i.classList.remove("filled", "error");
+  });
+  document.getElementById("err-otp").textContent = "";
+  startOtpTimer();
+  toast("New code sent!", "green");
 }
 
-// Inject shake keyframes dynamically
-const shakeStyle = document.createElement('style');
-shakeStyle.textContent = `
-@keyframes shake {
-    10%, 90% { transform: translateX(-3px); }
-    20%, 80% { transform: translateX(5px); }
-    30%, 50%, 70% { transform: translateX(-6px); }
-    40%, 60% { transform: translateX(6px); }
-}`;
-document.head.appendChild(shakeStyle);
-
-// ── Social Button Handlers ────────────────────
-document.querySelectorAll('.social-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const label = btn.textContent.trim();
-        // Replace with actual OAuth logic
-        console.log(`OAuth with: ${label}`);
-        alert(`${label} OAuth not configured yet. Connect your OAuth provider here.`);
+// VERIFY OTP
+function verifyOtp() {
+  const code = Array.from(otpInputs)
+    .map((i) => i.value)
+    .join("");
+  document.getElementById("err-otp").textContent = "";
+  otpInputs.forEach((i) => i.classList.remove("error"));
+  if (code.length < 6) {
+    document.getElementById("err-otp").textContent =
+      "Please enter the full 6-digit code";
+    otpInputs.forEach((i) => {
+      if (!i.value) i.classList.add("error");
     });
+    return;
+  }
+  btnLoad("btn-verify-otp", true);
+  setTimeout(() => {
+    btnLoad("btn-verify-otp", false);
+    clearInterval(otpInterval);
+    goStep("new-pw");
+    toast("Code verified!", "green");
+  }, 1200);
+}
+
+// NEW PASSWORD
+document.getElementById("newPwForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  let ok = true;
+  clearErr("grp-new-pw", "err-new-pw");
+  clearErr("grp-confirm-pw", "err-confirm-pw");
+  const pw = document.getElementById("new-pw").value,
+    cpw = document.getElementById("confirm-pw").value;
+  if (!pw) {
+    setErr("grp-new-pw", "err-new-pw", "Password is required");
+    ok = false;
+  } else if (pw.length < 6) {
+    setErr("grp-new-pw", "err-new-pw", "Minimum 6 characters");
+    ok = false;
+  }
+  if (!cpw) {
+    setErr("grp-confirm-pw", "err-confirm-pw", "Please confirm your password");
+    ok = false;
+  } else if (pw !== cpw) {
+    setErr("grp-confirm-pw", "err-confirm-pw", "Passwords do not match");
+    ok = false;
+  }
+  if (!ok) return;
+  btnLoad("btn-reset-pw", true);
+  setTimeout(() => {
+    btnLoad("btn-reset-pw", false);
+    goStep("success");
+  }, 1400);
 });
 
-// ── Remember Me — persist email ───────────────
-const rememberCheck = document.getElementById('remember');
-
-// Load saved email on page load
-window.addEventListener('DOMContentLoaded', () => {
-    const saved = localStorage.getItem('adminEmail');
-    if (saved) {
-        emailInput.value        = saved;
-        rememberCheck.checked   = true;
-    }
-});
-
-// Save or remove on change
-rememberCheck.addEventListener('change', () => {
-    if (rememberCheck.checked && emailInput.value.trim()) {
-        localStorage.setItem('adminEmail', emailInput.value.trim());
-    } else {
-        localStorage.removeItem('adminEmail');
-    }
-});
-
-// ── Keyboard: submit on Enter inside inputs ───
-[emailInput, pwInput].forEach(input => {
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') form.dispatchEvent(new Event('submit'));
-    });
-});
+// TOAST
+let toastTimer;
+function toast(msg, type) {
+  const t = document.getElementById("toast");
+  t.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>' +
+    msg +
+    "</span>";
+  t.className = "toast" + (type ? " " + type : "") + " show";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+}

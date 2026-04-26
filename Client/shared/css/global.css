@@ -198,23 +198,23 @@ img { display: block; max-width: 100%; }
 /* Image + green overlay — image loads under a green tint so the theme stays intact */
 .slide:nth-child(1) {
   background-image:
-    linear-gradient(135deg, rgba(0,75,45,.2) 0%, rgba(31,122,92,.2) 100%),
-    url('https://scontent.fisb6-2.fna.fbcdn.net/v/t39.30808-6/668260738_1367369352103786_6657306353416972290_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=7b2446&_nc_ohc=k9vJ9WpPjsgQ7kNvwHbTNZk&_nc_oc=Adq-Bj3BNlWEGrxQRSE9sP5G1cNwM06gqLuwNB2rBzOQeLHEsMoW0m8agYCR5Ivst0s&_nc_zt=23&_nc_ht=scontent.fisb6-2.fna&_nc_gid=8lTCkgszoLuTIo87doypSg&_nc_ss=7a3a8&oh=00_Af1ZTM02xCnv5pk_S_INBdcVeWrSHZm5UwkSAQ8cYL-QWw&oe=69EB0542');
+    linear-gradient(135deg, rgba(0,75,45,.5) 0%, rgba(31,122,92,.5) 100%),
+    url('../images/dep3.jpg');
 }
 .slide:nth-child(2) {
   background-image:
     linear-gradient(135deg, rgba(0,53,32,.1) 0%, rgba(0,75,45,.65) 100%),
-    url('https://scontent.fisb6-1.fna.fbcdn.net/v/t39.30808-6/666924034_1367369045437150_3827399690589418815_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=7b2446&_nc_ohc=LmEo8eqjKdoQ7kNvwE_sCEm&_nc_oc=AdoJMFae0SFRMARJcwLBvMpLMxbo_MY_r46xF4-T3-C9uO3fQ7SMVW0CFQBpaC9bzVc&_nc_zt=23&_nc_ht=scontent.fisb6-1.fna&_nc_gid=L0mHxKft51Gg5JJWRCsxtA&_nc_ss=7a3a8&oh=00_Af3rOcJ6c-QI4buLzTJ8XYfJORN-xQ3EF54AHJBXJ5-aRQ&oe=69EAF942');
+    url('../images/Dep1.jpg');
 }
 .slide:nth-child(3) {
   background-image:
     linear-gradient(135deg, rgba(31,122,92,.1) 0%, rgba(0,75,45,.75) 100%),
-    url('https://scontent.fisb6-2.fna.fbcdn.net/v/t39.30808-6/651005685_1342596807914374_8948434950331604487_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=7b2446&_nc_ohc=Cnvh_ASzQF0Q7kNvwHm-GWA&_nc_oc=AdpblwHIxoJT4pT8K7DFnNqgcBRVcafkFLBVWJsZK5O77xO5i93yPeFZW_vBGcPH2ao&_nc_zt=23&_nc_ht=scontent.fisb6-2.fna&_nc_gid=50rJHwvJOaYM-QgDCa7YPQ&_nc_ss=7a3a8&oh=00_Af145g6lt8cs7IoREQrk6kIYqIBYIqZFxtYjIvVl2jfXTg&oe=69EB08AF');
+    url('../images/dep2.jpg');
 }
 .slide:nth-child(4) {
   background-image:
     linear-gradient(135deg, rgba(0,92,56,.1) 0%, rgba(0,53,32,.75) 100%),
-    url('https://scontent.fisb5-2.fna.fbcdn.net/v/t39.30808-6/603081151_1278361347671254_1206558650229112917_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=7b2446&_nc_ohc=YBXUpZr_4r4Q7kNvwE62vtH&_nc_oc=Adqg5HnY3UIY8cGglgkFtAVSdodqGbsMYNQBVgAj04nXzx-7VpgbgSFse5HV-7m4RZ0&_nc_zt=23&_nc_ht=scontent.fisb5-2.fna&_nc_gid=DgVAhPP3vnso_3ZhadBiUA&_nc_ss=7a3a8&oh=00_Af369nIgS-sUVqXQCWdKDYZw9-8TYIR8k-bmw8U6nQe8kA&oe=69EB0011');
+    url('../images/Road1.jpg');
 }
 
 /* Decorative pattern layer */
@@ -523,21 +523,21 @@ img { display: block; max-width: 100%; }
 .faq-hero {
   background-image:
     linear-gradient(135deg, rgba(0,53,32,.7) 0%, rgba(0,75,45,.7) 60%, rgba(31,122,92,.7) 100%),
-    url('https://scontent.fisb5-2.fna.fbcdn.net/v/t39.30808-6/657157049_1272499051640484_5407368139115597912_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=2a1932&_nc_ohc=LMoCmdpw9B4Q7kNvwGYTf38&_nc_oc=AdraanED1O1wppT0Y2ZsEkAJdwCHti2MDAyXisDZDTZ66qa4pxmBTcSig_lTzIu7QNE&_nc_zt=23&_nc_ht=scontent.fisb5-2.fna&_nc_gid=0ARL0NCoZ1QuJrYvar2QfA&_nc_ss=7a389&oh=00_Af1wIv3yMGNl6uxP981J7qd-j8Lg2EAlXWqhMT6ZOTD0QA&oe=69EAEC4D');
+    url('../images/Admins.jpg');
 }
 
 /* Messages — formal / authority theme */
 .msg-hero {
   background-image:
     linear-gradient(135deg, rgba(0,53,32,.7) 0%, rgba(0,75,45,.7) 60%, rgba(31,122,92,.7) 100%),
-    url('https://scontent.fisb5-2.fna.fbcdn.net/v/t39.30808-6/657157049_1272499051640484_5407368139115597912_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=2a1932&_nc_ohc=LMoCmdpw9B4Q7kNvwGYTf38&_nc_oc=AdraanED1O1wppT0Y2ZsEkAJdwCHti2MDAyXisDZDTZ66qa4pxmBTcSig_lTzIu7QNE&_nc_zt=23&_nc_ht=scontent.fisb5-2.fna&_nc_gid=0ARL0NCoZ1QuJrYvar2QfA&_nc_ss=7a389&oh=00_Af1wIv3yMGNl6uxP981J7qd-j8Lg2EAlXWqhMT6ZOTD0QA&oe=69EAEC4D');
+    url('../images/Admins.jpg');
 }
 
 /* Developers — tech / code theme */
 .dev-hero {
   background-image:
     linear-gradient(135deg, rgba(0,53,32,.7) 0%, rgba(0,75,45,.7) 60%, rgba(31,122,92,.7) 100%),
-    url('https://scontent.fisb5-2.fna.fbcdn.net/v/t39.30808-6/657157049_1272499051640484_5407368139115597912_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=2a1932&_nc_ohc=LMoCmdpw9B4Q7kNvwGYTf38&_nc_oc=AdraanED1O1wppT0Y2ZsEkAJdwCHti2MDAyXisDZDTZ66qa4pxmBTcSig_lTzIu7QNE&_nc_zt=23&_nc_ht=scontent.fisb5-2.fna&_nc_gid=0ARL0NCoZ1QuJrYvar2QfA&_nc_ss=7a389&oh=00_Af1wIv3yMGNl6uxP981J7qd-j8Lg2EAlXWqhMT6ZOTD0QA&oe=69EAEC4D');
+    url('../images/Admins.jpg');
 }
 
 /* Subtle gold radial glow on every banner */
