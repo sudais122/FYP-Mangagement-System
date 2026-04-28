@@ -438,6 +438,187 @@ function toggleCourseCat(ci) {
   }
 }
 
+function togglePipMute() {
+  const vid = document.getElementById("pip-video-el");
+  const icon = document.getElementById("pip-mute-icon");
+  if (!vid || !icon) return;
+  vid.muted = !vid.muted;
+  icon.innerHTML = vid.muted
+    ? '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'
+    : '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+}
+
+function togglePipPlay() {
+  const vid = document.getElementById("pip-video-el");
+  const icon = document.getElementById("pip-play-icon");
+  if (!vid || !icon) return;
+  if (vid.paused) {
+    vid.play();
+    icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+  } else {
+    vid.pause();
+    icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+  }
+}
+
+// Make the PiP draggable
+(function makePipDraggable() {
+  const pip = document.getElementById("pip-video");
+  if (!pip) return;
+  let isDown = false, offsetX = 0, offsetY = 0;
+
+  pip.addEventListener("mousedown", (e) => {
+    if (e.target.closest("button")) return;
+    if (pip.classList.contains("expanded")) return; // no dragging when expanded
+    isDown = true;
+    const rect = pip.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+    pip.style.transition = "none";
+    pip.style.cursor = "grabbing";
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isDown) return;
+    let x = e.clientX - offsetX;
+    let y = e.clientY - offsetY;
+    x = Math.max(8, Math.min(window.innerWidth - pip.offsetWidth - 8, x));
+    y = Math.max(8, Math.min(window.innerHeight - pip.offsetHeight - 8, y));
+    pip.style.left = x + "px";
+    pip.style.top = y + "px";
+    pip.style.right = "auto";
+    pip.style.bottom = "auto";
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (isDown) {
+      isDown = false;
+      pip.style.transition = "";
+      pip.style.cursor = "";
+    }
+  });
+})();
+
+function togglePipExpand() {
+  const pip = document.getElementById("pip-video");
+  const expandIcon = document.getElementById("pip-expand-icon");
+  if (!pip || !expandIcon) return;
+
+  // Create backdrop if it doesn't exist
+  let backdrop = document.getElementById("pip-backdrop");
+  if (!backdrop) {
+    backdrop = document.createElement("div");
+    backdrop.id = "pip-backdrop";
+    backdrop.className = "pip-backdrop";
+    backdrop.onclick = togglePipExpand; // click backdrop to shrink back
+    document.body.appendChild(backdrop);
+  }
+
+  const isExpanded = pip.classList.contains("expanded");
+
+  if (isExpanded) {
+    // Shrink back to corner
+    pip.classList.remove("expanded");
+    backdrop.classList.remove("show");
+    // Restore inline styles cleared
+    pip.style.left = "";
+    pip.style.top = "";
+    pip.style.right = "";
+    pip.style.bottom = "";
+    // Switch icon back to "expand"
+    expandIcon.innerHTML = '<polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>';
+  } else {
+    // Expand to big screen
+    pip.classList.add("expanded");
+    backdrop.classList.add("show");
+    // Switch icon to "shrink/minimize"
+    expandIcon.innerHTML = '<polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>';
+  }
+}
+function closePip() {
+  const pip = document.getElementById("pip-video");
+  const backdrop = document.getElementById("pip-backdrop");
+  if (!pip) return;
+  pip.classList.add("closing");
+  if (backdrop) backdrop.classList.remove("show");
+  // Stop video and remove from DOM after animation
+  setTimeout(() => {
+    const vid = document.getElementById("pip-video-el");
+    if (vid) {
+      vid.pause();
+      vid.removeAttribute("src");
+      vid.load();
+    }
+    pip.remove();
+    if (backdrop) backdrop.remove();
+  }, 350);
+}
+// Close expanded PiP on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const pip = document.getElementById("pip-video");
+    if (pip && pip.classList.contains("expanded")) {
+      togglePipExpand();
+    }
+  }
+});
+// ══════════════════ PIP — SEEK / PROGRESS ══════════════════
+function seekPip(e) {
+  const vid = document.getElementById("pip-video-el");
+  const bar = e.currentTarget;
+  if (!vid || !vid.duration || isNaN(vid.duration)) return;
+  const rect = bar.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  vid.currentTime = pct * vid.duration;
+}
+
+function formatPipTime(sec) {
+  if (isNaN(sec) || !isFinite(sec)) return "0:00";
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+// Update progress bar continuously
+(function setupPipProgress() {
+  const vid = document.getElementById("pip-video-el");
+  if (!vid) return;
+
+  const fill = document.getElementById("pip-progress-fill");
+  const thumb = document.getElementById("pip-progress-thumb");
+  const time = document.getElementById("pip-time");
+
+  vid.addEventListener("timeupdate", () => {
+    if (!vid.duration) return;
+    const pct = (vid.currentTime / vid.duration) * 100;
+    if (fill) fill.style.width = pct + "%";
+    if (thumb) thumb.style.left = pct + "%";
+    if (time) {
+      time.textContent =
+        `${formatPipTime(vid.currentTime)} / ${formatPipTime(vid.duration)}`;
+    }
+  });
+
+  // Keyboard shortcuts: ← / → to seek 5 seconds
+  document.addEventListener("keydown", (e) => {
+    const pip = document.getElementById("pip-video");
+    if (!pip) return;
+    // Only when video is hovered or expanded
+    const isExpanded = pip.classList.contains("expanded");
+    if (!isExpanded && !pip.matches(":hover")) return;
+
+    // Don't interfere with form inputs
+    if (e.target.matches("input, textarea, select")) return;
+
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      vid.currentTime = Math.min(vid.duration || 0, vid.currentTime + 5);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      vid.currentTime = Math.max(0, vid.currentTime - 5);
+    }
+  });
+})();
 renderCoursera();
 renderFAQ();
 initReveal();

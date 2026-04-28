@@ -221,6 +221,32 @@
     <p style="font-size:.72rem">Developed by CS Students · FYP 2025–26</p>
   </div>
 </footer>
+<!-- ══════════════════ PICTURE-IN-PICTURE VIDEO ══════════════════ -->
+<div id="pip-video" class="pip-video">
+  <button class="pip-close" onclick="closePip()" aria-label="Close video">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <video id="pip-video-el" autoplay muted loop playsinline>
+    <source src="./shared/Videos/Demo.mp4" type="video/mp4">
+    Your browser does not support video playback.
+  </video>
+  <div class="pip-progress" onclick="seekPip(event)">
+  <div class="pip-progress-fill" id="pip-progress-fill"></div>
+  <div class="pip-progress-thumb" id="pip-progress-thumb"></div>
+</div>
+<div class="pip-controls">
+  <button class="pip-btn" onclick="togglePipMute()" id="pip-mute-btn" aria-label="Toggle mute">
+    <svg id="pip-mute-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+  </button>
+  <button class="pip-btn" onclick="togglePipPlay()" id="pip-play-btn" aria-label="Pause/Play">
+    <svg id="pip-play-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+  </button>
+  <button class="pip-btn" onclick="togglePipExpand()" id="pip-expand-btn" aria-label="Expand to big screen">
+    <svg id="pip-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+  </button>
+</div>
+</div>
+
 <script src="./shared/js/script.js"></script>
 </body>
 </html>
