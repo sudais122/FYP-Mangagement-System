@@ -416,9 +416,26 @@ function renderCoursera() {
     .join("");
 }
 
+let openCourseCat = null;
 function toggleCourseCat(ci) {
-  const el = document.getElementById(`course-cat-${ci}`);
-  el.classList.toggle("open");
+  const id = `course-cat-${ci}`;
+  const el = document.getElementById(id);
+
+  // If another category is open, close it first
+  if (openCourseCat && openCourseCat !== id) {
+    const prev = document.getElementById(openCourseCat);
+    if (prev) prev.classList.remove("open");
+  }
+
+  // Toggle the clicked one
+  const isOpen = el.classList.contains("open");
+  if (isOpen) {
+    el.classList.remove("open");
+    openCourseCat = null;
+  } else {
+    el.classList.add("open");
+    openCourseCat = id;
+  }
 }
 
 renderCoursera();

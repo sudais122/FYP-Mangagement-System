@@ -17,10 +17,10 @@
     --shadow-lg: 0 14px 40px rgba(0, 75, 45, .13);
     --radius: 12px;
     --radius-lg: 18px;
-    --font: 'DM Sans', sans-serif;
-    --font-display: 'Playfair Display', serif;
     --tr: .25s cubic-bezier(.4, 0, .2, 1);
     --sidebar-w: 72px;
+      --font: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
+  --font-display: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
     --sidebar-exp: 240px;
 }
 

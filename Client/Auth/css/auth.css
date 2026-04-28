@@ -29,8 +29,8 @@ html { scroll-behavior: smooth; }
   --shadow-lg:    0 20px 60px rgba(0,75,45,0.14);
   --radius:       12px;
   --radius-lg:    20px;
-  --font:         "DM Sans", system-ui, sans-serif;
-  --font-display: "Playfair Display", serif;
+  --font: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
+  --font-display: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
   --tr:           0.25s cubic-bezier(0.4,0,0.2,1);
 }
 

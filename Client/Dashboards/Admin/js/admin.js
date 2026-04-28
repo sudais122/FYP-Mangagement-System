@@ -11,44 +11,60 @@ const supervisors = [
 ];
 
 const teams = [
-  { id:'TEAM20261284', members:4, supId:'SUP20261201'    },
-  { id:'TEAM20261283',    members:3, supId:'SUP20261202'    },
-  { id:'TEAM20261282',    members:4, supId:'SUP20261203'   },
-  { id:'TEAM20261281',     members:3, supId:'SUP20261201'    },
-  { id:'TEAM20261280',    members:4, supId:'SUP20261204'    },
-  { id:'TEAM20261279', members:3, supId:'SUP20261205'   },
-  { id:'TEAM20261278',    members:4, supId:'SUP20261202'    },
-  { id:'TEAM20261277',    members:3, supId:'SUP20261206'   }
+  { id:'TEAM20261284', members:4, supId:'SUP20261201' },
+  { id:'TEAM20261283', members:3, supId:'SUP20261202' },
+  { id:'TEAM20261282', members:4, supId:'SUP20261203' },
+  { id:'TEAM20261281', members:3, supId:'SUP20261201' },
+  { id:'TEAM20261280', members:4, supId:'SUP20261204' },
+  { id:'TEAM20261279', members:3, supId:'SUP20261205' },
+  { id:'TEAM20261278', members:4, supId:'SUP20261202' },
+  { id:'TEAM20261277', members:3, supId:'SUP20261206' }
 ];
 
+/* Marks structure — each component is { key, max } */
+const MARKS_SCHEMA = [
+  { section: 'Monthly Meetings', items: [
+    { key: 'oct',  label: 'October',  max: 10 },
+    { key: 'nov',  label: 'November', max: 10 },
+    { key: 'dec',  label: 'December', max: 10 },
+    { key: 'feb',  label: 'February', max: 10 },
+    { key: 'mar',  label: 'March',    max: 10 }
+  ]},
+  { section: 'Submissions', items: [
+    { key: 'proposal', label: 'Proposal Submission', max: 10 },
+    { key: 'progress', label: 'Progress Report',     max: 20 }
+  ]},
+  { section: 'Viva', items: [
+    { key: 'iv1', label: 'Internal Viva 1', max: 25 },
+    { key: 'iv2', label: 'Internal Viva 2', max: 25 },
+    { key: 'ext', label: 'External Viva',   max: 50 }
+  ]}
+];
+const MAX_TOTAL = MARKS_SCHEMA.reduce((sum, sec) =>
+  sum + sec.items.reduce((s, i) => s + i.max, 0), 0);  // = 180
+
+/* Students — now with detailed marks */
 const students = [
-  { id:'STD20261001', name:'Ali Hassan',     teamId:'TEAM20261284', total:178 },
-  { id:'STD20261002', name:'Mariam Khan',    teamId:'TEAM20261284', total:185 },
-  { id:'STD20261003', name:'Usman Tariq',    teamId:'TEAM20261284', total:172 },
-  { id:'STD20261004', name:'Ayesha Malik',   teamId:'TEAM20261284', total:191 },
-  { id:'STD20261005', name:'Bilal Ahmed',    teamId:'TEAM20261283', total:155 },
-  { id:'STD20261006', name:'Fatima Noor',    teamId:'TEAM20261283', total:148 },
-  { id:'STD20261007', name:'Hamza Sheikh',   teamId:'TEAM20261283', total:160 },
-  { id:'STD20261008', name:'Zara Hussain',   teamId:'TEAM20261282', total:118 },
-  { id:'STD20261009', name:'Omar Latif',     teamId:'TEAM20261282', total:112 },
-  { id:'STD20261010', name:'Iqra Rashid',    teamId:'TEAM20261281', total:182 },
-  { id:'STD20261011', name:'Saad Munir',     teamId:'TEAM20261281', total:175 },
-  { id:'STD20261012', name:'Hira Aslam',     teamId:'TEAM20261280', total:128 }
+  makeStudent('STD20261001', 'Ali Hassan',   'TEAM20261284', { oct:9,  nov:8,  dec:9,  feb:10, mar:9,  proposal:9, progress:18, iv1:22, iv2:23, ext:45 }),
+  makeStudent('STD20261002', 'Mariam Khan',  'TEAM20261284', { oct:10, nov:10, dec:9,  feb:10, mar:10, proposal:10,progress:19, iv1:24, iv2:24, ext:48 }),
+  makeStudent('STD20261003', 'Usman Tariq',  'TEAM20261284', { oct:8,  nov:9,  dec:8,  feb:9,  mar:9,  proposal:9, progress:17, iv1:21, iv2:22, ext:43 }),
+  makeStudent('STD20261004', 'Ayesha Malik', 'TEAM20261284', { oct:10, nov:10, dec:10, feb:10, mar:10, proposal:10,progress:20, iv1:25, iv2:24, ext:47 }),
+  makeStudent('STD20261005', 'Bilal Ahmed',  'TEAM20261283', { oct:7,  nov:8,  dec:8,  feb:9,  mar:8,  proposal:8, progress:16, iv1:20, iv2:21, ext:40 }),
+  makeStudent('STD20261006', 'Fatima Noor',  'TEAM20261283', { oct:8,  nov:7,  dec:7,  feb:8,  mar:8,  proposal:8, progress:15, iv1:19, iv2:20, ext:38 }),
+  makeStudent('STD20261007', 'Hamza Sheikh', 'TEAM20261283', { oct:8,  nov:9,  dec:8,  feb:8,  mar:8,  proposal:8, progress:16, iv1:21, iv2:20, ext:40 }),
+  makeStudent('STD20261008', 'Zara Hussain', 'TEAM20261282', { oct:6,  nov:7,  dec:6,  feb:7,  mar:6,  proposal:7, progress:13, iv1:16, iv2:17, ext:33 }),
+  makeStudent('STD20261009', 'Omar Latif',   'TEAM20261282', { oct:6,  nov:6,  dec:6,  feb:6,  mar:6,  proposal:6, progress:12, iv1:15, iv2:15, ext:34 }),
+  makeStudent('STD20261010', 'Iqra Rashid',  'TEAM20261281', { oct:9,  nov:10, dec:9,  feb:10, mar:9,  proposal:9, progress:18, iv1:23, iv2:23, ext:46 }),
+  makeStudent('STD20261011', 'Saad Munir',   'TEAM20261281', { oct:9,  nov:9,  dec:9,  feb:9,  mar:9,  proposal:9, progress:17, iv1:22, iv2:22, ext:43 }),
+  makeStudent('STD20261012', 'Hira Aslam',   'TEAM20261280', { oct:7,  nov:7,  dec:7,  feb:7,  mar:7,  proposal:7, progress:14, iv1:18, iv2:18, ext:36 })
 ];
 
-/* ════════════════════════════════════
-   ICONS
-══════════════════════════════════════ */
-const ICONS = {
-  'sup-add':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>',
-  'team':     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
-  'marks':    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
-  'reassign': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-  'students': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg>',
-  'login':    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>'
-};
-
-const AVATAR_VARIANTS = ['', 'gold', 'dark'];
+function makeStudent(id, name, teamId, marks) {
+  return { id, name, teamId, marks };
+}
+function studentTotal(s) {
+  return Object.values(s.marks).reduce((a, b) => a + (Number(b) || 0), 0);
+}
 
 /* ════════════════════════════════════
    HELPERS
@@ -56,8 +72,10 @@ const AVATAR_VARIANTS = ['', 'gold', 'dark'];
 const $ = sel => document.querySelector(sel);
 const $$ = sel => document.querySelectorAll(sel);
 const initials = s => s.split(' ').filter(p => p && /[A-Za-z]/.test(p[0])).slice(-2).map(p => p[0].toUpperCase()).join('');
-const supById = id => supervisors.find(s => s.id === id) || { name: '—' };
-const teamById = id => teams.find(t => t.id === id) || { name: '—' };
+const supById = id => supervisors.find(s => s.id === id) || { name: '—', id: '—', email: '' };
+const teamById = id => teams.find(t => t.id === id) || { id: '—', members: 0 };
+const studentsByTeam = teamId => students.filter(s => s.teamId === teamId);
+const teamsBySupervisor = supId => teams.filter(t => t.supId === supId);
 
 function generateSupId() {
   const max = Math.max(...supervisors.map(s => parseInt(s.id.replace('SUP2026', ''))));
@@ -96,9 +114,9 @@ function toast(message, subtitle, type = 'success') {
 function switchView(view) {
   $$('.view').forEach(v => v.classList.remove('active'));
   $$('.nav-item').forEach(n => n.classList.remove('active'));
-  $(`#view-${view}`).classList.add('active');
+  const target = $(`#view-${view}`);
+  if (target) target.classList.add('active');
   $$(`.nav-item[data-view="${view}"]`).forEach(n => n.classList.add('active'));
-  // close mobile sidebar
   $('#sidebar').classList.remove('open');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -120,14 +138,13 @@ $('#mobileMenuBtn')?.addEventListener('click', () => {
 ══════════════════════════════════════ */
 function renderSupervisors() {
   const grid = $('#supervisorCards');
-  grid.innerHTML = supervisors.map((s, i) => {
-    const pct = Math.round((s.teams / s.capacity) * 100);
-    const avatarClass = i % 2 === 0 ? '' : 'gold';
-    const tagClass = pct >= 100 ? 'danger' : pct >= 70 ? 'warning' : 'success';
-    const tagText  = pct >= 100 ? 'Full' : pct >= 70 ? 'Heavy' : 'Available';
+  grid.innerHTML = supervisors.map(s => {
+    const assignedTeams = teamsBySupervisor(s.id).length;
+    const available = s.capacity - assignedTeams;
     return `
-    <div class="entity-card">
+    <div class="entity-card" onclick="openSupDetail('${s.id}')">
       <div class="entity-card-head">
+        <div class="entity-avatar">${initials(s.name)}</div>
         <div class="entity-info">
           <strong>${s.name}</strong>
           <p>${s.email}</p>
@@ -135,11 +152,162 @@ function renderSupervisors() {
       </div>
       <div style="margin-bottom:10px"><span class="id-pill">${s.id}</span></div>
       <div class="entity-stats">
-        <div class="entity-stat-cell"><strong>${s.teams}</strong><span>Teams</span></div>
-        <div class="entity-stat-cell"><strong>${s.capacity - s.teams}</strong><span>Available</span></div>
+        <div class="entity-stat-cell"><strong>${assignedTeams}</strong><span>Teams</span></div>
+        <div class="entity-stat-cell"><strong>${available}</strong><span>Available</span></div>
       </div>
+      <div style="text-align:center;font-size:.72rem;color:var(--secondary);font-weight:700">Click to view teams →</div>
     </div>`;
   }).join('');
+}
+
+/* ════════════════════════════════════
+   SUPERVISOR DETAIL VIEW
+══════════════════════════════════════ */
+function openSupDetail(supId) {
+  const sup = supById(supId);
+  const myTeams = teamsBySupervisor(supId);
+  const totalStudents = myTeams.reduce((sum, t) => sum + studentsByTeam(t.id).length, 0);
+
+  let html = `
+    <div class="sup-detail-header">
+      <div class="sup-detail-avatar">${initials(sup.name)}</div>
+      <div class="sup-detail-info">
+        <h2>${sup.name}</h2>
+        <p>${sup.email}</p>
+        <div class="sup-detail-stats">
+          <div class="sup-detail-stat"><strong>${sup.id}</strong></div>
+          <div class="sup-detail-stat">📋 <strong>${myTeams.length}</strong> Teams</div>
+          <div class="sup-detail-stat">👥 <strong>${totalStudents}</strong> Students</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (myTeams.length === 0) {
+    html += `
+      <div class="dash-panel">
+        <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
+          <p>No teams assigned to this supervisor yet.</p>
+        </div>
+      </div>`;
+  } else {
+    html += myTeams.map(team => renderTeamBlock(team)).join('');
+  }
+
+  $('#supDetailContent').innerHTML = html;
+  $$('.view').forEach(v => v.classList.remove('active'));
+  $('#view-sup-detail').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderTeamBlock(team) {
+  const members = studentsByTeam(team.id);
+  if (members.length === 0) {
+    return `
+      <div class="team-block">
+        <div class="team-block-head">
+          <div class="team-block-head-left">
+            <div class="team-avatar">${team.id.slice(-2)}</div>
+            <div>
+              <h3>${team.id}</h3>
+              <p>${team.members} members · No students linked</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Build header columns from schema
+  const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
+    sec.items.map(it => `<th title="${sec.section} · max ${it.max}">${it.label}<br><small style="color:var(--text-mute);font-weight:600">/${it.max}</small></th>`)
+  ).join('');
+
+  // Build rows for each student
+  const rows = members.map(s => {
+    const cells = MARKS_SCHEMA.flatMap(sec =>
+      sec.items.map(it => `
+        <td class="mark-input-cell">
+          <input type="number" min="0" max="${it.max}"
+            class="mark-input"
+            data-student="${s.id}" data-key="${it.key}" data-max="${it.max}"
+            value="${s.marks[it.key] ?? 0}"
+            oninput="onMarkChange(this)">
+        </td>`)
+    ).join('');
+    return `
+      <tr>
+        <td><strong>${s.name}</strong></td>
+        <td><span class="id-pill">${s.id}</span></td>
+        ${cells}
+        <td><span class="mark-total-display" id="total-${s.id}">${studentTotal(s)}<span class="out">/${MAX_TOTAL}</span></span></td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <div class="team-block">
+      <div class="team-block-head">
+        <div class="team-block-head-left">
+          <div class="team-avatar">${team.id.slice(-2)}</div>
+          <div>
+            <h3>${team.id}</h3>
+            <p>${members.length} members · Max total: ${MAX_TOTAL} marks</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveTeamMarks('${team.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Save Changes
+        </button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="marks-edit-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>ID</th>
+              ${componentHeaders}
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div class="team-marks-foot">
+        <div class="team-marks-foot-info">
+          ✓ Changes are validated in real time. Click <strong>Save Changes</strong> to commit.
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* Live mark validation + total update */
+function onMarkChange(input) {
+  const max = parseInt(input.dataset.max);
+  let val = parseInt(input.value);
+  if (isNaN(val)) val = 0;
+  if (val < 0) val = 0;
+  if (val > max) {
+    input.classList.add('invalid');
+    toast('Invalid mark', `Maximum allowed is ${max}`, 'warn');
+    val = max;
+    input.value = val;
+  } else {
+    input.classList.remove('invalid');
+  }
+  // Update student object live
+  const s = students.find(st => st.id === input.dataset.student);
+  if (s) {
+    s.marks[input.dataset.key] = val;
+    const totalEl = $(`#total-${s.id}`);
+    if (totalEl) totalEl.innerHTML = `${studentTotal(s)}<span class="out">/${MAX_TOTAL}</span>`;
+  }
+}
+
+function saveTeamMarks(teamId) {
+  // In a real app this would POST to the server.
+  // For now, the data is already updated live in `students`.
+  renderMarks(); // refresh marks view if visible
+  toast('Marks saved', `Updated marks for ${teamId}`, 'success');
 }
 
 /* ════════════════════════════════════
@@ -147,21 +315,19 @@ function renderSupervisors() {
 ══════════════════════════════════════ */
 function renderTeams() {
   const tbody = $('#teamsTable tbody');
-  tbody.innerHTML = teams.map((t, i) => {
+  tbody.innerHTML = teams.map(t => {
     const sup = supById(t.supId);
-    const statusClass = t.status === 'Active' ? 'success' : t.status === 'Pending' ? 'warning' : 'neutral';
     return `
     <tr>
       <td><span class="id-pill gold">${t.id}</span></td>
       <td>${t.members}</td>
       <td><span style="font-weight:600;color:var(--text)">${sup.name}</span></td>
-      <td><span class="tag ${statusClass}">${t.status}</span></td>
       <td>
         <div class="action-row">
           <button class="icon-action" onclick="openReassignModal('${t.id}')" title="Reassign supervisor">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
           </button>
-          <button class="icon-action" title="View details">
+          <button class="icon-action" onclick="openSupDetail('${t.supId}')" title="View team details">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
@@ -175,48 +341,34 @@ function renderTeams() {
 ══════════════════════════════════════ */
 function renderStudents() {
   const tbody = $('#studentsTable tbody');
-  tbody.innerHTML = students.map((s, i) => {
+  tbody.innerHTML = students.map(s => {
     const team = teamById(s.teamId);
     const sup = supById(team.supId);
     return `
     <tr>
-    <td>
-      <div class="team-info"><strong>${s.name}</strong><span>Semester 7</span></div></td>
+      <td><div class="team-info"><strong>${s.name}</strong><span>Semester 7</span></div></td>
       <td><span class="id-pill">${s.id}</span></td>
       <td>${sup.name}</td>
-      <td><strong style="color:var(--primary);font-family:monospace">${s.total}<span style="color:var(--text-mute);font-weight:500">/200</span></strong></td>
-      <td><button class="icon-action" title="View profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></td>
+      <td><strong style="color:var(--primary);font-family:monospace">${studentTotal(s)}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span></strong></td>
+      <td><button class="icon-action" onclick="openSupDetail('${team.supId}')" title="View / edit marks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button></td>
     </tr>`;
   }).join('');
 }
 
 /* ════════════════════════════════════
-   RENDER: MARKS
+   RENDER: MARKS (overview)
 ══════════════════════════════════════ */
 function renderMarks() {
   const tbody = $('#marksTable tbody');
-  tbody.innerHTML = students.map((s, i) => {
-    const team = teamById(s.teamId);
-    return `
+  if (!tbody) return;
+  tbody.innerHTML = students.map(s => `
     <tr>
+      <td><strong>${s.name}</strong></td>
       <td><span class="id-pill">${s.id}</span></td>
-      <td><span class="id-pill">${s.teamId}</span></td>
-      <td><strong style="font-family:monospace;color:var(--primary)">${s.total}<span style="color:var(--text-mute);font-weight:500">/200</span></strong></td>
-    </tr>`;
-  }).join('');
-}
-
-/* ════════════════════════════════════
-   RENDER: ACTIVITY
-══════════════════════════════════════ */
-function renderActivity() {
-  const wrap = $('#fullActivity');
-  wrap.innerHTML = allActivity.map(a => `
-    <div class="activity-item">
-      <div class="activity-icon" data-color="${a.color}">${ICONS[a.type] || ICONS.team}</div>
-      <div class="activity-text"><p>${a.text}</p><time>${a.time}</time></div>
-    </div>
-  `).join('');
+      <td><strong style="font-family:monospace;color:var(--primary)">${studentTotal(s)}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span></strong></td>
+    </tr>`).join('');
 }
 
 /* ════════════════════════════════════
@@ -266,7 +418,7 @@ function openReassignModal(teamId) {
   const select = $('#newSup');
   select.innerHTML = '<option value="">— Choose a supervisor —</option>' +
     supervisors.filter(s => s.id !== team.supId)
-      .map(s => `<option value="${s.id}">${s.name} · ${s.teams}/${s.capacity} teams</option>`).join('');
+      .map(s => `<option value="${s.id}">${s.name} · ${teamsBySupervisor(s.id).length}/${s.capacity} teams</option>`).join('');
   $('#reassignModal').classList.add('open');
 }
 function closeReassignModal() { $('#reassignModal').classList.remove('open'); }
@@ -277,19 +429,15 @@ function confirmReassign() {
     return;
   }
   const team = teamById(reassignTeamId);
-  const oldSup = supById(team.supId);
-  const newSup = supById(newSupId);
-  oldSup.teams = Math.max(0, oldSup.teams - 1);
-  newSup.teams += 1;
   team.supId = newSupId;
   closeReassignModal();
   renderTeams();
   renderSupervisors();
-  toast('Supervisor reassigned', `${team.name} now under ${newSup.name}`, 'success');
+  toast('Supervisor reassigned', `${team.id} now under ${supById(newSupId).name}`, 'success');
 }
 
 /* ════════════════════════════════════
-   CLOSE MODALS ON OVERLAY CLICK
+   CLOSE MODALS
 ══════════════════════════════════════ */
 $$('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
@@ -308,4 +456,3 @@ renderSupervisors();
 renderTeams();
 renderStudents();
 renderMarks();
-renderActivity();
