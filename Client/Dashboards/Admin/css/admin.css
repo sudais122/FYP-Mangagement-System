@@ -1,33 +1,6 @@
 :root {
-    --primary: #004b2d;
-    --primary-dark: #003520;
-    --secondary: #1f7a5c;
-    --secondary-lt: #2a9670;
-    --bg: #f8f9fa;
-    --surface: #ffffff;
-    --gold: #bfa14a;
-    --gold-lt: #d4b96b;
-    --text: #1c1c1c;
-    --text-soft: #4a5568;
-    --text-mute: #6c757d;
-    --border: #e2e8f0;
-    --border-soft: #edf2f7;
-    --shadow-sm: 0 1px 3px rgba(0, 75, 45, .07);
-    --shadow: 0 4px 18px rgba(0, 75, 45, .09);
-    --shadow-lg: 0 14px 40px rgba(0, 75, 45, .13);
-    --radius: 12px;
-    --radius-lg: 18px;
-    --font: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
-    --font-display: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
-    --tr: .25s cubic-bezier(.4, 0, .2, 1);
     --sidebar-w: 72px;
     --sidebar-exp: 240px;
-    --danger: #dc2626;
-    --danger-soft: #fef2f2;
-    --warning: #d97706;
-    --warning-soft: #fffbeb;
-    --info: #0284c7;
-    --info-soft: #f0f9ff;
 }
 
 *,

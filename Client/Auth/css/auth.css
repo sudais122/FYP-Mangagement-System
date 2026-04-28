@@ -8,35 +8,6 @@
 }
 
 html { scroll-behavior: smooth; }
-
-/* ══════════════════════════════════════
-   DESIGN TOKENS
-══════════════════════════════════════ */
-:root {
-  --pr:           #004b2d;
-  --pr-dk:        #003520;
-  --sec:          #1f7a5c;
-  --sec-lt:       #2a9670;
-  --gold:         #bfa14a;
-  --gold-lt:      #d4b96b;
-  --bg:           #f4f6f4;
-  --sur:          #ffffff;
-  --txt:          #1c1c1c;
-  --txt-s:        #4a5568;
-  --txt-m:        #6c757d;
-  --bdr:          #dee2e6;
-  --bdr-s:        #edf2f0;
-  --shadow-lg:    0 20px 60px rgba(0,75,45,0.14);
-  --radius:       12px;
-  --radius-lg:    20px;
-  --font: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
-  --font-display: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
-  --tr:           0.25s cubic-bezier(0.4,0,0.2,1);
-}
-
-/* ══════════════════════════════════════
-   BASE
-══════════════════════════════════════ */
 body {
   font-family: var(--font);
   background: var(--bg);

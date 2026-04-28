@@ -4,19 +4,6 @@
     padding: 0;
 }
 
-:root {
-    --pr: #004b2d;
-    --pr-dk: #003520;
-    --sec: #1f7a5c;
-    --gold: #bfa14a;
-    --gold-lt: #d4b96b;
-    --bg: #f4f6f4;
-    --sur: #fff;
-    --txt: #1c1c1c;
-    --txt-s: #4a5568;
-    --txt-m: #6c757d;
-    --bdr: #dee2e6;
-}
 
 body {
     font-family: "DM Sans", system-ui, sans-serif;
