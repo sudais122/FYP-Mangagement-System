@@ -53,16 +53,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-const pages = ["home", "faq", "messages", "developers", "login"];
-const navIds = ["nav-home", "nav-faq", "nav-messages", "nav-developers"];
+const pages = ["home", "coursera", "faq", "messages", "developers", "login"];
+const navIds = ["nav-home", "nav-coursera", "nav-faq", "nav-messages", "nav-developers"];
 const pageNames = {
   home: "Home",
+  coursera: "Coursera Courses",
   faq: "FAQs",
   messages: "Messages",
   developers: "Developers",
   login: "Login",
 };
-
 function navigate(pg) {
   pages.forEach((p) => {
     const el = document.getElementById("page-" + p);
@@ -175,7 +175,6 @@ const faqData = [
     ],
   },
 ];
-
 function renderFAQ() {
   const container = document.getElementById("faq-container");
   container.innerHTML = faqData
@@ -316,5 +315,112 @@ ss.textContent =
   "@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}";
 document.head.appendChild(ss);
 
+// ══════════════════ COURSERA DATA ══════════════════
+const courseraData = [
+  {
+    cat: "Python Programming",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+    courses: [
+      { name: "Introduction to Python Programming", desc: "Basic introduction to Python programming." },
+      { name: "Python Programming Essentials", desc: "Essential programming concepts in Python." },
+      { name: "Python Classes and Inheritance", desc: "Understanding object-oriented programming in Python." },
+      { name: "Select Topics in Python: Django", desc: "Introduction to Django framework for web development." },
+    ],
+  },
+  {
+    cat: "Java Programming",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3a1 1 0 0 1 1 1v9a4 4 0 1 1-8 0V4a1 1 0 0 1 1-1z" transform="rotate(90 5 9)"/><path d="M12 8v8"/><path d="M16 12h-8"/></svg>`,
+    courses: [
+      { name: "Java Programming: Principles of Software Design", desc: "Design principles and software development." },
+      { name: "Java Programming: Solving Problems with Software",desc: "Problem-solving using Java." },
+      { name: "Java Programming: Arrays, Lists, and Structured Data", desc: "Working with data structures in Java." },
+      { name: "Introduction to Java and Object-Oriented Programming",  desc: "Basics of Java and OOP principles." },
+      { name: "Introduction to Java Programming: Fundamental Concepts", desc: "Fundamental Java concepts and syntax." },
+    ],
+  },
+  {
+    cat: "Web Development",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
+    courses: [
+      { name: "Programming Foundations with JavaScript, HTML and CSS", uni: "Duke University", desc: "Introduction to core web technologies." },
+      { name: "Developing Front-End Apps with React", desc: "React front-end development." },
+      { name: "Server-side Development with NodeJS",  desc: "Backend development with Node.js and MongoDB." },
+    ],
+  },
+  {
+    cat: "Writing Skills",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>`,
+    courses: [
+      { name: "Writing Skills for University Success",  desc: "Develop academic writing skills." },
+      { name: "Writing and Editing: Word Choice and Word Order", desc: "Improve writing clarity and precision." },
+      { name: "Writing and Editing: Structure and Organization", desc: "Structure and organization skills." },
+      { name: "Getting Started with Essay Writing", desc: "Foundations of essay writing." },
+    ],
+  },
+  {
+    cat: "Speaking Skills",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`,
+    courses: [
+      { name: "English for Effective Business Speaking", desc: "Enhance business communication skills." },
+      { name: "Speaking Skills for University Success",  desc: "Improve academic speaking skills." },
+    ],
+  },
+  {
+    cat: "Data Science & AI",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`,
+    courses: [
+      { name: "Machine Learning Specialization", desc: "Foundations of supervised and unsupervised learning." },
+      { name: "Data Science Methodology", desc: "Methodology for solving data science problems." },
+      { name: "Applied Data Science with Python",desc: "Practical data analysis using Python libraries." },
+    ],
+  },
+];
+// ══════════════════ COURSERA RENDER ══════════════════
+function renderCoursera() {
+  const grid = document.getElementById("coursera-grid");
+  if (!grid) return;
+  grid.innerHTML = courseraData
+    .map(
+      (cat, ci) => `
+    <div class="course-cat" id="course-cat-${ci}">
+      <div class="cc-header" onclick="toggleCourseCat(${ci})">
+        <div class="cc-header-left">
+          <div class="cc-icon">${cat.icon}</div>
+          <div>
+            <div class="cc-title">${cat.cat}</div>
+            <div class="cc-count">${cat.courses.length} course${cat.courses.length > 1 ? "s" : ""}</div>
+          </div>
+        </div>
+        <div class="cc-chevron">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      <div class="cc-body">
+        <ul class="course-list">
+          ${cat.courses
+            .map(
+              (c) => `
+            <li class="course-item">
+              <span class="course-bullet"></span>
+              <div>
+                <div class="course-name">${c.name}</div>
+                <div class="course-desc">${c.desc}</div>
+              </div>
+            </li>`,
+            )
+            .join("")}
+        </ul>
+      </div>
+    </div>`,
+    )
+    .join("");
+}
+
+function toggleCourseCat(ci) {
+  const el = document.getElementById(`course-cat-${ci}`);
+  el.classList.toggle("open");
+}
+
+renderCoursera();
 renderFAQ();
 initReveal();
