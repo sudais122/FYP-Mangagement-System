@@ -22,13 +22,13 @@ const STATE = {
 /* ── Fake user database ── */
 const FAKE_USERS = [
   { id: "STD-20261234", name: "Bilal Khan", initials: "BK" },
-  { id: "STD-20265678", name: "Sara Noor", initials: "SN" },
-  { id: "STD-20269012", name: "Usman Tariq", initials: "UT" },
-  { id: "STD-20263456", name: "Ayesha Malik", initials: "AM" },
-  { id: "STD-20267890", name: "Hassan Raza", initials: "HR" },
-  { id: "STD-20262345", name: "Fatima Zaidi", initials: "FZ" },
-  { id: "STD-20266789", name: "Zain Ahmed", initials: "ZA" },
-  { id: "STD-20260123", name: "Nadia Iqbal", initials: "NI" },
+  { id: "STD-20261235", name: "Sara Noor", initials: "SN" },
+  { id: "STD-20261235", name: "Usman Tariq", initials: "UT" },
+  { id: "STD-20261236", name: "Ayesha Malik", initials: "AM" },
+  { id: "STD-20261237", name: "Hassan Raza", initials: "HR" },
+  { id: "STD-20261238", name: "Fatima Zaidi", initials: "FZ" },
+  { id: "STD-20261239", name: "Zain Ahmed", initials: "ZA" },
+  { id: "STD-20261210", name: "Nadia Iqbal", initials: "NI" },
 ];
 
 /* ── Supervisors ── */
