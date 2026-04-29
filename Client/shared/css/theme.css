@@ -1,22 +1,22 @@
 /* ════════════════════════════════════════════════
-   THEME: AWKUM OFFICIAL
-   Abdul Wali Khan University Mardan
+   THEME: ROYAL BLUE (Light)
+   Lighter sky blue + gold accents
 ════════════════════════════════════════════════ */
 :root {
-  --primary:      #8B0101;
-  --primary-dark: #5C0000;
-  --primary-mid:  #A30E0E;
-  --secondary:    #B82828;
-  --secondary-lt: #DB4B4B;
-  --bg:           #FAF7F7;
+  --primary:      #2255A4;
+  --primary-dark: #1A3F7C;
+  --primary-mid:  #2E6BBF;
+  --secondary:    #3A7FD4;
+  --secondary-lt: #5A9AE0;
+  --bg:           #F4F7FC;
   --surface:      #FFFFFF;
   --gold:         #C9A227;
   --gold-lt:      #DDB94A;
   --text:         #1A1A1A;
   --text-soft:    #4A4A4A;
   --text-mute:    #6C757D;
-  --border:       #E5DCDC;
-  --border-soft:  #F2EAEA;
+  --border:       #CFDAEE;
+  --border-soft:  #E5EDF8;
   --danger:       #DC2626;
   --warning:      #D97706;
   --info:         #0284C7;
@@ -31,13 +31,15 @@
   --txt-m:        var(--text-mute);
   --bdr:          var(--border);
 
-  --shadow-sm:    0 1px 3px rgba(139,1,1,.08);
-  --shadow:       0 4px 18px rgba(139,1,1,.10);
-  --shadow-lg:    0 14px 40px rgba(139,1,1,.14);
+  --shadow-sm:    0 1px 3px rgba(34,85,164,.08);
+  --shadow:       0 4px 18px rgba(34,85,164,.10);
+  --shadow-lg:    0 14px 40px rgba(34,85,164,.14);
 
   --radius:       12px;
   --radius-lg:    18px;
   --font:         'Calibri','Segoe UI',Arial,sans-serif;
   --font-display: 'Calibri','Segoe UI',Arial,sans-serif;
   --tr:           .25s cubic-bezier(.4,0,.2,1);
+  --sidebar-w:    72px;
+  --sidebar-exp:  240px;
 }
