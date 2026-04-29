@@ -1,68 +1,224 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Supervisor Dashboard — FYP Management AWKUM</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="../../shared/css/theme.css">
-<link rel="stylesheet" href="./css/supervisor.css">
-</head>
-<body>
-
-<nav class="navbar">
-  <div class="nav-inner">
-    <div class="nav-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-    <div class="nav-brand"><strong>FYP Management</strong><small>AWKUM · CS Dept</small></div>
-    <span class="nav-tag">Supervisor Portal</span>
-    <div class="nav-right">
-      <div class="nav-user"><strong>Dr. Aftab Ahmad</strong><small>SUP20260001</small></div>
-      <button class="nav-logout" onclick="window.location.href='index.html'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</button>
-    </div>
-  </div>
-</nav>
-
-<div class="layout">
-  <aside class="sidebar">
-    <button class="sb-btn active" id="sb-dashboard" onclick="showTab('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
-    <button class="sb-btn" id="sb-groups" onclick="showTab('groups')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>My Groups</button>
-    <div class="sb-spacer"></div>
-    <button class="sb-btn logout" onclick="window.location.href='index.html'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</button>
-  </aside>
-
-  <main class="main">
-    <div class="page-head"><h1 id="page-title">Dashboard</h1><p id="page-sub">Overview of your assigned groups and students</p></div>
-
-    <!-- DASHBOARD -->
-    <div class="tab active" id="tab-dashboard">
-      <div class="top-strip">
-        <div class="info-block">
-          <h2>Welcome back, Dr. Aftab 👋</h2>
-          <p>FYP Coordinator · CS Department</p>
-          <div class="sup-id-tag">SUP20260001</div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Supervisor Dashboard — FYP Management AWKUM</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css" />
+    <link rel="stylesheet" href="./css/supervisor.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-inner">
+        <div class="nav-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c3 3 9 3 12 0v-5" />
+          </svg>
         </div>
-        <div class="stats-block">
-          <div class="st-card" style="--accent:var(--primary)"><div class="st-label">Groups</div><div class="st-val" id="stat-groups">0</div><div class="st-sub">Assigned to you</div></div>
-          <div class="st-card" style="--accent:var(--secondary)"><div class="st-label">Students</div><div class="st-val" id="stat-students">0</div><div class="st-sub">Across all groups</div></div>
-          <div class="st-card" style="--accent:var(--gold)"><div class="st-label">Total Marks</div><div class="st-val">200</div><div class="st-sub">Per student</div></div>
-          <div class="st-card" style="--accent:#3b82f6"><div class="st-label">Components</div><div class="st-val">11</div><div class="st-sub">Marking criteria</div></div>
+        <div class="nav-brand">
+          <strong>FYP Management</strong><small>AWKUM · CS Dept</small>
+        </div>
+        <span class="nav-tag">Supervisor Portal</span>
+        <div class="nav-right">
+          <div class="nav-user">
+            <strong>Dr. Aftab Ahmad</strong><small>SUP-20260001</small>
+          </div>
+          <button class="nav-logout" onclick="window.location.href = 'index.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>Logout
+          </button>
         </div>
       </div>
-      <div class="card"><div class="card-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>My Groups</h3></div><div class="card-body"><table class="g-table"><thead><tr><th>Group ID</th><th>Project Title</th><th>Students</th><th></th></tr></thead><tbody id="dash-groups-tbody"></tbody></table></div></div>
-      <div class="card"><div class="card-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>All Students</h3></div><div class="card-body"><table class="s-table"><thead><tr><th>Student ID</th><th>Name</th><th>Group</th><th>Role</th><th style="text-align:right">Marks</th></tr></thead><tbody id="dash-students-tbody"></tbody></table></div></div>
+    </nav>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <button class="sb-btn active" id="sb-dashboard" onclick="showTab('dashboard')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="9" />
+            <rect x="14" y="3" width="7" height="5" />
+            <rect x="14" y="12" width="7" height="9" />
+            <rect x="3" y="16" width="7" height="5" />
+          </svg>Dashboard
+        </button>
+        <button class="sb-btn" id="sb-groups" onclick="showTab('groups')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>My Groups
+        </button>
+        <div class="sb-spacer"></div>
+        <button class="sb-btn logout" onclick="window.location.href = 'index.html'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>Logout
+        </button>
+      </aside>
+
+      <main class="main">
+        <div class="page-head">
+          <h1 id="page-title">Dashboard</h1>
+          <p id="page-sub">Overview of your assigned groups and students</p>
+        </div>
+
+        <!-- DASHBOARD -->
+        <div class="tab active" id="tab-dashboard">
+          <div class="top-strip">
+            <div class="info-block">
+              <h2>Welcome back, Dr. Aftab 👋</h2>
+              <p>FYP Coordinator · CS Department</p>
+              <div class="sup-id-tag">SUP-20260001</div>
+
+              <!-- ID REMINDER NOTICE -->
+              <div class="sup-id-notice">
+                <div class="sup-id-notice-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <div class="sup-id-notice-text">
+                  <strong>Important — Save This ID</strong>
+                  <span>This is <b>your unique Supervisor ID</b>. Please remember and save it carefully — you will need it for future logins, official communications, and all FYP-related activities.</span>
+                </div>
+              </div>
+            </div>
+            <div class="stats-block">
+              <div class="st-card" style="--accent: var(--primary)">
+                <div class="st-label">Groups</div>
+                <div class="st-val" id="stat-groups">0</div>
+                <div class="st-sub">Assigned to you</div>
+              </div>
+              <div class="st-card" style="--accent: var(--secondary)">
+                <div class="st-label">Students</div>
+                <div class="st-val" id="stat-students">0</div>
+                <div class="st-sub">Across all groups</div>
+              </div>
+              <div class="st-card" style="--accent: var(--gold)">
+                <div class="st-label">Total Marks</div>
+                <div class="st-val">200</div>
+                <div class="st-sub">Per student</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MY GROUPS card with search -->
+          <div class="card">
+            <div class="card-head">
+              <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                </svg>My Groups
+              </h3>
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="search-dash-groups" placeholder="Search by Team ID or project title…" oninput="filterDashGroups(this.value)">
+              </div>
+            </div>
+            <div class="card-body">
+              <table class="g-table">
+                <thead>
+                  <tr>
+                    <th>Group ID</th>
+                    <th>Project Title</th>
+                    <th>Students</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="dash-groups-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ALL STUDENTS card with search -->
+          <div class="card">
+            <div class="card-head">
+              <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                </svg>All Students
+              </h3>
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input type="text" id="search-students" placeholder="Search by Student ID or name…" oninput="filterStudents(this.value)">
+              </div>
+            </div>
+            <div class="card-body">
+              <table class="s-table">
+                <thead>
+                  <tr>
+                    <th>Student ID</th>
+                    <th>Name</th>
+                    <th>Group</th>
+                    <th>Role</th>
+                    <th style="text-align: right">Marks</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-students-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- GROUPS -->
+        <div class="tab" id="tab-groups">
+          <div id="groups-list-view">
+            <div class="card">
+              <div class="card-head">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  </svg>All Groups
+                </h3>
+                <div class="search-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <input type="text" id="search-groups" placeholder="Search by Team ID or project title…" oninput="filterGroupsList(this.value)">
+                </div>
+              </div>
+              <div class="card-body">
+                <table class="g-table">
+                  <thead>
+                    <tr>
+                      <th>Group ID</th>
+                      <th>Project Title</th>
+                      <th>Students</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="groups-list-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div id="group-detail-view" style="display: none"></div>
+        </div>
+      </main>
     </div>
 
-    <!-- GROUPS -->
-    <div class="tab" id="tab-groups">
-      <div id="groups-list-view"><div class="card"><div class="card-head"><h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>All Groups</h3></div><div class="card-body"><table class="g-table"><thead><tr><th>Group ID</th><th>Project Title</th><th>Students</th><th></th></tr></thead><tbody id="groups-list-tbody"></tbody></table></div></div></div>
-      <div id="group-detail-view" style="display:none"></div>
-    </div>
-  </main>
-</div>
-
-<div class="toast" id="toast"></div>
-<script src="./js/supervisor.js"></script>
-</body>
+    <div class="toast" id="toast"></div>
+    <script src="./js/supervisor.js"></script>
+  </body>
 </html>

@@ -1,484 +1,811 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Admin Dashboard — FYP Management System AWKUM</title>
-<link rel="stylesheet" href="../../shared/css/theme.css">
-<link rel="stylesheet" href="./css/admin.css">
-</head>
-<body>
-
-<!-- ═══ NAVBAR ═══ -->
-<nav class="dash-nav">
-  <div class="nav-inner">
-    <button class="nav-icon-btn nav-mobile-btn" id="mobileMenuBtn" aria-label="Toggle menu">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <div class="nav-brand">
-      <div class="nav-logo">A</div>
-      <div class="nav-title">
-        <h1>FYP Management</h1>
-        <p>Admin Portal · AWKUM</p>
-      </div>
-    </div>
-    <div class="nav-actions">
-      <div class="nav-user">
-        <div class="nav-avatar">DR</div>
-        <div class="nav-user-info">
-          <strong>Dr. Rashid</strong>
-          <span>System Admin</span>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Admin Dashboard — FYP Management System AWKUM</title>
+    <link rel="stylesheet" href="../../shared/css/theme.css" />
+    <link rel="stylesheet" href="./css/admin.css" />
+  </head>
+  <body>
+    <!-- ═══ NAVBAR ═══ -->
+    <nav class="dash-nav">
+      <div class="nav-inner">
+        <button
+          class="nav-icon-btn nav-mobile-btn"
+          id="mobileMenuBtn"
+          aria-label="Toggle menu"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div class="nav-brand">
+          <div class="nav-logo">A</div>
+          <div class="nav-title">
+            <h1>FYP Management</h1>
+            <p>Admin Portal · AWKUM</p>
+          </div>
+        </div>
+        <div class="nav-actions">
+          <div class="nav-user">
+            <div class="nav-avatar">DR</div>
+            <div class="nav-user-info">
+              <strong>Dr. Rashid</strong>
+              <span>System Admin</span>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</nav>
+    </nav>
 
-<!-- ═══ SIDEBAR ═══ -->
-<aside class="dash-sidebar" id="sidebar">
-  <div class="sidebar-section">
-    <div class="sidebar-label">Overview</div>
-    <a class="nav-item active" data-view="dashboard">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      <span>Dashboard</span>
-    </a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Manage</div>
-    <a class="nav-item" data-view="supervisors">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      <span>Supervisors</span>
-      <span class="nav-item-badge">12</span>
-    </a>
-    <a class="nav-item" data-view="teams">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <span>Teams</span>
-      <span class="nav-item-badge">38</span>
-    </a>
-    <a class="nav-item" data-view="students">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-      <span>Students</span>
-      <span class="nav-item-badge">142</span>
-    </a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Monitor</div>
-    <a class="nav-item" data-view="marks">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      <span>Marks &amp; Evaluation</span>
-    </a>
-  </div>
-</aside>
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside class="dash-sidebar" id="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Overview</div>
+        <a class="nav-item active" data-view="dashboard">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+          </svg>
+          <span>Dashboard</span>
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Manage</div>
+        <a class="nav-item" data-view="supervisors">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <span>Supervisors</span>
+          <span class="nav-item-badge">12</span>
+        </a>
+        <a class="nav-item" data-view="teams">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          <span>Teams</span>
+          <span class="nav-item-badge">38</span>
+        </a>
+        <a class="nav-item" data-view="students">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+            <path d="M6 12v5c3 3 9 3 12 0v-5" />
+          </svg>
+          <span>Students</span>
+          <span class="nav-item-badge">142</span>
+        </a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Monitor</div>
+        <a class="nav-item" data-view="marks">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </svg>
+          <span>Marks &amp; Evaluation</span>
+        </a>
+      </div>
+    </aside>
 
-<!-- ═══ MAIN ═══ -->
-<main class="dash-main">
-
-  <!-- ───── DASHBOARD VIEW ───── -->
-  <section class="view active" id="view-dashboard">
-    <div class="dash-banner">
-      <div class="banner-content">
-        <div class="banner-text">
-          <div class="banner-greeting"><span>Admin Console</span></div>
-          <h2>Welcome back, Dr. Rashid</h2>
-          <p>You have full oversight of the FYP Management System. Add supervisors, manage assignments, and monitor academic performance — all from one place.</p>
+    <!-- ═══ MAIN ═══ -->
+    <main class="dash-main">
+      <!-- ───── DASHBOARD VIEW ───── -->
+      <section class="view active" id="view-dashboard">
+        <div class="dash-banner">
+          <div class="banner-content">
+            <div class="banner-text">
+              <div class="banner-greeting"><span>Admin Console</span></div>
+              <h2>Welcome back, Dr. Rashid</h2>
+              <p>
+                You have full oversight of the FYP Management System. Add
+                supervisors, manage assignments, and monitor academic
+                performance — all from one place.
+              </p>
+            </div>
+            <div class="banner-actions">
+              <button
+                class="banner-btn primary"
+                onclick="openSupervisorModal()"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M16 21v-2a4 4 0 0 0-8 0v2" />
+                  <line x1="19" y1="8" x2="19" y2="14" />
+                  <line x1="22" y1="11" x2="16" y2="11" />
+                </svg>
+                Add Supervisor
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="banner-actions">
-          <button class="banner-btn primary" onclick="openSupervisorModal()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M16 21v-2a4 4 0 0 0-8 0v2"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-            Add Supervisor
+
+        <div class="dash-stats">
+          <div class="dstat-card" data-color="primary">
+            <div class="dstat-head">
+              <div class="dstat-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                  <path d="M6 12v5c3 3 9 3 12 0v-5" />
+                </svg>
+              </div>
+            </div>
+            <div class="dstat-value">142</div>
+            <div class="dstat-label">Total Students</div>
+          </div>
+          <div class="dstat-card" data-color="gold">
+            <div class="dstat-head">
+              <div class="dstat-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+              </div>
+            </div>
+            <div class="dstat-value">12</div>
+            <div class="dstat-label">Total Supervisors</div>
+          </div>
+          <div class="dstat-card" data-color="secondary">
+            <div class="dstat-head">
+              <div class="dstat-icon">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+            </div>
+            <div class="dstat-value">38</div>
+            <div class="dstat-label">Active Teams</div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="dash-panel">
+            <div class="panel-head">
+              <div class="panel-head-text">
+                <h3>Recent Teams</h3>
+                <p>Most recently created teams in the system</p>
+              </div>
+              <button class="panel-action" onclick="switchView('teams')">
+                View all →
+              </button>
+            </div>
+            <div class="panel-body">
+              <div class="data-table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Team</th>
+                      <th>Team ID</th>
+                      <th>Supervisor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="team-cell">
+                          <div class="team-avatar">CV</div>
+                          <div class="team-info">
+                            <strong>CivicVision</strong><span>4 members</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="id-pill gold">TEAM-20261284</span></td>
+                      <td>Dr. Sajid Ali</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="team-cell">
+                          <div class="team-avatar gold">AG</div>
+                          <div class="team-info">
+                            <strong>AgriGrow</strong><span>3 members</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="id-pill gold">TEAM-20261283</span></td>
+                      <td>Dr. Naila Khan</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="team-cell">
+                          <div class="team-avatar dark">HL</div>
+                          <div class="team-info">
+                            <strong>HopeLink</strong><span>4 members</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="id-pill gold">TEAM-20261282</span></td>
+                      <td>Dr. Faisal Ahmed</td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="team-cell">
+                          <div class="team-avatar">MX</div>
+                          <div class="team-info">
+                            <strong>MedixAI</strong><span>3 members</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td><span class="id-pill gold">TEAM-20261281</span></td>
+                      <td>Dr. Sajid Ali</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── SUPERVISORS VIEW ───── -->
+      <section class="view" id="view-supervisors">
+        <div class="section-head">
+          <div class="section-head-text">
+            <h2>Supervisor Management</h2>
+            <p>
+              Add, view, and monitor supervisor workload across all teams ·
+              Click any card to view details
+            </p>
+          </div>
+          <div class="section-head-actions">
+            <button class="btn btn-primary" onclick="openSupervisorModal()">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Supervisor
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-search">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" placeholder="Search by name or ID…" />
+          </div>
+        </div>
+
+        <div class="card-grid" id="supervisorCards"></div>
+      </section>
+
+      <!-- ───── SUPERVISOR DETAIL VIEW ───── -->
+      <section class="view" id="view-sup-detail">
+        <a class="back-btn" onclick="switchView('supervisors')">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Back to Supervisors
+        </a>
+        <div id="supDetailContent"></div>
+      </section>
+
+      <!-- ───── TEAMS VIEW ───── -->
+      <section class="view" id="view-teams">
+        <div class="section-head">
+          <div class="section-head-text">
+            <h2>Team Management</h2>
+            <p>View all teams and reassign supervisors as needed</p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-search">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" placeholder="Search teams…" />
+          </div>
+        </div>
+
+        <div class="dash-panel">
+          <div class="panel-body" style="padding: 0">
+            <div class="data-table-wrap">
+              <table class="data-table" id="teamsTable">
+                <thead>
+                  <tr>
+                    <th>Team ID</th>
+                    <th>Members</th>
+                    <th>Supervisor</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── STUDENTS VIEW ───── -->
+      <section class="view" id="view-students">
+        <div class="section-head">
+          <div class="section-head-text">
+            <h2>Student Management</h2>
+            <p>
+              View student details and team associations · Click edit to manage
+              marks
+            </p>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-search">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" placeholder="Search by name or student ID…" />
+          </div>
+        </div>
+
+        <div class="dash-panel">
+          <div class="panel-body" style="padding: 0">
+            <div class="data-table-wrap">
+              <table class="data-table" id="studentsTable">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Student ID</th>
+                    <th>Supervisor</th>
+                    <th>Marks</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───── MARKS VIEW ───── -->
+      <section class="view" id="view-marks">
+        <div class="section-head">
+          <div class="section-head-text">
+            <h2>Marks &amp; Evaluation</h2>
+            <p>
+              Full access · View and edit student and team performance · Total:
+              180 marks
+            </p>
+          </div>
+        </div>
+
+        <div class="marks-summary">
+          <div class="marks-stat" data-c="green">
+            <div class="marks-stat-label">Avg. Score</div>
+            <div class="marks-stat-value">
+              152<span
+                style="
+                  font-size: 0.9rem;
+                  color: var(--text-mute);
+                  font-weight: 600;
+                "
+                >/180</span
+              >
+            </div>
+            <div class="marks-stat-sub">Across 38 teams</div>
+          </div>
+          <div class="marks-stat" data-c="gold">
+            <div class="marks-stat-label">Top Score</div>
+            <div class="marks-stat-value">175</div>
+            <div class="marks-stat-sub">Team CivicVision</div>
+          </div>
+          <div class="marks-stat" data-c="warn">
+            <div class="marks-stat-label">Pending Reviews</div>
+            <div class="marks-stat-value">14</div>
+            <div class="marks-stat-sub">Awaiting supervisor</div>
+          </div>
+          <div class="marks-stat">
+            <div class="marks-stat-label">Completed</div>
+            <div class="marks-stat-value">76%</div>
+            <div class="marks-stat-sub">Of total evaluations</div>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <div class="filter-search">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" placeholder="Search student or team…" />
+          </div>
+          <select class="filter-select">
+            <option>All categories</option>
+            <option>By student</option>
+            <option>By team</option>
+          </select>
+          <select class="filter-select">
+            <option>Sort: Highest</option>
+            <option>Sort: Lowest</option>
+            <option>Sort: Recent</option>
+          </select>
+        </div>
+
+        <div class="dash-panel">
+          <div class="panel-head">
+            <div class="panel-head-text">
+              <h3>Student Performance</h3>
+              <p>
+                To edit marks, open the supervisor's detail page from the
+                Supervisors tab
+              </p>
+            </div>
+            <span
+              class="tag success"
+              style="display: inline-flex; align-items: center; gap: 5px"
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <path
+                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                />
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                />
+              </svg>
+              Full Edit Access
+            </span>
+          </div>
+          <div class="panel-body" style="padding: 0">
+            <div class="data-table-wrap">
+              <table class="data-table" id="marksTable">
+                <thead>
+                  <tr>
+                    <th>Student</th>
+                    <th>Student ID</th>
+                    <th>Total Marks</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ═══ ADD SUPERVISOR MODAL ═══ -->
+    <div class="modal-overlay" id="supervisorModal">
+      <div class="modal-box">
+        <div class="modal-head">
+          <div class="modal-head-text">
+            <h3>Add New Supervisor</h3>
+            <p>Create a supervisor account with limited initial access</p>
+          </div>
+          <button
+            class="modal-close"
+            onclick="closeSupervisorModal()"
+            aria-label="Close"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="supervisorForm" onsubmit="return false;">
+            <!-- Auto-generated ID -->
+            <div class="form-group">
+              <label class="form-label">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  stroke-linecap="round"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Supervisor ID
+                <span class="opt">Auto</span>
+              </label>
+              <div class="id-display">
+                <div class="id-display-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="2" y="4" width="20" height="16" rx="2" />
+                    <path d="M2 8h20" />
+                    <path d="M6 14h2" />
+                  </svg>
+                </div>
+                <div class="id-display-text">
+                  <strong id="generatedSupId">SUP-20261284</strong>
+                  <span>System-generated · Cannot be modified</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Name & Email -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label"
+                  >Full Name <span class="req">*</span></label
+                >
+                <input
+                  type="text"
+                  class="form-input"
+                  id="supName"
+                  placeholder="e.g. Dr. Naila Khan"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label"
+                  >Institutional Email <span class="req">*</span></label
+                >
+                <input
+                  type="email"
+                  class="form-input"
+                  id="supEmail"
+                  placeholder="naila.khan@awkum.edu.pk"
+                  required
+                />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <label class="form-label"
+                >Temporary Password <span class="req">*</span></label
+              >
+              <div class="input-group">
+                <input
+                  type="text"
+                  class="form-input"
+                  id="supPassword"
+                  placeholder="Enter or generate a password"
+                  required
+                />
+              </div>
+              <div class="form-help" id="pwdHelp">
+                Minimum 8 characters · Will be sent to supervisor via email
+              </div>
+            </div>
+
+            <!-- Force change -->
+            <label class="checkbox-row" for="forceChange">
+              <input type="checkbox" id="forceChange" checked />
+              <div class="checkbox-row-text">
+                <span
+                  >Recommended — supervisor will be required to set their own
+                  password the first time they sign in</span
+                >
+              </div>
+            </label>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeSupervisorModal()">
+            Cancel
+          </button>
+          <button class="btn btn-primary" onclick="submitSupervisor()">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            Create Supervisor
           </button>
         </div>
       </div>
     </div>
 
-    <div class="dash-stats">
-      <div class="dstat-card" data-color="primary">
-        <div class="dstat-head">
-          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-        </div>
-        <div class="dstat-value">142</div>
-        <div class="dstat-label">Total Students</div>
-      </div>
-      <div class="dstat-card" data-color="gold">
-        <div class="dstat-head">
-          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-        </div>
-        <div class="dstat-value">12</div>
-        <div class="dstat-label">Total Supervisors</div>
-      </div>
-      <div class="dstat-card" data-color="secondary">
-        <div class="dstat-head">
-          <div class="dstat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-        </div>
-        <div class="dstat-value">38</div>
-        <div class="dstat-label">Active Teams</div>
-      </div>
-    </div>
-
-    <div class="dash-grid">
-      <div class="dash-panel">
-        <div class="panel-head">
-          <div class="panel-head-text">
-            <h3>Recent Teams</h3>
-            <p>Most recently created teams in the system</p>
+    <!-- ═══ REASSIGN SUPERVISOR MODAL ═══ -->
+    <div class="modal-overlay" id="reassignModal">
+      <div class="modal-box" style="max-width: 460px">
+        <div class="modal-head">
+          <div class="modal-head-text">
+            <h3>Reassign Supervisor</h3>
+            <p>
+              Change the supervisor for
+              <span
+                id="reassignTeamName"
+                style="color: var(--primary); font-weight: 700"
+                >—</span
+              >
+            </p>
           </div>
-          <button class="panel-action" onclick="switchView('teams')">View all →</button>
+          <button
+            class="modal-close"
+            onclick="closeReassignModal()"
+            aria-label="Close"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
-        <div class="panel-body">
-          <div class="data-table-wrap">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Team</th>
-                  <th>Team ID</th>
-                  <th>Supervisor</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><div class="team-cell"><div class="team-avatar">CV</div><div class="team-info"><strong>CivicVision</strong><span>4 members</span></div></div></td>
-                  <td><span class="id-pill gold">TEAM20261284</span></td>
-                  <td>Dr. Sajid Ali</td>
-                </tr>
-                <tr>
-                  <td><div class="team-cell"><div class="team-avatar gold">AG</div><div class="team-info"><strong>AgriGrow</strong><span>3 members</span></div></div></td>
-                  <td><span class="id-pill gold">TEAM20261283</span></td>
-                  <td>Dr. Naila Khan</td>
-                </tr>
-                <tr>
-                  <td><div class="team-cell"><div class="team-avatar dark">HL</div><div class="team-info"><strong>HopeLink</strong><span>4 members</span></div></div></td>
-                  <td><span class="id-pill gold">TEAM20261282</span></td>
-                  <td>Dr. Faisal Ahmed</td>
-                </tr>
-                <tr>
-                  <td><div class="team-cell"><div class="team-avatar">MX</div><div class="team-info"><strong>MedixAI</strong><span>3 members</span></div></div></td>
-                  <td><span class="id-pill gold">TEAM20261281</span></td>
-                  <td>Dr. Sajid Ali</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ───── SUPERVISORS VIEW ───── -->
-  <section class="view" id="view-supervisors">
-    <div class="section-head">
-      <div class="section-head-text">
-        <h2>Supervisor Management</h2>
-        <p>Add, view, and monitor supervisor workload across all teams · Click any card to view details</p>
-      </div>
-      <div class="section-head-actions">
-        <button class="btn btn-primary" onclick="openSupervisorModal()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Supervisor
-        </button>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <div class="filter-search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Search by name or ID…"/>
-      </div>
-    </div>
-
-    <div class="card-grid" id="supervisorCards"></div>
-  </section>
-
-  <!-- ───── SUPERVISOR DETAIL VIEW ───── -->
-  <section class="view" id="view-sup-detail">
-    <a class="back-btn" onclick="switchView('supervisors')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Back to Supervisors
-    </a>
-    <div id="supDetailContent"></div>
-  </section>
-
-  <!-- ───── TEAMS VIEW ───── -->
-  <section class="view" id="view-teams">
-    <div class="section-head">
-      <div class="section-head-text">
-        <h2>Team Management</h2>
-        <p>View all teams and reassign supervisors as needed</p>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <div class="filter-search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Search teams…"/>
-      </div>
-    </div>
-
-    <div class="dash-panel">
-      <div class="panel-body" style="padding:0">
-        <div class="data-table-wrap">
-          <table class="data-table" id="teamsTable">
-            <thead>
-              <tr>
-                <th>Team ID</th>
-                <th>Members</th>
-                <th>Supervisor</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ───── STUDENTS VIEW ───── -->
-  <section class="view" id="view-students">
-    <div class="section-head">
-      <div class="section-head-text">
-        <h2>Student Management</h2>
-        <p>View student details and team associations · Click edit to manage marks</p>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <div class="filter-search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Search by name or student ID…"/>
-      </div>
-    </div>
-
-    <div class="dash-panel">
-      <div class="panel-body" style="padding:0">
-        <div class="data-table-wrap">
-          <table class="data-table" id="studentsTable">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Student ID</th>
-                <th>Supervisor</th>
-                <th>Marks</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ───── MARKS VIEW ───── -->
-  <section class="view" id="view-marks">
-    <div class="section-head">
-      <div class="section-head-text">
-        <h2>Marks &amp; Evaluation</h2>
-        <p>Full access · View and edit student and team performance · Total: 180 marks</p>
-      </div>
-    </div>
-
-    <div class="marks-summary">
-      <div class="marks-stat" data-c="green">
-        <div class="marks-stat-label">Avg. Score</div>
-        <div class="marks-stat-value">152<span style="font-size:.9rem;color:var(--text-mute);font-weight:600">/180</span></div>
-        <div class="marks-stat-sub">Across 38 teams</div>
-      </div>
-      <div class="marks-stat" data-c="gold">
-        <div class="marks-stat-label">Top Score</div>
-        <div class="marks-stat-value">175</div>
-        <div class="marks-stat-sub">Team CivicVision</div>
-      </div>
-      <div class="marks-stat" data-c="warn">
-        <div class="marks-stat-label">Pending Reviews</div>
-        <div class="marks-stat-value">14</div>
-        <div class="marks-stat-sub">Awaiting supervisor</div>
-      </div>
-      <div class="marks-stat">
-        <div class="marks-stat-label">Completed</div>
-        <div class="marks-stat-value">76%</div>
-        <div class="marks-stat-sub">Of total evaluations</div>
-      </div>
-    </div>
-
-    <div class="filter-bar">
-      <div class="filter-search">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Search student or team…"/>
-      </div>
-      <select class="filter-select">
-        <option>All categories</option>
-        <option>By student</option>
-        <option>By team</option>
-      </select>
-      <select class="filter-select">
-        <option>Sort: Highest</option>
-        <option>Sort: Lowest</option>
-        <option>Sort: Recent</option>
-      </select>
-    </div>
-
-    <div class="dash-panel">
-      <div class="panel-head">
-        <div class="panel-head-text">
-          <h3>Student Performance</h3>
-          <p>To edit marks, open the supervisor's detail page from the Supervisors tab</p>
-        </div>
-        <span class="tag success" style="display:inline-flex;align-items:center;gap:5px">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Full Edit Access
-        </span>
-      </div>
-      <div class="panel-body" style="padding:0">
-        <div class="data-table-wrap">
-          <table class="data-table" id="marksTable">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Student ID</th>
-                <th>Total Marks</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
-
-<!-- ═══ ADD SUPERVISOR MODAL ═══ -->
-<div class="modal-overlay" id="supervisorModal">
-  <div class="modal-box">
-    <div class="modal-head">
-      <div class="modal-head-text">
-        <h3>Add New Supervisor</h3>
-        <p>Create a supervisor account with limited initial access</p>
-      </div>
-      <button class="modal-close" onclick="closeSupervisorModal()" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <form id="supervisorForm" onsubmit="return false">
-        <!-- Auto-generated ID -->
-        <div class="form-group">
-          <label class="form-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Supervisor ID
-            <span class="opt">Auto</span>
-          </label>
-          <div class="id-display">
-            <div class="id-display-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 8h20"/><path d="M6 14h2"/></svg>
-            </div>
-            <div class="id-display-text">
-              <strong id="generatedSupId">SUP20261284</strong>
-              <span>System-generated · Cannot be modified</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Name & Email -->
-        <div class="form-row">
+        <div class="modal-body">
           <div class="form-group">
-            <label class="form-label">Full Name <span class="req">*</span></label>
-            <input type="text" class="form-input" id="supName" placeholder="e.g. Dr. Naila Khan" required/>
+            <label class="form-label">Current Supervisor</label>
+            <input
+              type="text"
+              class="form-input readonly"
+              id="currentSup"
+              readonly
+            />
           </div>
           <div class="form-group">
-            <label class="form-label">Institutional Email <span class="req">*</span></label>
-            <input type="email" class="form-input" id="supEmail" placeholder="naila.khan@awkum.edu.pk" required/>
+            <label class="form-label"
+              >New Supervisor <span class="req">*</span></label
+            >
+            <select class="form-select" id="newSup">
+              <option value="">— Choose a supervisor —</option>
+            </select>
           </div>
         </div>
-
-        <!-- Password -->
-        <div class="form-group">
-          <label class="form-label">Temporary Password <span class="req">*</span></label>
-          <div class="input-group">
-            <input type="text" class="form-input" id="supPassword" placeholder="Enter or generate a password" required/>
-            <button type="button" class="input-group-btn" onclick="generatePassword()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-              Generate
-            </button>
-          </div>
-          <div class="form-help" id="pwdHelp">Minimum 8 characters · Will be sent to supervisor via email</div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeReassignModal()">
+            Cancel
+          </button>
+          <button class="btn btn-primary" onclick="confirmReassign()">
+            Confirm Reassign
+          </button>
         </div>
-
-        <!-- Force change -->
-        <label class="checkbox-row" for="forceChange">
-          <input type="checkbox" id="forceChange" checked/>
-          <div class="checkbox-row-text">
-            <strong>Force password change on first login</strong>
-            <span>Recommended — supervisor will be required to set their own password the first time they sign in</span>
-          </div>
-        </label>
-
-        <!-- Role display -->
-        <div class="form-group" style="margin-top:18px">
-          <label class="form-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Role
-          </label>
-          <div class="role-display">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <strong>Supervisor</strong>
-            <span class="lock">🔒 Auto-assigned</span>
-          </div>
-          <div class="form-help">The role is automatically set and cannot be changed from this form.</div>
-        </div>
-
-        <div style="background:rgba(2,132,199,.06);border:1px solid rgba(2,132,199,.18);border-radius:10px;padding:12px 14px;margin-top:6px;display:flex;gap:10px">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <p style="font-size:.76rem;color:var(--text-soft);line-height:1.5">The supervisor account is created with <strong style="color:var(--info)">limited initial access</strong>. After first login, the supervisor will be expected to update their password and complete their profile.</p>
-        </div>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeSupervisorModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="submitSupervisor()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-        Create Supervisor
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ REASSIGN SUPERVISOR MODAL ═══ -->
-<div class="modal-overlay" id="reassignModal">
-  <div class="modal-box" style="max-width:460px">
-    <div class="modal-head">
-      <div class="modal-head-text">
-        <h3>Reassign Supervisor</h3>
-        <p>Change the supervisor for <span id="reassignTeamName" style="color:var(--primary);font-weight:700">—</span></p>
-      </div>
-      <button class="modal-close" onclick="closeReassignModal()" aria-label="Close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Current Supervisor</label>
-        <input type="text" class="form-input readonly" id="currentSup" readonly/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">New Supervisor <span class="req">*</span></label>
-        <select class="form-select" id="newSup">
-          <option value="">— Choose a supervisor —</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Reason <span class="opt">Optional</span></label>
-        <input type="text" class="form-input" placeholder="e.g. Workload balancing"/>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeReassignModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmReassign()">Confirm Reassign</button>
-    </div>
-  </div>
-</div>
 
-<!-- ═══ TOAST WRAPPER ═══ -->
-<div class="toast-wrap" id="toastWrap"></div>
-<script src="./js/admin.js"></script>
-</body>
+    <!-- ═══ TOAST WRAPPER ═══ -->
+    <div class="toast-wrap" id="toastWrap"></div>
+    <script src="./js/admin.js"></script>
+  </body>
 </html>

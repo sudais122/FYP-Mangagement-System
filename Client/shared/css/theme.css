@@ -1,29 +1,27 @@
-/* ══════════════════════════════════════════════════════════════
-   GLOBAL THEME — Edit ONLY this file to change colors site-wide
-══════════════════════════════════════════════════════════════ */
+/* ════════════════════════════════════════════════
+   THEME: AWKUM OFFICIAL
+   Abdul Wali Khan University Mardan
+════════════════════════════════════════════════ */
 :root {
-  /* === LONG NAMES (used in global.css, admin.css, etc.) === */
-  --primary:      #004B2D;
-  --primary-dark: #003520;
-  --primary-mid:  #005C38;
-  --secondary:    #1F7A5C;
-  --secondary-lt: #2A9670;
-  --bg:           #F8F9FA;
+  --primary:      #8B0101;
+  --primary-dark: #5C0000;
+  --primary-mid:  #A30E0E;
+  --secondary:    #B82828;
+  --secondary-lt: #DB4B4B;
+  --bg:           #FAF7F7;
   --surface:      #FFFFFF;
-  --gold:         #BFA14A;
-  --gold-lt:      #D4B96B;
-  --text:         #1C1C1C;
-  --text-soft:    #4A5568;
+  --gold:         #C9A227;
+  --gold-lt:      #DDB94A;
+  --text:         #1A1A1A;
+  --text-soft:    #4A4A4A;
   --text-mute:    #6C757D;
-  --border:       #E2E8F0;
-  --border-soft:  #EDF2F7;
+  --border:       #E5DCDC;
+  --border-soft:  #F2EAEA;
   --danger:       #DC2626;
   --warning:      #D97706;
   --info:         #0284C7;
   --success:      #15803D;
 
-  /* === SHORT-NAME ALIASES (used in auth.css) ===
-     These point to the same colors — change above, both update */
   --pr:           var(--primary);
   --pr-dk:        var(--primary-dark);
   --sec:          var(--secondary);
@@ -33,23 +31,13 @@
   --txt-m:        var(--text-mute);
   --bdr:          var(--border);
 
-  /* === SHADOWS === */
-  --shadow-sm:    0 1px 3px rgba(0,75,45,.07);
-  --shadow:       0 4px 18px rgba(0,75,45,.09);
-  --shadow-lg:    0 14px 40px rgba(0,75,45,.13);
+  --shadow-sm:    0 1px 3px rgba(139,1,1,.08);
+  --shadow:       0 4px 18px rgba(139,1,1,.10);
+  --shadow-lg:    0 14px 40px rgba(139,1,1,.14);
 
-  /* === SHAPES === */
   --radius:       12px;
   --radius-lg:    18px;
-
-  /* === FONTS === */
-  --font:         'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
-  --font-display: 'Calibri', 'Segoe UI', 'Trebuchet MS', Arial, sans-serif;
-
-  /* === TRANSITIONS === */
+  --font:         'Calibri','Segoe UI',Arial,sans-serif;
+  --font-display: 'Calibri','Segoe UI',Arial,sans-serif;
   --tr:           .25s cubic-bezier(.4,0,.2,1);
-
-  /* === LAYOUT === */
-  --sidebar-w:    72px;
-  --sidebar-exp:  240px;
 }
