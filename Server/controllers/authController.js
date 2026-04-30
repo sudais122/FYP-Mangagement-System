@@ -1,211 +1,128 @@
-import bcrypt from "bcrypt";
-import crypto from "crypto";
-import nodemailer from "nodemailer";
-import User from "../Models/User.js";
-import sendEmail from "../utils/sendEmail.js";
-import { otpEmailTemplate } from "../utils/emailTemplates.js";
-import generateStudentCode from "../utils/generateStudentCode.js";
+import Student    from "../Models/student.js";
+import Supervisor from "../Models/supervisor.js";
+import Admin      from "../Models/admin.js";
+import generateToken from "../utils/generateToken.js";
 
-//  REGISTER
-export const registerUser = async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+// ── LOGIN (works for all 3 roles) ──────────────────────────────
+export const login = async (req, res) => {
+  const { email, password, role } = req.body;
 
-    if (!name || !email || !password || !req.file) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const studentCode = await generateStudentCode();
-
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      cv: req.file.path,
-      student_code: studentCode,
-    });
-
-    res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        student_code: user.student_code,
-      },
-    });
-
-  } catch (error) {
-    console.error("FULL ERROR:", error);
-
-    if (error.message === "Only PDF files are allowed") {
-      return res.status(400).json({ message: error.message });
-    }
-
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-      return res.status(400).json({ message: `${field} already exists` });
-    }
-
-    res.status(500).json({ message: "Server error" });
+  if (!email || !password || !role) {
+    return res.status(400).json({ message: "Email, password and role are required" });
   }
-};
 
-
-// LOGIN
-export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
+    let user;
+    if (role === "student") {
+      user = await Student.findOne({ email });
+    } else if (role === "supervisor") {
+      user = await Supervisor.findOne({ email });
+    } else if (role === "admin") {
+      user = await Admin.findOne({ email });
+    } else {
+      return res.status(400).json({ message: "Invalid role" });
+    }
 
     if (!user) {
-      return res.status(400).json({ message: "Email not found" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-
+    const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Incorrect password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    res.json({
-      message: "Login successful",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        student_code: user.student_code,
-      },
-    });
+    const token = generateToken(user._id, role);
 
-  } catch (err) {
-    console.error("LOGIN ERROR:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+    // Build response based on role
+    let userData = {
+      _id:   user._id,
+      name:  user.name,
+      email: user.email,
+      role,
+      token,
+    };
 
-
-// FORGOT PASSWORD
-export const forgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Email not found" });
+    if (role === "student") {
+      userData.student_code = user.student_code;
+      userData.group = user.group;
+    } else if (role === "supervisor") {
+      userData.sup_code = user.sup_code;
+      userData.force_password_change = user.force_password_change;
     }
 
-    const otp = String(Math.floor(100000 + Math.random() * 900000));
-
-    user.resetOtp = otp;
-    user.resetOtpExpire = Date.now() + 10 * 60 * 1000; 
-    user.isOtpVerified = false;
-
-    await user.save({ validateBeforeSave: false });
-
-    const html = otpEmailTemplate(otp);
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
-
-    await transporter.sendMail({
-      from: `"FYP System" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Reset Password OTP",
-      html: html,
-    });
-
-    console.log("OTP sent to:", email); 
-
-    res.json({ message: "OTP sent to email" });
-
+    res.json(userData);
   } catch (error) {
-    console.error("FORGOT PASSWORD ERROR:", error);
-
-    if (error.code === "EAUTH") {
-      return res.status(500).json({
-        message: "Email service error: check EMAIL_USER and EMAIL_PASS in .env",
-      });
-    }
-
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message });
   }
 };
 
-//OTP verify
-export const verifyOtp = async (req, res) => {
-  try {
-    console.log("REQ BODY:", req.body);
-
-    const { email, otp } = req.body;
-
-    const user = await User.findOne({ email });
-
-    console.log("DB USER:", user);
-    console.log("OTP FROM DB:", user?.resetOtp);
-    console.log("OTP FROM FRONTEND:", otp);
-
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
-    }
-
-    if (user.resetOtp.toString() !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-
-    if (user.resetOtpExpire < Date.now()) {
-      return res.status(400).json({ message: "OTP expired" });
-    }
-
-    user.isOtpVerified = true;
-    await user.save({ validateBeforeSave: false });
-
-    res.json({ message: "OTP verified" });
-
-  } catch (err) {
-    console.error("VERIFY OTP ERROR:", err);
-    res.status(500).json({ message: "Server error" });
+// ── STUDENT REGISTER ───────────────────────────────────────────
+export const registerStudent = async (req, res) => {
+  const { name, email, password, roll_number, batch } = req.body;
+  if (!name || !email || !password || !roll_number) {
+    return res.status(400).json({ message: "All fields required" });
   }
-};
-// RESET PASSWORD
-export const resetPassword = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "User not found" });
+    const exists = await Student.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "Email already registered" });
     }
-
-    if (!user.isOtpVerified) {
-      return res.status(403).json({ message: "OTP not verified" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    user.password = hashedPassword;
-    user.resetOtp = undefined;
-    user.resetOtpExpire = undefined;
-    user.isOtpVerified = false;
-
-    await user.save({ validateBeforeSave: false });
-
-    res.json({ message: "Password reset successful" });
-
+    const student = await Student.create({
+      name, email, password, roll_number, batch,
+    });
+    const token = generateToken(student._id, "student");
+    res.status(201).json({
+      _id: student._id,
+      name: student.name,
+      email: student.email,
+      student_code: student.student_code,
+      role: "student",
+      token,
+    });
   } catch (error) {
-    console.error("RESET PASSWORD ERROR:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ── CHANGE PASSWORD ────────────────────────────────────────────
+export const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  const { id, role } = req.user;
+  try {
+    let user;
+    if (role === "supervisor") user = await Supervisor.findById(id);
+    else if (role === "student") user = await Student.findById(id);
+    else if (role === "admin") user = await Admin.findById(id);
+
+    const isMatch = await user.matchPassword(currentPassword);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+    user.password = newPassword;
+    if (role === "supervisor") user.force_password_change = false;
+    await user.save();
+    res.json({ message: "Password changed successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ── GET CURRENT USER PROFILE ───────────────────────────────────
+export const getProfile = async (req, res) => {
+  const { id, role } = req.user;
+  try {
+    let user;
+    if (role === "student") {
+      user = await Student.findById(id).select("-password").populate("group");
+    } else if (role === "supervisor") {
+      user = await Supervisor.findById(id).select("-password");
+    } else if (role === "admin") {
+      user = await Admin.findById(id).select("-password");
+    }
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
