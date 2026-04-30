@@ -16,6 +16,7 @@ const cvStorage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder:        'fyp-portal/cvs',
+    cv_public_id: req.file.filename,
     resource_type: 'raw',           // required for non-image files like PDFs
     public_id: (req, file) => {
       const clean = file.originalname

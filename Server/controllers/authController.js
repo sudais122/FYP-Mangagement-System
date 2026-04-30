@@ -27,7 +27,7 @@ export const registerUser = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      cv: req.file.filename,
+      cv: req.file.path,
       student_code: studentCode,
     });
 
