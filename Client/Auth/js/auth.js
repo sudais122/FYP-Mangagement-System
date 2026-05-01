@@ -75,6 +75,34 @@ const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Register`;
   }
 }
+
+// otp send for forgot password
+async function sendOtp(email) {
+  const res = await fetch("/api/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+
+async function resetPassword() {
+  const token = new URLSearchParams(window.location.search).get("token");
+  const email = new URLSearchParams(window.location.search).get("email");
+  const newPassword = document.getElementById("password").value;
+
+  const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ token, email, newPassword })
+  });
+
+  const data = await res.json();
+  alert(data.message);
+}
+
 function copyFill(fid, val, el) {
   document.getElementById(fid).value = val;
   var t = el.textContent;

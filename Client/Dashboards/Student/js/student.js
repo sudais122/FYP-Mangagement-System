@@ -20,16 +20,30 @@ const STATE = {
 };
 
 /* ── Fake user database ── */
-const FAKE_USERS = [
-  { id: "STD-20261234", name: "Bilal Khan", initials: "BK" },
-  { id: "STD-20261235", name: "Sara Noor", initials: "SN" },
-  { id: "STD-20261235", name: "Usman Tariq", initials: "UT" },
-  { id: "STD-20261236", name: "Ayesha Malik", initials: "AM" },
-  { id: "STD-20261237", name: "Hassan Raza", initials: "HR" },
-  { id: "STD-20261238", name: "Fatima Zaidi", initials: "FZ" },
-  { id: "STD-20261239", name: "Zain Ahmed", initials: "ZA" },
-  { id: "STD-20261210", name: "Nadia Iqbal", initials: "NI" },
-];
+async function loadStudentProfile() {
+  const res = await fetch("/api/student/me", {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const data = await res.json();
+
+  if (data.group) {
+    STATE.teamCreated = true;
+    STATE.teamId = data.group._id;
+    STATE.projectTitle = data.group.project_title;
+    STATE.members = data.group.members;
+    STATE.selectedSupervisor = data.group.supervisor?._id;
+  } else {
+    STATE.teamCreated = false;
+  }
+}
+
+const count = await Group.countDocuments();
+
+const group = await Group.create({
+  group_code: `TEAM-2026${1000 + count}`,
+  project_title,
+});
 
 /* ── Supervisors ── */
 const SUPERVISORS = [
@@ -101,26 +115,13 @@ const MARKS_TEMPLATE = [
 ];
 
 // Generate sample marks for a student (some pending)
-function generateMarks(seed) {
-  const rng = (min, max) => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return Math.floor(min + (seed / 233280) * (max - min + 1));
-  };
-  return MARKS_TEMPLATE.map((item, i) => {
-    // First 5 months evaluated, rest pending
-    if (item.section === "Monthly Meetings") {
-      const monthIdx = i; // 0-6
-      if (monthIdx < 5) {
-        return { ...item, marks: rng(Math.floor(item.max * 0.6), item.max) };
-      }
-      return { ...item, marks: null };
-    }
-    if (item.component === "Proposal") return { ...item, marks: rng(10, 14) };
-    if (item.component === "Progress Report")
-      return { ...item, marks: rng(12, 18) };
-    // Rest pending
-    return { ...item, marks: null };
+async function loadMarks() {
+  const res = await fetch("/api/student/team-marks", {
+    headers: { Authorization: `Bearer ${token}` }
   });
+
+  const data = await res.json();
+  renderMarks(data);
 }
 
 // Per-student marks storage
@@ -827,7 +828,19 @@ function _doSearch(val) {
     res.classList.add("show");
     return;
   }
-  const foundUser = FAKE_USERS.find((u) => u.id === val);
+
+  async function searchMember(val) {
+  const res = await fetch(`/api/student/search?student_code=${val}`);
+  const data = await res.json();
+
+  if (!res.ok) {
+    showError(data.message);
+    return;
+  }
+
+  showAddButton(data);
+}
+
   if (!foundUser) {
     res.innerHTML = '<div class="sr-empty">No student found with this ID</div>';
     res.classList.add("show");
