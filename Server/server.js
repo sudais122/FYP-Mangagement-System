@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config({ path: "./.env" });
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
-
+console.log("MONGO:", process.env.MONGO_URI);
 // Routes
 import authRoutes from "./Routes/authRoutes.js";
 import studentRoutes from "./Routes/studentRoutes.js";

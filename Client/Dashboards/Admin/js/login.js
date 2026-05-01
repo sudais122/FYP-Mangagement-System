@@ -66,13 +66,42 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
   }
   if (!ok) return;
   btnLoad("btn-login", true);
-  setTimeout(() => {
+
+  fetch("http://127.0.0.1:5000/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: em, password: pw })
+  })
+  .then(r => r.json())
+  .then(data => {
     btnLoad("btn-login", false);
+
+    if (!data.token) {
+      setErr("grp-login-pw", "err-login-pw", data.message || "Invalid email or password");
+      return;
+    }
+
+    if (data.role !== "admin") {
+      setErr("grp-login-email", "err-login-email", "Access denied. Admin only.");
+      return;
+    }
+
+    localStorage.setItem("admin", JSON.stringify({
+      id: data._id,
+      name: data.name,
+      email: data.email,
+      token: data.token
+    }));
+
     toast("Login successful! Redirecting…", "green");
     setTimeout(() => {
-      window.location.href = "supervisor.html";
+      window.location.href = "dashboard.html";
     }, 1200);
-  }, 1600);
+  })
+  .catch(() => {
+    btnLoad("btn-login", false);
+    setErr("grp-login-pw", "err-login-pw", "Network error. Please try again.");
+  });
 });
 
 // FORGOT
