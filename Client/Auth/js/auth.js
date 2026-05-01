@@ -53,10 +53,17 @@ async function doReg() {
     formData.append("password", pw);
     formData.append("cv", cv);
 
-    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-      method: "POST",
-      body: formData,
-    });
+const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    name: fn + " " + ln,
+    email: em,
+    password: pw,
+  }),
+});
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Registration failed");
 
@@ -105,7 +112,7 @@ async function step1Submit() {
   btn.textContent = "Sending...";
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+    const res = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

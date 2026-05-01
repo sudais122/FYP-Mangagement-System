@@ -25,15 +25,7 @@ const studentSchema = new mongoose.Schema({
     minlength: 6,
   },
   roll_number: {
-    type: String,
-    unique: true,
-  },
-  batch: {
-    type: String, // e.g. "2022-2026"
-  },
-  department: {
-    type: String,
-    default: "Computer Science",
+    roll_number: String
   },
   group: {
     type: mongoose.Schema.Types.ObjectId,
@@ -48,10 +40,6 @@ const studentSchema = new mongoose.Schema({
     type: String,
     enum: ["Leader", "Member"],
     default: "Member",
-  },
-  coursera_completed: {
-    type: Boolean,
-    default: false,
   },
   createdAt: {
     type: Date,
