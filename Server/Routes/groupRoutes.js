@@ -22,5 +22,6 @@ router.get ("/supervisor",         protect, supervisorOnly, getGroupsBySuperviso
 router.get ("/",                   protect, adminOnly,      getAllGroups);
 router.get ("/:id",                protect,                 getGroupById);
 router.put ("/:id/reassign",       protect, adminOnly,      reassignSupervisor);
+router.post("/create", protect, createGroup);
 
 export default router;

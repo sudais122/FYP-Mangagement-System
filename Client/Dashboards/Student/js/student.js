@@ -1,51 +1,46 @@
+let memberCountBeforeModal = 0; 
 const user = JSON.parse(localStorage.getItem("user"));
+console.log("user from localStorage:", user); // ← add this
 
 if (!user) {
   window.location.href = "../login.html";
 }
 
+// ══════════════════════════════════
+// API Configuration
+// ══════════════════════════════════
+const API_BASE = "http://localhost:5001/api"; // Update with your backend URL
+const API_HEADERS = {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${user.token}`, // Assuming token is stored in user object
+};
+
+// ══════════════════════════════════
+// STATE MANAGEMENT
+// ══════════════════════════════════
 const STATE = {
   studentId: user.student_code,
   studentName: user.name,
+  userId: user._id, // Backend user ID
   teamId: null,
   projectTitle: null,
+  category: null,
   members: [],
   selectedSupervisor: null,
+  supervisorData: null,
   teamCreated: false,
+  teamRole: null, // "Leader" or "Member"
   uploadedFiles: [],
   unreadNotifs: 2,
-  proposalState: "idle", // idle | pending | approved | rejected
+  proposalState: "idle",
   proposalFile: null,
-  selectedEvalStudent: 0, // index into allStudents array
+  selectedEvalStudent: 0,
+  groupData: null, // Full group data from backend
 };
 
-/* ── Fake user database ── */
-async function loadStudentProfile() {
-  const res = await fetch("/api/student/me", {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  const data = await res.json();
-
-  if (data.group) {
-    STATE.teamCreated = true;
-    STATE.teamId = data.group._id;
-    STATE.projectTitle = data.group.project_title;
-    STATE.members = data.group.members;
-    STATE.selectedSupervisor = data.group.supervisor?._id;
-  } else {
-    STATE.teamCreated = false;
-  }
-}
-
-const count = await Group.countDocuments();
-
-const group = await Group.create({
-  group_code: `TEAM-2026${1000 + count}`,
-  project_title,
-});
-
-/* ── Supervisors ── */
+/* ══════════════════════════════════
+   SUPERVISORS DATA
+══════════════════════════════════ */
 const SUPERVISORS = [
   {
     id: "SUP-001",
@@ -86,45 +81,42 @@ const SUPERVISORS = [
 ];
 
 /* ══════════════════════════════════
-   MARKS DATA (per student)
-   Total = 200 marks
-   Components:
-   - Monthly Meetings: Oct(5), Nov(5), Dec(5), Feb(5), Mar(5), Apr(5), May(5) = 35
-   - Proposal: 15
-   - Progress Report: 20
-   - Internal Viva 1: 25
-   - Internal Viva 2: 25
-   - External Viva: 50
-   - Documentation: 30
-   TOTAL = 200
+   MARKS DATA TEMPLATE
 ══════════════════════════════════ */
 const MARKS_TEMPLATE = [
-  // Section: Monthly Meetings
   { section: "Monthly Meetings", component: "October", max: 10 },
   { section: "Monthly Meetings", component: "November", max: 10 },
   { section: "Monthly Meetings", component: "December", max: 10 },
   { section: "Monthly Meetings", component: "February", max: 10 },
   { section: "Monthly Meetings", component: "March", max: 10 },
-  // Section: Submissions
   { section: "Submissions", component: "Proposal Submission", max: 10 },
   { section: "Submissions", component: "Progress Report", max: 20 },
-  // Section: Viva
   { section: "Viva", component: "Internal Viva 1", max: 25 },
   { section: "Viva", component: "Internal Viva 2", max: 25 },
   { section: "Viva", component: "External Viva", max: 50 },
 ];
 
-// Generate sample marks for a student (some pending)
-async function loadMarks() {
-  const res = await fetch("/api/student/team-marks", {
-    headers: { Authorization: `Bearer ${token}` }
+function generateMarks(seed) {
+  const rng = (min, max) => {
+    seed = (seed * 9301 + 49297) % 233280;
+    return Math.floor(min + (seed / 233280) * (max - min + 1));
+  };
+  return MARKS_TEMPLATE.map((item, i) => {
+    if (item.section === "Monthly Meetings") {
+      const monthIdx = i;
+      if (monthIdx < 5) {
+        return { ...item, marks: rng(Math.floor(item.max * 0.6), item.max) };
+      }
+      return { ...item, marks: null };
+    }
+    if (item.component === "Proposal Submission")
+      return { ...item, marks: rng(8, 10) };
+    if (item.component === "Progress Report")
+      return { ...item, marks: rng(12, 18) };
+    return { ...item, marks: null };
   });
-
-  const data = await res.json();
-  renderMarks(data);
 }
 
-// Per-student marks storage
 let STUDENT_MARKS = {};
 
 function getAllStudents() {
@@ -135,9 +127,9 @@ function getAllStudents() {
       initials: initials(STATE.studentName),
     },
     ...STATE.members.map((m) => ({
-      id: m.id,
+      id: m.student_code,
       name: m.name,
-      initials: m.initials,
+      initials: initials(m.name),
     })),
   ];
   return students;
@@ -152,6 +144,177 @@ function ensureMarksExist() {
       );
     }
   });
+}
+
+/* ══════════════════════════════════
+   API CALLS
+══════════════════════════════════ */
+
+// Load dashboard data on page load
+async function loadDashboard() {
+  try {
+    const response = await fetch(`${API_BASE}/students/dashboard`, {
+      method: "GET",
+      headers: API_HEADERS,
+    });
+
+    const data = await response.json();
+    console.log(data); // ← see what's actually coming back
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load dashboard");
+    }
+
+    if (data.hasGroup) {
+      // User is part of a team
+      STATE.teamCreated = true;
+      STATE.teamId = data.group.group_code;
+      STATE.projectTitle = data.group.project_title;
+      STATE.category = data.group.category;
+      STATE.teamRole = data.student.team_role;
+      STATE.groupData = data.group;
+
+      // Populate members
+      STATE.members = [];
+      if (
+        data.group.leader &&
+        data.group.leader.student_code !== STATE.studentId
+      ) {
+        STATE.members.push({
+          id: data.group.leader._id,
+          student_code: data.group.leader.student_code,
+          name: data.group.leader.name,
+          initials: initials(data.group.leader.name),
+          role: "Leader",
+        });
+      }
+
+      if (data.group.members) {
+        data.group.members.forEach((m) => {
+          if (m.student_code !== STATE.studentId) {
+            STATE.members.push({
+              id: m._id,
+              student_code: m.student_code,
+              name: m.name,
+              initials: initials(m.name),
+              role: "Member",
+            });
+          }
+        });
+      }
+
+      // Populate supervisor
+      if (data.group.supervisor) {
+        STATE.selectedSupervisor = data.group.supervisor._id;
+        STATE.supervisorData = data.group.supervisor;
+      }
+
+      // Update UI
+      updateDashboardUI();
+      renderTeamTab();
+      updateBannerForTeam();
+    } else {
+      // User is NOT part of a team - show setup
+      setTimeout(() => openSetup(), 500);
+    }
+  } catch (error) {
+    console.error("Dashboard load error:", error);
+    toast("Failed to load dashboard: " + error.message, "red");
+  }
+}
+
+// Search for student by code
+async function searchStudentByCode(studentCode) {
+  try {
+    const response = await fetch(
+      `${API_BASE}/students/search?student_code=${encodeURIComponent(studentCode)}`,
+      {
+        method: "GET",
+        headers: API_HEADERS,
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { error: data.message || "Student not found" };
+    }
+
+    return { success: true, student: data };
+  } catch (error) {
+    console.error("Search error:", error);
+    return { error: "Failed to search student" };
+  }
+}
+
+// Create team
+async function createTeamAPI() {
+  const memberCodes = STATE.members.map((m) => m.student_code);
+
+  try {
+    const response = await fetch(`${API_BASE}/groups/create`, {
+      method: "POST",
+      headers: API_HEADERS,
+      body: JSON.stringify({
+        project_title: STATE.projectTitle,
+        category: STATE.category,
+        member_codes: memberCodes,
+        // supervisor_id: STATE.selectedSupervisor,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to create team");
+    }
+
+    // Update state with created group
+    STATE.teamId = data.group.group_code;
+    STATE.teamCreated = true;
+    STATE.teamRole = "Leader";
+    STATE.groupData = data.group;
+
+    return { success: true, group: data.group };
+  } catch (error) {
+    console.error("Team creation error:", error);
+    return { error: error.message };
+  }
+}
+
+// Load team marks from backend
+async function loadTeamMarks() {
+  try {
+    const response = await fetch(`${API_BASE}/students/team-marks`, {
+      method: "GET",
+      headers: API_HEADERS,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load marks");
+    }
+
+    // Process marks data
+    data.forEach((markRecord) => {
+      const studentCode = markRecord.student.student_code;
+      STUDENT_MARKS[studentCode] = convertBackendMarks(markRecord);
+    });
+
+    ensureMarksExist(); // Fill in any missing data with generated marks
+  } catch (error) {
+    console.error("Marks load error:", error);
+    // Fallback to generated marks
+    ensureMarksExist();
+  }
+}
+
+// Convert backend marks format to frontend format
+function convertBackendMarks(markRecord) {
+  // This function should map your backend marks structure to the frontend MARKS_TEMPLATE
+  // For now, using generated marks as placeholder
+  return generateMarks(Math.random() * 10000);
 }
 
 /* ══════════════════════════════════
@@ -185,9 +348,11 @@ function switchTab(tab, el) {
   document.getElementById("page-title").textContent = TITLES[tab] || tab;
   document.getElementById("page-sub").textContent = SUBS[tab] || "";
   if (tab === "team") renderTeamTab();
-  if (tab === "progress") renderEvaluation();
+  if (tab === "progress") {
+    loadTeamMarks().then(() => renderEvaluation());
+  }
   if (tab === "project") setProposalState(STATE.proposalState);
-  closeNotifDropdown();
+  if (tab === "supervisor") renderSupervisorTab();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -196,16 +361,19 @@ function switchTab(tab, el) {
 ══════════════════════════════════ */
 function toggleNotifDropdown(e) {
   e.stopPropagation();
-  document.getElementById("notif-dropdown").classList.toggle("open");
+  const dropdown = document.getElementById("notif-dropdown");
+  if (dropdown) dropdown.classList.toggle("open");
 }
 
 function closeNotifDropdown() {
-  document.getElementById("notif-dropdown").classList.remove("open");
+  const dropdown = document.getElementById("notif-dropdown");
+  if (dropdown) dropdown.classList.remove("open");
 }
 
 function markAllRead() {
   STATE.unreadNotifs = 0;
-  document.getElementById("notif-dot").classList.add("hidden");
+  const dot = document.getElementById("notif-dot");
+  if (dot) dot.classList.add("hidden");
   document
     .querySelectorAll(".nd-item.nd-unread")
     .forEach((el) => el.classList.remove("nd-unread"));
@@ -219,7 +387,7 @@ document.addEventListener("click", function (e) {
 });
 
 /* ══════════════════════════════════
-   PROPOSAL SUBMISSION (simplified)
+   PROPOSAL SUBMISSION
 ══════════════════════════════════ */
 function setProposalState(state) {
   STATE.proposalState = state;
@@ -319,6 +487,7 @@ function handleProposalUpload(files) {
   STATE.proposalState = "pending";
   setProposalState("pending");
   toast("Proposal uploaded successfully ✓", "gold");
+  // TODO: Upload to backend
 }
 
 function handleProposalDrop(e) {
@@ -367,7 +536,6 @@ function renderMarksForStudent(idx) {
   const marks = STUDENT_MARKS[student.id];
   if (!marks) return;
 
-  // Calculate total
   let totalObtained = 0;
   let totalMax = 0;
   marks.forEach((m) => {
@@ -376,19 +544,20 @@ function renderMarksForStudent(idx) {
   });
   const pct = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
 
-  // Update total card
-  document.getElementById("eval-total-val").textContent = totalObtained;
-  document.getElementById("eval-pct-ring").innerHTML = pct + "<small>%</small>";
-  document.getElementById("eval-student-name-label").textContent = student.name;
+  const evalTotalVal = document.getElementById("eval-total-val");
+  const evalPctRing = document.getElementById("eval-pct-ring");
+  const evalStudentLabel = document.getElementById("eval-student-name-label");
 
-  // Update progress bar
-  document.getElementById("prog-bar-pct").textContent = pct + "%";
-  document.getElementById("eval-prog-fill").style.width = pct + "%";
+  if (evalTotalVal) evalTotalVal.textContent = totalObtained;
+  if (evalPctRing) evalPctRing.innerHTML = pct + "<small>%</small>";
+  if (evalStudentLabel) evalStudentLabel.textContent = student.name;
 
-  // Render marks table
+  const progBarPct = document.getElementById("prog-bar-pct");
+  const evalProgFill = document.getElementById("eval-prog-fill");
+  if (progBarPct) progBarPct.textContent = pct + "%";
+  if (evalProgFill) evalProgFill.style.width = pct + "%";
+
   renderMarksTable(marks, totalObtained, totalMax);
-
-  // Render charts
   renderPieChart(marks);
   renderBreakdown(marks, totalObtained, totalMax);
 }
@@ -437,7 +606,6 @@ function renderMarksTable(marks, totalObtained, totalMax) {
     </tr>`;
   });
 
-  // Total row
   const totalPct =
     totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
   const totalColor =
@@ -460,7 +628,6 @@ function renderPieChart(marks) {
   const canvas = document.getElementById("marksChart");
   if (!canvas) return;
 
-  // Group by section
   const sections = {};
   marks.forEach((m) => {
     if (!sections[m.section]) sections[m.section] = { obtained: 0, max: 0 };
@@ -515,7 +682,6 @@ function renderPieChart(marks) {
     },
   });
 
-  // Legend
   const legend = document.getElementById("chart-legend");
   if (legend) {
     legend.innerHTML = labels
@@ -534,7 +700,6 @@ function renderBreakdown(marks, totalObtained, totalMax) {
   const list = document.getElementById("breakdown-list");
   if (!list) return;
 
-  // Group by section
   const sections = {};
   marks.forEach((m) => {
     if (!sections[m.section]) sections[m.section] = { obtained: 0, max: 0 };
@@ -571,16 +736,19 @@ function renderBreakdown(marks, totalObtained, totalMax) {
 ══════════════════════════════════ */
 function handleDragOver(e) {
   e.preventDefault();
-  document.getElementById("upload-area").classList.add("drag-over");
+  const uploadArea = document.getElementById("upload-area");
+  if (uploadArea) uploadArea.classList.add("drag-over");
 }
 
 function handleDragLeave(e) {
-  document.getElementById("upload-area").classList.remove("drag-over");
+  const uploadArea = document.getElementById("upload-area");
+  if (uploadArea) uploadArea.classList.remove("drag-over");
 }
 
 function handleDrop(e) {
   e.preventDefault();
-  document.getElementById("upload-area").classList.remove("drag-over");
+  const uploadArea = document.getElementById("upload-area");
+  if (uploadArea) uploadArea.classList.remove("drag-over");
   if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files);
 }
 
@@ -624,7 +792,8 @@ function processFiles(files) {
     renderUploadedFiles();
     toast(file.name + " uploaded ✓");
   });
-  document.getElementById("file-input").value = "";
+  const fileInput = document.getElementById("file-input");
+  if (fileInput) fileInput.value = "";
 }
 
 function formatSize(bytes) {
@@ -649,6 +818,8 @@ function getFileIconSvg(ext) {
 
 function renderUploadedFiles() {
   const list = document.getElementById("uploaded-files-list");
+  if (!list) return;
+
   if (!STATE.uploadedFiles.length) {
     list.innerHTML = "";
     return;
@@ -679,39 +850,64 @@ function removeFile(id) {
    SETUP FLOW (3 steps)
 ══════════════════════════════════ */
 function openSetup() {
-  document.getElementById("setup-overlay").style.display = "flex";
-  document.getElementById("display-student-id").textContent = STATE.studentId;
-  document.getElementById("leader-std-id").textContent = STATE.studentId;
-  document.getElementById("leader-name").textContent = STATE.studentName;
-  document.getElementById("leader-av").textContent = initials(
-    STATE.studentName,
-  );
+  const setupOverlay = document.getElementById("setup-overlay");
+  if (!setupOverlay) return;
+
+  setupOverlay.style.display = "flex";
+
+  const displayStudentId = document.getElementById("display-student-id");
+  const leaderStdId = document.getElementById("leader-std-id");
+  const leaderName = document.getElementById("leader-name");
+  const leaderAv = document.getElementById("leader-av");
+
+  if (displayStudentId) displayStudentId.textContent = STATE.studentId;
+  if (leaderStdId) leaderStdId.textContent = STATE.studentId;
+  if (leaderName) leaderName.textContent = STATE.studentName;
+  if (leaderAv) leaderAv.textContent = initials(STATE.studentName);
+
   showStep(1);
 }
 
 function closeSteup() {
-  document.getElementById("setup-overlay").style.display = "none";
+  const setupOverlay = document.getElementById("setup-overlay");
+  if (setupOverlay) setupOverlay.style.display = "none";
+  updateDashboardUI();
   renderTeamTab();
   updateBannerForTeam();
 }
 
 function showStep(n) {
   [1, 2, 3, "done"].forEach((s) => {
-    document.getElementById("setup-step-" + s).style.display = "none";
+    const step = document.getElementById("setup-step-" + s);
+    if (step) step.style.display = "none";
   });
-  document.getElementById("setup-step-" + n).style.display = "block";
+  const activeStep = document.getElementById("setup-step-" + n);
+  if (activeStep) activeStep.style.display = "block";
 }
 
 function goStep2() {
-  const proj = document.getElementById("s1-proj").value.trim();
+  const projInput = document.getElementById("s1-proj");
+  const categoryInput = document.getElementById("s1-cat");
+
+  if (!projInput) {
+    toast("Project title field not found", "red");
+    return;
+  }
+
+  const proj = projInput.value.trim();
+  const category = categoryInput ? categoryInput.value.trim() : "";
+
   if (!proj) {
     toast("Please fill in Project Title", "red");
     return;
   }
+
   STATE.projectTitle = proj;
-  STATE.teamId = "TEAM-2026" + (Math.floor(Math.random() * 9000) + 1000);
-  document.getElementById("display-team-id").textContent = STATE.teamId;
-  STATE.members = [];
+  STATE.category = category;
+
+  const displayTeamId = document.getElementById("display-team-id");
+  if (displayTeamId) displayTeamId.textContent = "Creating...";
+
   renderMemberSlots();
   clearSearch();
   showStep(2);
@@ -748,22 +944,35 @@ function updateSupPreview(id) {
     preview.style.display = "none";
     return;
   }
-  document.getElementById("sup-preview-av").textContent = initials(sup.name);
-  document.getElementById("sup-preview-name").textContent = sup.name;
-  document.getElementById("sup-preview-dept").textContent = sup.dept;
+  const supPreviewAv = document.getElementById("sup-preview-av");
+  const supPreviewName = document.getElementById("sup-preview-name");
+  const supPreviewDept = document.getElementById("sup-preview-dept");
+
+  if (supPreviewAv) supPreviewAv.textContent = initials(sup.name);
+  if (supPreviewName) supPreviewName.textContent = sup.name;
+  if (supPreviewDept) supPreviewDept.textContent = sup.dept;
   preview.style.display = "flex";
 }
 
-function finishSetup() {
-  STATE.teamCreated = true;
-setTimeout(() => {
-  toast("⚠ Save your Team ID — you'll need it later!", "gold");
-}, 1500);
+async function finishSetup() {
   if (!STATE.selectedSupervisor) {
     toast("Please select a supervisor to continue", "red");
     return;
   }
+
+  // Call backend API to create team
+  toast("Creating team...", "gold");
+
+  const result = await createTeamAPI();
+
+  if (result.error) {
+    toast("Failed to create team: " + result.error, "red");
+    return;
+  }
+
   STATE.teamCreated = true;
+  STATE.teamId = result.group.group_code;
+
   // Reset marks for new team
   STUDENT_MARKS = {};
 
@@ -794,80 +1003,103 @@ setTimeout(() => {
     members: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`,
     sup: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
   };
-  document.getElementById("summary-chips").innerHTML = chips
-    .map((c) => `<div class="s-chip">${svgMap[c.icon]}${c.text}</div>`)
-    .join("");
+
+  const summaryChips = document.getElementById("summary-chips");
+  if (summaryChips) {
+    summaryChips.innerHTML = chips
+      .map((c) => `<div class="s-chip">${svgMap[c.icon]}${c.text}</div>`)
+      .join("");
+  }
+
   showStep("done");
+
+  setTimeout(() => {
+    toast("⚠ Save your Team ID — you'll need it later!", "gold");
+  }, 1500);
 }
 
 /* ══ Member search ══ */
 let searchDebounce;
+
 function searchMember(val) {
   clearTimeout(searchDebounce);
-  searchDebounce = setTimeout(() => _doSearch(val.trim()), 220);
+  searchDebounce = setTimeout(() => _doSearch(val.trim()), 300);
 }
 
-function _doSearch(val) {
+async function _doSearch(val) {
   const res = document.getElementById("search-result");
+  if (!res) return;
+
   if (!val) {
     res.classList.remove("show");
     return;
   }
+
   if (!val.startsWith("STD")) {
     res.innerHTML = '<div class="sr-error">Format must be STD-20261234</div>';
     res.classList.add("show");
     return;
   }
+
   if (val === STATE.studentId) {
     res.innerHTML = '<div class="sr-error">This is your own ID</div>';
     res.classList.add("show");
     return;
   }
-  if (STATE.members.find((m) => m.id === val)) {
+
+  if (STATE.members.find((m) => m.student_code === val)) {
     res.innerHTML = '<div class="sr-error">Member already added</div>';
     res.classList.add("show");
     return;
   }
 
-  async function searchMember(val) {
-  const res = await fetch(`/api/student/search?student_code=${val}`);
-  const data = await res.json();
-
-  if (!res.ok) {
-    showError(data.message);
-    return;
-  }
-
-  showAddButton(data);
-}
-
-  if (!foundUser) {
-    res.innerHTML = '<div class="sr-empty">No student found with this ID</div>';
-    res.classList.add("show");
-    return;
-  }
   if (STATE.members.length >= 2) {
     res.innerHTML =
       '<div class="sr-error">Team is full (max 2 additional members)</div>';
     res.classList.add("show");
     return;
   }
+
+  // Call backend API to search for student
+  res.innerHTML = '<div class="sr-empty">Searching...</div>';
+  res.classList.add("show");
+
+  const searchResult = await searchStudentByCode(val);
+
+  if (searchResult.error) {
+    res.innerHTML = `<div class="sr-empty">${searchResult.error}</div>`;
+    res.classList.add("show");
+    return;
+  }
+
+  const foundUser = searchResult.student;
+
+  if (foundUser.in_team) {
+    res.innerHTML = '<div class="sr-error">Student is already in a team</div>';
+    res.classList.add("show");
+    return;
+  }
+
   res.innerHTML = `<div class="sr-item">
-    <div class="sr-avatar">${foundUser.initials}</div>
-    <div class="sr-info"><strong>${foundUser.name}</strong><small>${foundUser.id}</small></div>
-    <button class="sr-add" onclick="addMember('${foundUser.id}','${foundUser.name}','${foundUser.initials}')">+ Add</button>
+    <div class="sr-info"><strong>${foundUser.name}</strong><small>${foundUser.student_code}</small></div>
+    <button class="sr-add" onclick="addMember('${foundUser.student_code}','${foundUser.name}','${foundUser.initials}')">+ Add</button>
   </div>`;
   res.classList.add("show");
 }
 
-function addMember(id, name, ini) {
+function addMember(studentCode, name, ini) {
   if (STATE.members.length >= 2) {
     toast("Team is full", "red");
     return;
   }
-  STATE.members.push({ id, name, initials: ini });
-  document.getElementById("member-search").value = "";
-  document.getElementById("search-result").classList.remove("show");
+  STATE.members.push({ student_code: studentCode, name, initials: ini });
+
+  const memberSearch = document.getElementById("member-search");
+  const searchResult = document.getElementById("search-result");
+
+  if (memberSearch) memberSearch.value = "";
+  if (searchResult) searchResult.classList.remove("show");
+
   renderMemberSlots();
   toast(name + " added to team ✓");
 }
@@ -880,23 +1112,27 @@ function removeMember(idx) {
 }
 
 function clearSearch() {
-  document.getElementById("member-search").value = "";
-  document.getElementById("search-result").classList.remove("show");
+  const memberSearch = document.getElementById("member-search");
+  const searchResult = document.getElementById("search-result");
+
+  if (memberSearch) memberSearch.value = "";
+  if (searchResult) searchResult.classList.remove("show");
 }
 
 function renderMemberSlots() {
   const list = document.getElementById("members-list");
+  if (!list) return;
+
   const leaderHTML = `<div class="tm-item">
-    <div class="tm-av">${initials(STATE.studentName)}</div>
     <div><div class="tm-name">${STATE.studentName}</div><div class="tm-id">${STATE.studentId}</div></div>
     <span class="tm-role tm-lead">Team Leader</span>
   </div>`;
+
   const membersHTML = STATE.members
     .map(
       (m, i) => `
     <div class="tm-item" style="margin-top:8px">
-      <div class="tm-av">${m.initials}</div>
-      <div><div class="tm-name">${m.name}</div><div class="tm-id">${m.id}</div></div>
+      <div><div class="tm-name">${m.name}</div><div class="tm-id">${m.student_code}</div></div>
       <span class="tm-role tm-member">Member</span>
       <button class="tm-remove" onclick="removeMember(${i})">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -904,11 +1140,14 @@ function renderMemberSlots() {
     </div>`,
     )
     .join("");
+
   list.innerHTML = leaderHTML + membersHTML;
-  document.getElementById("slot-1").style.display =
-    STATE.members.length < 1 ? "flex" : "none";
-  document.getElementById("slot-2").style.display =
-    STATE.members.length < 2 ? "flex" : "none";
+
+  const slot1 = document.getElementById("slot-1");
+  const slot2 = document.getElementById("slot-2");
+
+  if (slot1) slot1.style.display = STATE.members.length < 1 ? "flex" : "none";
+  if (slot2) slot2.style.display = STATE.members.length < 2 ? "flex" : "none";
 }
 
 /* ══ Render team tab ══ */
@@ -919,6 +1158,8 @@ function renderTeamTab() {
   if (tp && STATE.projectTitle) tp.textContent = STATE.projectTitle;
 
   const display = document.getElementById("team-members-display");
+  if (!display) return;
+
   if (!STATE.teamCreated) {
     display.innerHTML = `<div style="text-align:center;padding:36px 20px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="48" height="48" style="margin:0 auto 16px;color:var(--border)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -934,26 +1175,95 @@ function renderTeamTab() {
 
   const allMembers = [
     {
-      id: STATE.studentId,
+      student_code: STATE.studentId,
       name: STATE.studentName,
       initials: initials(STATE.studentName),
-      role: "Team Leader",
+      role: STATE.teamRole || "Team Leader",
+      isYou: true,
     },
-    ...STATE.members.map((m) => ({ ...m, role: "Member" })),
+    ...STATE.members.map((m) => ({
+      ...m,
+      role: m.role || "Member",
+      isYou: false,
+    })),
   ];
+
   display.innerHTML = allMembers
     .map(
       (m) => `
     <div class="tm-item" style="margin-bottom:8px">
       <div class="tm-av">${m.initials}</div>
       <div>
-        <div class="tm-name">${m.name}${m.role === "Team Leader" ? " (You)" : ""}</div>
-        <div class="tm-id">${m.id}</div>
+        <div class="tm-name">${m.name}${m.isYou ? " (You)" : ""}</div>
+        <div class="tm-id">${m.student_code}</div>
       </div>
-      <span class="tm-role ${m.role === "Team Leader" ? "tm-lead" : "tm-member"}">${m.role}</span>
+      <span class="tm-role ${m.role === "Team Leader" || m.role === "Leader" ? "tm-lead" : "tm-member"}">${m.role}</span>
     </div>`,
     )
     .join("");
+
+    const totalMembers = 1 + STATE.members.length; // leader + members
+    if (totalMembers < 3 && STATE.teamRole === "Leader") {
+display.innerHTML += `
+    <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--border-soft);display:flex;justify-content:center">
+      <button onclick="openAddMemberModal()" style="background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 4px 14px rgba(0,75,45,.3);transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Member
+      </button>
+    </div>`;
+}
+}
+
+function openAddMemberModal() {
+  memberCountBeforeModal = STATE.members.length; 
+}
+
+function saveNewMember() {
+  if (STATE.members.length <= memberCountBeforeModal) {
+    toast("Please search and add a member first", "red");
+    return;
+  }
+  closeAddMemberModal();
+  toast("Member added successfully");
+}
+
+function closeAddMemberModal() {
+  const setupOverlay = document.getElementById("setup-overlay");
+  if (setupOverlay) setupOverlay.style.display = "none";
+  // Restore step 2 footer for future use in setup flow
+  const footer = document.getElementById("setup-step-2")?.querySelector(".setup-footer");
+  if (footer) {
+footer.innerHTML = `
+  <button class="btn btn-ghost" onclick="closeAddMemberModal()">✕ Close</button>
+  <button class="btn btn-primary" onclick="saveNewMember()">
+    Save Member
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+  </button>`;
+  }
+  // Remove close button
+  document.querySelector(".modal-close-btn")?.remove();
+  renderTeamTab();
+}
+
+function saveNewMember() {
+  const beforeCount = STATE.members.length;
+  if (STATE.members.length === 0 || STATE.members.length === beforeCount) {
+    toast("Please search and add a member first", "red");
+    return;
+  }
+  closeAddMemberModal();
+  toast("Member added successfully");
+}
+
+/* ══ Render supervisor tab ══ */
+function renderSupervisorTab() {
+  // If supervisor data is loaded from backend, display it
+  // Otherwise show placeholder
+  if (STATE.supervisorData) {
+    // Update supervisor details in the tab
+    // This would depend on your HTML structure
+    console.log("Supervisor data:", STATE.supervisorData);
+  }
 }
 
 function updateBannerForTeam() {
@@ -962,6 +1272,34 @@ function updateBannerForTeam() {
     if (bannerTeamId) bannerTeamId.textContent = STATE.teamId;
     const ovTeamId = document.getElementById("ov-team-id");
     if (ovTeamId) ovTeamId.textContent = STATE.teamId;
+  }
+}
+
+function updateDashboardUI() {
+  // Update all dashboard elements with team data
+  const elements = {
+    "banner-team-id": STATE.teamId,
+    "ov-team-id": STATE.teamId,
+    "team-tab-id": STATE.teamId,
+    "team-tab-proj": STATE.projectTitle,
+    "stat-project-title": STATE.projectTitle,
+    "ov-proj-title": STATE.projectTitle,      
+    "ov-proj-category": STATE.category, 
+    "proj-tab-title": STATE.projectTitle,    // ← add
+    "proj-tab-category": STATE.category,   
+  };
+
+  Object.entries(elements).forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el && value) el.textContent = value;
+  });
+
+  // Update supervisor info if available
+  if (STATE.supervisorData) {
+    const supNameElements = document.querySelectorAll(".supervisor-name");
+    supNameElements.forEach((el) => {
+      if (el) el.textContent = STATE.supervisorData.name;
+    });
   }
 }
 
@@ -981,6 +1319,8 @@ function initials(name) {
 let toastTimer;
 function toast(msg, type) {
   const t = document.getElementById("toast");
+  if (!t) return;
+
   t.textContent = msg;
   t.className =
     "toast" +
@@ -989,20 +1329,99 @@ function toast(msg, type) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
 }
+function openAddMemberModal() {
+  memberCountBeforeModal = STATE.members.length;
+  
+  const setupOverlay = document.getElementById("setup-overlay");
+  if (setupOverlay) setupOverlay.style.display = "flex";
+  
+  renderMemberSlots();
+  clearSearch();
+  
+  // Hide all steps
+  [1, 2, 3, "done"].forEach((s) => {
+    const step = document.getElementById("setup-step-" + s);
+    if (step) step.style.display = "none";
+  });
+  
+  // Show step 2 only
+  const step2 = document.getElementById("setup-step-2");
+  if (step2) step2.style.display = "block";
+  
+  // Replace footer with Save + Close buttons
+  const footer = step2.querySelector(".setup-footer");
+  if (footer) {
+    footer.innerHTML = `
+      <button class="btn btn-ghost" onclick="closeAddMemberModal()">✕ Close</button>
+      <button class="btn btn-primary" onclick="saveNewMember()">
+        Save Member
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>`;
+  }
+  
+  // Add X button to header
+  const header = step2.querySelector(".setup-header");
+  if (header && !header.querySelector(".modal-close-btn")) {
+    header.style.position = "relative";
+    header.insertAdjacentHTML("beforeend", `
+      <button class="modal-close-btn" onclick="closeAddMemberModal()" style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:var(--text-soft)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>`);
+  }
+}
 
+function closeAddMemberModal() {
+  const setupOverlay = document.getElementById("setup-overlay");
+  if (setupOverlay) setupOverlay.style.display = "none";
+  
+  // Restore original step 2 footer
+  const footer = document.getElementById("setup-step-2")?.querySelector(".setup-footer");
+  if (footer) {
+    footer.innerHTML = `
+      <button class="btn btn-ghost" onclick="backStep1()">← Back</button>
+      <button class="btn btn-primary" onclick="goStep3()">
+        Next: Choose Supervisor
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>`;
+  }
+  
+  // Remove X button
+  document.querySelector(".modal-close-btn")?.remove();
+  renderTeamTab();
+}
+
+function saveNewMember() {
+  if (STATE.members.length <= memberCountBeforeModal) {
+    toast("Please search and add a member first", "red");
+    return;
+  }
+  closeAddMemberModal();
+  toast("Member added successfully ✓");
+}
 /* ══════════════════════════════════
    INIT
 ══════════════════════════════════ */
-document.getElementById("nav-std-id").textContent = STATE.studentId;
-document.getElementById("nav-name").textContent = STATE.studentName;
-document.getElementById("nav-initials").textContent = initials(
-  STATE.studentName,
-);
-document.getElementById("banner-name").textContent = STATE.studentName;
-document.getElementById("student-id").textContent = STATE.studentId;
+function initDashboard() {
+  // Set user info
+  const navStdId = document.getElementById("nav-std-id");
+  const navName = document.getElementById("nav-name");
+  const navInitials = document.getElementById("nav-initials");
+  const bannerName = document.getElementById("banner-name");
+  const studentId = document.getElementById("student-id");
 
-// Set initial proposal state
-setProposalState("approved");
+  if (navStdId) navStdId.textContent = STATE.studentId;
+  if (navName) navName.textContent = STATE.studentName;
+  if (navInitials) navInitials.textContent = initials(STATE.studentName);
+  if (bannerName) bannerName.textContent = STATE.studentName;
+  if (studentId) studentId.textContent = STATE.studentId;
 
-// Open setup on first visit
-setTimeout(() => openSetup(), 500);
+  // Load dashboard data from backend
+  loadDashboard();
+}
+
+// Start initialization when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initDashboard);
+} else {
+  initDashboard();
+}

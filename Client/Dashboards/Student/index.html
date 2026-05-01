@@ -47,9 +47,9 @@
 
           <div class="nav-user">
             <div class="nav-avatar" id="nav-initials">AS</div>
-            <div class="nav-user-info">
-              <strong id="nav-name">Ahmed Saeed</strong>
-              <small id="nav-std-id">STD-20264731</small>
+            <strong class="nav-user-info">
+              <strong id="nav-name"></strong></strong>
+              <small id="nav-std-id"></small>
             </div>
           </div>
           <button
@@ -198,21 +198,14 @@
           <!-- Banner with highlighted IDs -->
           <div class="dash-banner">
             <div class="banner-text">
-  <h2>Welcome back, <span id="banner-name">Ahmed Saeed</span></h2>
+  <h2>Welcome back, <span id="banner-name"></span></h2>
   <div class="banner-ids">
     <span class="id-highlight id-highlight-student">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="5" width="20" height="14" rx="2" />
         <line x1="2" y1="10" x2="22" y2="10" />
       </svg>
-      <span id="student-id">STD-20264731</span>
-    </span>
-    <span class="id-highlight id-highlight-team">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-      </svg>
-      <span id="banner-team-id">TEAM-20268372</span>
+      <span id="student-id"></span>
     </span>
   </div>
   <!-- Reminder note -->
@@ -222,7 +215,7 @@
       <line x1="12" y1="8" x2="12" y2="12"/>
       <line x1="12" y1="16" x2="12.01" y2="16"/>
     </svg>
-    These are <b>your IDs</b> — save them, you'll need them for all future FYP activities.
+    This is <b>your ID</b> — save them, you'll need them for all future FYP activities.
   </p>
 </div>
             <div class="banner-actions">
@@ -299,15 +292,12 @@
                 </svg>
               </div>
               <div>
-                <div class="dstat-label">Project Status</div>
+                <div class="dstat-label">Project Title</div>
                 <div
-                  class="dstat-value"
+                  class="dstat-value" id="stat-project-title"
                   style="font-size: 1rem; line-height: 1.2"
                 >
-                  AI Exam Proctoring
-                </div>
-                <div class="dstat-sub">
-                  <span class="status-badge s-approved">Approved</span>
+
                 </div>
               </div>
             </div>
@@ -367,12 +357,12 @@
             <div class="dash-card-body">
               <div class="proj-row">
                 <span class="proj-key">Project Title</span
-                ><span class="proj-val">AI-Based Exam Proctoring System</span>
+                ><span class="proj-val" id="ov-proj-title"></span>
               </div>
               <div class="proj-row">
                 <span class="proj-key">Category</span
-                ><span class="proj-val"
-                  >Artificial Intelligence / Computer Vision</span
+                ><span class="proj-val" id="ov-proj-category"
+                  ></span
                 >
               </div>
               <div class="proj-row">
@@ -437,7 +427,7 @@
               <div class="proj-row">
                 <span class="proj-key">Project Title</span
                 ><span class="proj-val" id="team-tab-proj"
-                  >AI-Based Exam Proctoring System</span
+                  ></span
                 >
               </div>
               <div class="proj-row">
@@ -499,12 +489,12 @@
             <div class="dash-card-body">
               <div class="proj-row">
                 <span class="proj-key">Title</span
-                ><span class="proj-val">AI-Based Exam Proctoring System</span>
+                ><span class="proj-val"id="proj-tab-title"></span>
               </div>
               <div class="proj-row">
                 <span class="proj-key">Category</span
-                ><span class="proj-val"
-                  >Artificial Intelligence / Computer Vision</span
+                ><span class="proj-val"  id="proj-tab-category" 
+                  ></span
                 >
               </div>
               <div class="proj-row">
@@ -903,12 +893,6 @@
           </div>
           <div class="setup-body">
             <div class="id-box" style="margin-bottom: 12px">
-  <div class="id-box-icon">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-    </svg>
-  </div>
   <div>
     <div class="id-box-label">Generated Team ID</div>
     <div class="id-box-value" id="display-team-id">TEAM-20268372</div>
@@ -986,19 +970,6 @@
           </div>
           <div class="setup-body">
             <div class="id-box" style="margin-bottom: 22px">
-              <div class="id-box-icon">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                </svg>
-              </div>
               <div>
                 <div class="id-box-label">Generated Team ID</div>
                 <div class="id-box-value" id="display-team-id">
@@ -1152,7 +1123,6 @@
               </select>
             </div>
             <div id="sup-preview" style="display: none" class="sup-card">
-              <div class="sup-avatar" id="sup-preview-av"></div>
               <div class="sup-info">
                 <strong id="sup-preview-name"></strong>
                 <span id="sup-preview-dept"></span>

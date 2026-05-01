@@ -52,7 +52,7 @@ export const createGroup = async (req, res) => {
 
     // ── CREATE GROUP ──────────────────────────────
     const group = await Group.create({
-      team_id: generateTeamId(),
+      group_code: generateTeamId(),
       project_title,
       category,
       leader: leaderId,
@@ -78,13 +78,13 @@ export const createGroup = async (req, res) => {
     // ── INIT MARKS ────────────────────────────────
     const allStudents = [leaderId, ...memberIds];
 
-    await Marks.insertMany(
-      allStudents.map((sid) => ({
-        student: sid,
-        group: group._id,
-        supervisor: supervisor_id,
-      }))
-    );
+    for (const sid of allStudents) {
+  await Marks.findOneAndUpdate(
+    { student: sid, group: group._id },
+    { student: sid, group: group._id, supervisor: supervisor_id },
+    { upsert: true, new: true }
+  );
+}
 
     // ── RESPONSE ───────────────────────────────────
     const populated = await Group.findById(group._id)

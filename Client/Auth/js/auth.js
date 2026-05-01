@@ -1,11 +1,7 @@
 const API_BASE_URL = "http://localhost:5001";
-var VALID = [
-  "ahmed.saeed@awkum.edu.pk",
-  "bilal.khan@awkum.edu.pk",
-  "sana.malik@awkum.edu.pk",
-];
 var cur = 1;
 var rtimer = null;
+
 var topT = [
   "Forgot password?",
   "Check your email",
@@ -34,12 +30,30 @@ async function doReg() {
   var cv = document.getElementById("r-cv").files[0];
 
   var ok = true;
-  if (!fn)  { showErr("fn",  "First name is required"); ok = false; }
-  if (!ln)  { showErr("ln",  "Last name is required");  ok = false; }
-  if (!em)  { showErr("em",  "Email required");         ok = false; }
-  if (!pw || pw.length < 8) { showErr("pw", "Weak password"); ok = false; }
-  if (pw !== cpw) { showErr("cpw", "Passwords do not match"); ok = false; }
-  if (!cv)  { showErr("cv",  "Upload CV"); ok = false; }
+  if (!fn) {
+    showErr("fn", "First name is required");
+    ok = false;
+  }
+  if (!ln) {
+    showErr("ln", "Last name is required");
+    ok = false;
+  }
+  if (!em) {
+    showErr("em", "Email required");
+    ok = false;
+  }
+  if (!pw || pw.length < 8) {
+    showErr("pw", "Weak password");
+    ok = false;
+  }
+  if (pw !== cpw) {
+    showErr("cpw", "Passwords do not match");
+    ok = false;
+  }
+  if (!cv) {
+    showErr("cv", "Upload CV");
+    ok = false;
+  }
   if (!ok) return;
 
   var btn = document.getElementById("rbtn");
@@ -53,22 +67,21 @@ async function doReg() {
     formData.append("password", pw);
     formData.append("cv", cv);
 
-const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    name: fn + " " + ln,
-    email: em,
-    password: pw,
-  }),
-});
+    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: fn + " " + ln,
+        email: em,
+        password: pw,
+      }),
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Registration failed");
 
     window.location.href = "login.html";
-
   } catch (err) {
     alert(err.message);
     btn.disabled = false;
@@ -81,7 +94,7 @@ async function sendOtp(email) {
   const res = await fetch("/api/auth/forgot-password", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email })
+    body: JSON.stringify({ email }),
   });
 
   const data = await res.json();
@@ -96,7 +109,7 @@ async function resetPassword() {
   const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, email, newPassword })
+    body: JSON.stringify({ token, email, newPassword }),
   });
 
   const data = await res.json();
@@ -159,7 +172,6 @@ async function step1Submit() {
 
     goStep(2);
     startResend();
-
   } catch (err) {
     document.getElementById("e1-email").textContent = err.message;
     document.getElementById("e1-email").classList.add("show");
@@ -180,8 +192,8 @@ function otpBack(e, el, pid) {
     document.getElementById(pid).focus();
 }
 async function step2Submit() {
-  const code = ["o1","o2","o3","o4","o5","o6"]
-    .map(id => document.getElementById(id).value)
+  const code = ["o1", "o2", "o3", "o4", "o5", "o6"]
+    .map((id) => document.getElementById(id).value)
     .join("");
 
   const email = localStorage.getItem("resetEmail");
@@ -205,7 +217,6 @@ async function step2Submit() {
     if (!res.ok) throw new Error(data.message);
 
     goStep(3);
-
   } catch (err) {
     document.getElementById("e-otp").textContent = err.message;
     document.getElementById("e-otp").classList.add("show");
@@ -301,7 +312,6 @@ async function step3Submit() {
     if (!res.ok) throw new Error(data.message);
 
     goStep(4);
-
   } catch (err) {
     alert(err.message);
   } finally {
@@ -368,22 +378,33 @@ async function handleLogin(e) {
     const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         email: email,
-        password: password
-      })
+        password: password,
+      }),
     });
 
     const data = await res.json();
+
+    console.log("full response:", data);
+    console.log("user object:", data.user);
 
     if (!res.ok) {
       throw new Error(data.message || "Login failed");
     }
 
-    // Save user (optional)
-    localStorage.setItem("user", JSON.stringify(data.user));
+    // Save user
+    localStorage.setItem(
+      "user",
+      JSON.stringify({
+        id: data._id,
+        name: data.name,
+        student_code: data.student_code,
+        token: data.token,
+      }),
+    );
 
     // Success UI
     btn.style.background = "#16A34A";
@@ -392,7 +413,6 @@ async function handleLogin(e) {
     setTimeout(() => {
       window.location.href = "../Dashboards/Student/index.html";
     }, 1000);
-
   } catch (err) {
     console.log(err);
     btn.style.background = "#DC2626";

@@ -1,41 +1,42 @@
 import dotenv from "dotenv";
 dotenv.config();
-import express  from "express";
-import cors     from "cors";
+import express from "express";
+import cors from "cors";
 import connectDB from "./config/db.js";
 
 // Routes
-import authRoutes       from "./Routes/authRoutes.js";
-import studentRoutes    from "./Routes/studentRoutes.js";
-import groupRoutes      from "./Routes/groupRoutes.js";
-import marksRoutes      from "./Routes/marksRoutes.js";
-import proposalRoutes   from "./Routes/proposalRoutes.js";
-import fileRoutes       from "./Routes/fileRoutes.js";
+import authRoutes from "./Routes/authRoutes.js";
+import studentRoutes from "./Routes/studentRoutes.js";
+import groupRoutes from "./Routes/groupRoutes.js";
+import marksRoutes from "./Routes/marksRoutes.js";
+import proposalRoutes from "./Routes/proposalRoutes.js";
+import fileRoutes from "./Routes/fileRoutes.js";
 import supervisorRoutes from "./Routes/supervisorRoutes.js";
-import adminRoutes      from "./Routes/adminRoutes.js";
+import adminRoutes from "./Routes/adminRoutes.js";
 
 connectDB();
 
-const app  = express();
-const PORT = process.env.PORT || 5000;
+const app = express();
+const PORT = process.env.PORT || 5001;
 
-// Middleware
-app.use(cors({
-  origin: ["http://localhost:3000", "http://127.0.0.1:5500"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: ["http://127.0.0.1:5500", "http://localhost:5500"],
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // API Routes
-app.use("/api/auth",        authRoutes);
-app.use("/api/students",    studentRoutes);
-app.use("/api/groups",      groupRoutes);
-app.use("/api/marks",       marksRoutes);
-app.use("/api/proposals",   proposalRoutes);
-app.use("/api/files",       fileRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/students", studentRoutes);
+app.use("/api/groups", groupRoutes);
+app.use("/api/marks", marksRoutes);
+app.use("/api/proposals", proposalRoutes);
+app.use("/api/files", fileRoutes);
 app.use("/api/supervisors", supervisorRoutes);
-app.use("/api/admin",       adminRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Health check
 app.get("/", (req, res) => {

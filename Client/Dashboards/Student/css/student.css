@@ -1672,6 +1672,7 @@ textarea {
 .proj-key {
     font-size: .75rem;
     font-weight: 700;
+    font-weight: bolder;
     color: var(--text-mute);
     text-transform: uppercase;
     letter-spacing: .05em;

@@ -18,11 +18,17 @@ export const searchStudent = async (req, res) => {
       return res.status(404).json({ message: "No student found with this ID" });
     }
 
-    if (student.group) {
-      return res.status(400).json({ message: "Student already has a team" });
-    }
+    return res.json({
+      name: student.name,
+      student_code: student.student_code,
+      initials: student.name
+        .split(" ")
+        .map(w => w[0])
+        .join("")
+        .toUpperCase(),
+      in_team: !!student.group
+    });
 
-    res.json(student);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
