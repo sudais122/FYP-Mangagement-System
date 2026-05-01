@@ -1,4 +1,7 @@
-.env
 PORT=3000
 DB_URL=mongodb://localhost:27017/mydb
-API_KEY=your_secret_key
+
+node_modules
+.env
+dist
+build
