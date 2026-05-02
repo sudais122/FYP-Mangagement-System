@@ -54,7 +54,7 @@
           </div>
           <button
             class="nav-logout"
-            onclick="window.location.href = 'Client/index.html'"
+            onclick=logout() 
           >
             <svg
               viewBox="0 0 24 24"
@@ -165,7 +165,7 @@
         <div class="sb-divider"></div>
         <button
           class="sb-item logout-btn"
-          onclick="window.location.href = 'index.html'"
+          onclick=logout() 
         >
           <svg
             class="sb-icon"
@@ -369,17 +369,13 @@
                 <span class="proj-key">Team ID</span>
                 <span class="proj-val"
                   ><span class="id-highlight id-highlight-team" id="ov-team-id"
-                    >TEAM-20268372</span
+                    ></span
                   ></span
                 >
               </div>
               <div class="proj-row">
                 <span class="proj-key">Student ID</span>
-                <span class="proj-val"
-                  ><span class="id-highlight id-highlight-student"
-                    >STD-20264731</span
-                  ></span
-                >
+                <span class="proj-val"><span class="id-highlight id-highlight-student" id="proj-student-id"></span></span>
               </div>
               <div class="proj-row">
                 <span class="proj-key">Next Deadline</span
@@ -418,10 +414,7 @@
             <div class="dash-card-body">
               <div class="proj-row">
                 <span class="proj-key">Team ID</span>
-                <span class="proj-val"
-                  ><span class="id-highlight id-highlight-team" id="team-tab-id"
-                    >TEAM-20268372</span
-                  ></span
+                <span class="proj-val"><span class="id-highlight id-highlight-team" id="proj-team-id"></span></span
                 >
               </div>
               <div class="proj-row">
@@ -504,18 +497,13 @@
               <div class="proj-row">
                 <span class="proj-key">Your ID</span>
                 <span class="proj-val"
-                  ><span class="id-highlight id-highlight-student"
-                    >STD-20264731</span
+                <span class="id-highlight id-highlight-student" id="ov-student-id"></span>
                   ></span
                 >
               </div>
               <div class="proj-row">
                 <span class="proj-key">Team ID</span>
-                <span class="proj-val"
-                  ><span class="id-highlight id-highlight-team"
-                    >TEAM-20268372</span
-                  ></span
-                >
+                <span class="id-highlight id-highlight-team" id="proj-tab-team-id"></span>
               </div>
             </div>
           </div>
@@ -895,7 +883,7 @@
             <div class="id-box" style="margin-bottom: 12px">
   <div>
     <div class="id-box-label">Generated Team ID</div>
-    <div class="id-box-value" id="display-team-id">TEAM-20268372</div>
+    <div class="id-box-value" id="display-team-id">Will be auto-generated</div>
   </div>
   <div style="margin-left: auto; padding: 4px 10px; background: rgba(191,161,74,.15); border-radius: 20px; font-size: .68rem; font-weight: 700; color: var(--gold);">
     Auto-Generated
@@ -972,9 +960,7 @@
             <div class="id-box" style="margin-bottom: 22px">
               <div>
                 <div class="id-box-label">Generated Team ID</div>
-                <div class="id-box-value" id="display-team-id">
-                  TEAM-20268372
-                </div>
+                  <span class="id-highlight id-highlight-team" id="proj-tab-team-id"></span>
               </div>
               <div
                 style="
@@ -1019,8 +1005,8 @@
                 <div class="tm-item">
                   <div class="tm-av" id="leader-av">AS</div>
                   <div>
-                    <div class="tm-name" id="leader-name">Ahmed Saeed</div>
-                    <div class="tm-id" id="leader-std-id">STD-20264731</div>
+                    <div class="tm-name" id="leader-name"></div>
+                    <span class="id-highlight id-highlight-student" id="proj-student-id"></span>
                   </div>
                   <span class="tm-role tm-lead">Team Leader</span>
                 </div>

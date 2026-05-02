@@ -5,7 +5,10 @@ console.log("user from localStorage:", user); // ← add this
 if (!user) {
   window.location.href = "../login.html";
 }
-
+function logout() {
+  localStorage.removeItem("user");
+  window.location.href = "../index.html"; // adjust path to your login page
+}
 // ══════════════════════════════════
 // API Configuration
 // ══════════════════════════════════
@@ -168,7 +171,7 @@ async function loadDashboard() {
     if (data.hasGroup) {
       // User is part of a team
       STATE.teamCreated = true;
-      STATE.teamId = data.group.group_code;
+      STATE.teamId = data.group.group_code || data.group.team_code;
       STATE.projectTitle = data.group.project_title;
       STATE.category = data.group.category;
       STATE.teamRole = data.student.team_role;
@@ -270,7 +273,7 @@ async function createTeamAPI() {
     }
 
     // Update state with created group
-    STATE.teamId = data.group.group_code;
+    STATE.teamId = data.group.group_code || data.group.team_code;
     STATE.teamCreated = true;
     STATE.teamRole = "Leader";
     STATE.groupData = data.group;
@@ -849,18 +852,22 @@ function removeFile(id) {
 /* ══════════════════════════════════
    SETUP FLOW (3 steps)
 ══════════════════════════════════ */
-function openSetup() {
+async function openSetup() {
   const setupOverlay = document.getElementById("setup-overlay");
   if (!setupOverlay) return;
 
   setupOverlay.style.display = "flex";
 
-  const displayStudentId = document.getElementById("display-student-id");
+  // Get next team ID from backend
+  const nextTeamId = await getNextTeamId();
+  STATE.teamId = nextTeamId; // Store it
+
+  const displayTeamId = document.getElementById("display-team-id");
   const leaderStdId = document.getElementById("leader-std-id");
   const leaderName = document.getElementById("leader-name");
   const leaderAv = document.getElementById("leader-av");
 
-  if (displayStudentId) displayStudentId.textContent = STATE.studentId;
+  if (displayTeamId) displayTeamId.textContent = nextTeamId;
   if (leaderStdId) leaderStdId.textContent = STATE.studentId;
   if (leaderName) leaderName.textContent = STATE.studentName;
   if (leaderAv) leaderAv.textContent = initials(STATE.studentName);
@@ -1283,9 +1290,13 @@ function updateDashboardUI() {
     "team-tab-id": STATE.teamId,
     "team-tab-proj": STATE.projectTitle,
     "stat-project-title": STATE.projectTitle,
-    "ov-proj-title": STATE.projectTitle,      
+    "ov-proj-title": STATE.projectTitle,    
+    "ov-student-id": STATE.studentId,        
+    "proj-student-id": STATE.studentId,      
+    "proj-team-id": STATE.teamId,     
     "ov-proj-category": STATE.category, 
-    "proj-tab-title": STATE.projectTitle,    // ← add
+    "proj-tab-team-id": STATE.teamId,   
+    "proj-tab-title": STATE.projectTitle,    
     "proj-tab-category": STATE.category,   
   };
 
@@ -1397,6 +1408,29 @@ function saveNewMember() {
   }
   closeAddMemberModal();
   toast("Member added successfully ✓");
+}
+
+
+// Get next available team ID from backend
+async function getNextTeamId() {
+  try {
+    const response = await fetch(`${API_BASE}/groups/next-id`, {
+      method: "GET",
+      headers: API_HEADERS,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to get team ID");
+    }
+
+    return data.team_id;
+  } catch (error) {
+    console.error("Team ID fetch error:", error);
+    toast("Failed to generate Team ID. Please refresh and try again.", "red");
+    return "TEAM-PENDING"; // Better fallback that shows something went wrong
+  }
 }
 /* ══════════════════════════════════
    INIT

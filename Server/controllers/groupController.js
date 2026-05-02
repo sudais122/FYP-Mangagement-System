@@ -3,8 +3,11 @@ import Student from "../Models/student.js";
 import Marks from "../Models/marks.js";
 
 // ── TEAM ID GENERATOR ─────────────────────────────
-const generateTeamId = () => {
-  return "TEAM-" + Date.now().toString().slice(-8);
+const generateTeamId = async () => {
+  const groupCount = await Group.countDocuments();
+  const sequentialNumber = (groupCount + 1).toString().padStart(4, '0');
+  const year = new Date().getFullYear();
+  return `TEAM-${year}${sequentialNumber}`;  // ← REMOVE "2026", use ${year}
 };
 
 // ── CREATE TEAM ───────────────────────────────────
@@ -52,7 +55,7 @@ export const createGroup = async (req, res) => {
 
     // ── CREATE GROUP ──────────────────────────────
     const group = await Group.create({
-      group_code: generateTeamId(),
+      group_code:  await generateTeamId(),
       project_title,
       category,
       leader: leaderId,
@@ -101,6 +104,21 @@ export const createGroup = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ── GET NEXT TEAM ID ───────────────────────────────
+export const getNextTeamId = async (req, res) => {
+  try {
+    const groupCount = await Group.countDocuments();
+    const sequentialNumber = (groupCount + 1).toString().padStart(4, '0');
+    const year = new Date().getFullYear();
+    const nextId = `TEAM-${year}${sequentialNumber}`;
+    
+    res.json({ team_id: nextId });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // ── GET MY GROUP ───────────────────────────────────────────────
 export const getMyGroup = async (req, res) => {
   try {

@@ -6,6 +6,15 @@ import nodemailer from "nodemailer";
 import bcrypt     from "bcrypt";
 import generateToken from "../utils/generateToken.js";
 
+
+// ── STUDENT ID GENERATOR ─────────────────────────────
+const generateStudentId = async () => {
+  const studentCount = await Student.countDocuments();
+  const sequentialNumber = (studentCount + 1).toString().padStart(4, '0');
+  const year = new Date().getFullYear();
+  return `STD-${year}${sequentialNumber}`;
+};
+
 // ── EMAIL TRANSPORTER ──────────────────────────────────────────
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -92,7 +101,13 @@ export const registerStudent = async (req, res) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const student = await Student.create({ name, email, password, role: "student" });
+    const student = await Student.create({ 
+      name, 
+      email, 
+      password, 
+      student_code: await generateStudentId(), // ← Add this line
+      role: "student" 
+    });
 
     res.status(201).json({
       message: "Registered successfully",
@@ -100,6 +115,7 @@ export const registerStudent = async (req, res) => {
         _id:   student._id,
         name:  student.name,
         email: student.email,
+        student_code: student.student_code, 
         role:  student.role,
       },
     });

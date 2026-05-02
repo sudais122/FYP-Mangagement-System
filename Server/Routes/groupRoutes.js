@@ -6,6 +6,7 @@ import {
   getAllGroups,
   getGroupById,
   reassignSupervisor,
+  getNextTeamId  // ← Only import once
 } from "../controllers/groupController.js";
 import {
   protect,
@@ -16,12 +17,12 @@ import {
 
 const router = express.Router();
 
-router.post("/",                   protect, studentOnly,    createGroup);
+router.post("/create",             protect, studentOnly,    createGroup);
+router.get ("/next-id",            protect,                 getNextTeamId);  
 router.get ("/my",                 protect, studentOnly,    getMyGroup);
 router.get ("/supervisor",         protect, supervisorOnly, getGroupsBySupervisor);
-router.get ("/",                   protect, adminOnly,      getAllGroups);
+router.get ("/all",                protect, adminOnly,      getAllGroups);
 router.get ("/:id",                protect,                 getGroupById);
 router.put ("/:id/reassign",       protect, adminOnly,      reassignSupervisor);
-router.post("/create", protect, createGroup);
 
 export default router;
