@@ -6,7 +6,7 @@ const adminSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
+      trim: true
     },
 
     email: {
@@ -15,37 +15,53 @@ const adminSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true
     },
 
     password: {
       type: String,
       required: true,
-      minlength: 6,
-      select: false, // 🔥 hide password by default
+      minlength: 8,
+      select: false
     },
 
     role: {
       type: String,
-      default: "admin",
+      default: "admin"
     },
+
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+
+    lastLogin: {
+      type: Date
+    },
+
+    loginAttempts: {
+      type: Number,
+      default: 0
+    },
+
+    resetPasswordToken: String,
+    resetPasswordExpire: Date
   },
   {
-    timestamps: true, // 🔥 replaces createdAt manually
+    timestamps: true
   }
 );
 
-/* ───────── HASH PASSWORD ───────── */
+/* HASH PASSWORD */
 adminSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
-
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
 
-/* ───────── MATCH PASSWORD ───────── */
+/* COMPARE PASSWORD */
 adminSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
-
-const Admin = mongoose.model("Admin", adminSchema);
-export default Admin;
+ 
+export default mongoose.model("Admin", adminSchema);

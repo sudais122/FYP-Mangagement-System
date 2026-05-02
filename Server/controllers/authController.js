@@ -46,7 +46,7 @@ export const login = async (req, res) => {
     }
 
     if (!user) {
-      user = await Admin.findOne({ email });
+      user = await Admin.findOne({ email }).select("+password");
       if (user) role = "admin";
     }
 

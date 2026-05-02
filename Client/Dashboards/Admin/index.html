@@ -697,13 +697,8 @@
                 >Temporary Password <span class="req">*</span></label
               >
               <div class="input-group">
-                <input
-                  type="text"
-                  class="form-input"
-                  id="supPassword"
-                  placeholder="Enter or generate a password"
-                  required
-                />
+                <input type="text" class="form-input" id="supPassword" placeholder="Enter or generate a password" required />
+                <button type="button" class="btn btn-ghost" onclick="generatePassword()" style="margin-top:6px;font-size:.8rem">⚡ Generate Password</button>
               </div>
               <div class="form-help" id="pwdHelp">
                 Minimum 8 characters · Will be sent to supervisor via email

@@ -20,6 +20,51 @@ export const getAllSupervisors = async (req, res) => {
   }
 };
 
+// ── CREATE SUPERVISOR (Admin) ──────────────────────────────────
+export const createSupervisor = async (req, res) => {
+  const { name, email, password } = req.body;
+
+  try {
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password are required" });
+    }
+
+    const exists = await Supervisor.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "Supervisor with this email already exists" });
+    }
+
+    // Auto-generate sup_code: SUP-20260001, SUP-20260002...
+    const last = await Supervisor.findOne().sort({ createdAt: -1 });
+    let nextNum = 1;
+    if (last && last.sup_code) {
+      const lastNum = parseInt(last.sup_code.replace("SUP-2026", ""));
+      nextNum = lastNum + 1;
+    }
+    const sup_code = `SUP-2026${String(nextNum).padStart(4, "0")}`;
+
+    const supervisor = await Supervisor.create({
+      name,
+      email,
+      password,
+      sup_code,
+      force_password_change: true,
+    });
+
+    res.status(201).json({
+      message: "Supervisor created successfully",
+      supervisor: {
+        _id: supervisor._id,
+        name: supervisor.name,
+        email: supervisor.email,
+        sup_code: supervisor.sup_code,
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // ── GET SUPERVISOR DETAIL WITH TEAMS ──────────────────────────
 export const getSupervisorDetail = async (req, res) => {
   try {

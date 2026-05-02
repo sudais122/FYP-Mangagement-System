@@ -270,17 +270,27 @@ function generateSupId() {
   );
   return "SUP-2026" + String(max + 1).padStart(4, "0");
 }
-
 function generatePassword() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
-  const symbols = "!@#$%&*";
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghjkmnpqrstuvwxyz";
+  const nums  = "23456789";
+  const syms  = "!@#$%&*";
+
   let pwd = "";
-  for (let i = 0; i < 9; i++)
-    pwd += chars[Math.floor(Math.random() * chars.length)];
-  pwd += symbols[Math.floor(Math.random() * symbols.length)];
+  pwd += upper[Math.floor(Math.random() * upper.length)];
+  pwd += upper[Math.floor(Math.random() * upper.length)];
+  pwd += lower[Math.floor(Math.random() * lower.length)];
+  pwd += lower[Math.floor(Math.random() * lower.length)];
+  pwd += nums[Math.floor(Math.random() * nums.length)];
+  pwd += nums[Math.floor(Math.random() * nums.length)];
+  pwd += syms[Math.floor(Math.random() * syms.length)];
+  pwd += lower[Math.floor(Math.random() * lower.length)];
+
+  // Shuffle
+  pwd = pwd.split("").sort(() => Math.random() - 0.5).join("");
+
   $("#supPassword").value = pwd;
-  $("#pwdHelp").textContent =
-    "✓ Strong password generated · Will be emailed to supervisor";
+  $("#pwdHelp").textContent = "✓ Password generated — copy it before saving";
   $("#pwdHelp").className = "form-help success";
 }
 
@@ -608,33 +618,58 @@ function closeSupervisorModal() {
   $("#supervisorModal").classList.remove("open");
 }
 
-function submitSupervisor() {
+async function submitSupervisor() {
   const name = $("#supName").value.trim();
   const email = $("#supEmail").value.trim();
   const pwd = $("#supPassword").value.trim();
-  const id = $("#generatedSupId").textContent;
+
+  console.log("Submitting:", { name, email, pwd });
+
   if (!name || !email || !pwd) {
-    toast(
-      "Missing fields",
-      "Please fill in name, email, and password",
-      "error",
-    );
+    toast("Missing fields", "Please fill in name, email, and password", "error");
     return;
   }
   if (pwd.length < 8) {
     toast("Weak password", "Password must be at least 8 characters", "error");
     return;
   }
-  supervisors.unshift({ id, name, email, teams: 0, capacity: 6 });
-  closeSupervisorModal();
-  renderSupervisors();
-  toast(
-    "Supervisor created successfully",
-    `${name} · ${id} · Email sent`,
-    "success",
-  );
-}
 
+  const admin = JSON.parse(localStorage.getItem("admin"));
+   console.log("Admin token:", admin?.token); 
+
+  try {
+      const res = await fetch("http://127.0.0.1:5001 /api/supervisors", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      },
+      body: JSON.stringify({ name, email, password: pwd })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast("Error", data.message || "Failed to create supervisor", "error");
+      return;
+    }
+
+    supervisors.unshift({
+      id: data.supervisor.sup_code,
+      name: data.supervisor.name,
+      email: data.supervisor.email,
+      teams: 0,
+      capacity: 6
+    });
+
+    closeSupervisorModal();
+    renderSupervisors();
+    toast("Supervisor created", `${name} · ${data.supervisor.sup_code}`, "success");
+
+  } catch (err) {
+    toast("Network error", "Could not connect to server", "error");
+  }
+}
 /* ════════════════════════════════════
    REASSIGN MODAL
 ══════════════════════════════════════ */

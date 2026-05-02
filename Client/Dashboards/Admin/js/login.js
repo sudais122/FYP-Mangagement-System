@@ -43,67 +43,72 @@ function btnLoad(id, on) {
 }
 
 // LOGIN
-document.getElementById("loginForm").addEventListener("submit", function (e) {
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+
   let ok = true;
   clearErr("grp-login-email", "err-login-email");
   clearErr("grp-login-pw", "err-login-pw");
-  const em = document.getElementById("login-email").value.trim(),
-    pw = document.getElementById("login-pw").value;
-  if (!em) {
+
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-pw").value;
+
+  if (!email) {
     setErr("grp-login-email", "err-login-email", "Email is required");
     ok = false;
-  } else if (!isEmail(em)) {
-    setErr("grp-login-email", "err-login-email", "Enter a valid email");
-    ok = false;
   }
-  if (!pw) {
+
+  if (!password) {
     setErr("grp-login-pw", "err-login-pw", "Password is required");
     ok = false;
-  } else if (pw.length < 6) {
-    setErr("grp-login-pw", "err-login-pw", "Minimum 6 characters");
-    ok = false;
   }
+
   if (!ok) return;
+
   btnLoad("btn-login", true);
 
-  fetch("http://127.0.0.1:5000/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: em, password: pw })
-  })
-  .then(r => r.json())
-  .then(data => {
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
     btnLoad("btn-login", false);
 
-    if (!data.token) {
-      setErr("grp-login-pw", "err-login-pw", data.message || "Invalid email or password");
+    if (!res.ok) {
+      setErr("grp-login-pw", "err-login-pw", data.message || "Login failed");
       return;
     }
 
     if (data.role !== "admin") {
-      setErr("grp-login-email", "err-login-email", "Access denied. Admin only.");
+      setErr("grp-login-email", "err-login-email", "Access denied. Admin only");
       return;
     }
 
-    localStorage.setItem("admin", JSON.stringify({
-      id: data._id,
-      name: data.name,
-      email: data.email,
-      token: data.token
-    }));
+    localStorage.setItem(
+      "admin",
+      JSON.stringify({
+        id: data._id,
+        name: data.name,
+        email: data.email,
+        token: data.token
+      })
+    );
 
-    toast("Login successful! Redirecting…", "green");
+    toast("Login successful!", "green");
+
     setTimeout(() => {
-      window.location.href = "dashboard.html";
-    }, 1200);
-  })
-  .catch(() => {
+      window.location.href = "../../Dashboards/Admin/index.html";
+    }, 1000);
+  } catch (err) {
     btnLoad("btn-login", false);
-    setErr("grp-login-pw", "err-login-pw", "Network error. Please try again.");
-  });
+    setErr("grp-login-pw", "err-login-pw", "Server not reachable");
+  }
 });
-
 // FORGOT
 document.getElementById("forgotForm").addEventListener("submit", function (e) {
   e.preventDefault();
