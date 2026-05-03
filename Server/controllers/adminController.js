@@ -87,10 +87,20 @@ export const getAllStudents = async (req, res) => {
       .select("-password")
       .populate({
         path: "group",
-        select: "team_code project_title supervisor",
+        select: "group_code project_title supervisor",
         populate: { path: "supervisor", select: "name sup_code" },
       });
-    res.json(students);
+
+    // Attach total marks for each student
+    const Marks = (await import("../Models/marks.js")).default;
+    const result = await Promise.all(
+      students.map(async (s) => {
+        const marks = await Marks.findOne({ student: s._id });
+        return { ...s.toObject(), total_marks: marks?.total || 0 };
+      })
+    );
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -122,18 +132,13 @@ export const getAllSupervisors = async (req, res) => {
 export const getAllGroups = async (req, res) => {
   try {
     const groups = await Group.find()
-      .populate("supervisor", "name sup_code email")
-      .populate("members", "name std_code email");
-    
-    res.json({
-      success: true,
-      groups
-    });
+      .populate("leader",     "name student_code")
+      .populate("members",    "name student_code email")
+      .populate("supervisor", "name sup_code email");
+
+    res.json(groups); // plain array
   } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      message: error.message 
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 

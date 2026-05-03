@@ -2066,3 +2066,79 @@ a {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-mute);
 }
+.mark-toggle {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  cursor: pointer;
+}
+.mark-toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 18px;
+  transition: .3s;
+}
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 14px; width: 14px;
+  left: 2px; top: 2px;
+  background: #fff;
+  border-radius: 50%;
+  transition: .3s;
+}
+.mark-toggle input:checked + .toggle-slider {
+  background: var(--primary);
+}
+.mark-toggle input:checked + .toggle-slider::before {
+  transform: translateX(14px);
+}
+.mark-input:disabled {
+  background: var(--border-soft);
+  cursor: not-allowed;
+  opacity: .55;
+}
+.nav-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-left: 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--tr);
+  font-family: var(--font);
+}
+
+.nav-logout-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.nav-logout-btn:hover {
+  background: rgba(220, 38, 38, 0.06);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #dc2626;
+}
+
+.nav-logout-btn:active {
+  transform: scale(0.97);
+}
+
+/* Hide text on mobile, keep icon */
+@media (max-width: 600px) {
+  .nav-logout-btn span {
+    display: none;
+  }
+  .nav-logout-btn {
+    padding: 8px 10px;
+  }
+}

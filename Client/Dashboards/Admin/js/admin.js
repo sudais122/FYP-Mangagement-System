@@ -1,79 +1,23 @@
-/* ════════════════════════════════════
-   DATA
-══════════════════════════════════════ */
-const supervisors = [
-  {
-    id: "SUP-20261201",
-    name: "Dr. Sajid Ali",
-    email: "sajid.ali@awkum.edu.pk",
-    teams: 5,
-    capacity: 6,
-  },
-  {
-    id: "SUP-20261202",
-    name: "Dr. Naila Khan",
-    email: "naila.khan@awkum.edu.pk",
-    teams: 4,
-    capacity: 6,
-  },
-  {
-    id: "SUP-20261203",
-    name: "Dr. Faisal Ahmed",
-    email: "faisal.ahmed@awkum.edu.pk",
-    teams: 3,
-    capacity: 6,
-  },
-  {
-    id: "SUP-20261204",
-    name: "Dr. Sana Iqbal",
-    email: "sana.iqbal@awkum.edu.pk",
-    teams: 2,
-    capacity: 6,
-  },
-  {
-    id: "SUP-20261205",
-    name: "Dr. Imran Yousaf",
-    email: "imran.y@awkum.edu.pk",
-    teams: 6,
-    capacity: 6,
-  },
-  {
-    id: "SUP-20261206",
-    name: "Dr. Aliya Hussain",
-    email: "aliya.h@awkum.edu.pk",
-    teams: 1,
-    capacity: 6,
-  },
-];
-
-const teams = [
-  { id: "TEAM-20261284", members: 4, supId: "SUP-20261201" },
-  { id: "TEAM-20261283", members: 3, supId: "SUP-20261202" },
-  { id: "TEAM-20261282", members: 4, supId: "SUP-20261203" },
-  { id: "TEAM-20261281", members: 3, supId: "SUP-20261201" },
-  { id: "TEAM-20261280", members: 4, supId: "SUP-20261204" },
-  { id: "TEAM-20261279", members: 3, supId: "SUP-20261205" },
-  { id: "TEAM-20261278", members: 4, supId: "SUP-20261202" },
-  { id: "TEAM-20261277", members: 3, supId: "SUP-20261206" },
-];
-
-/* Marks structure — each component is { key, max } */
 const MARKS_SCHEMA = [
   {
     section: "Monthly Meetings",
     items: [
-      { key: "oct", label: "October", max: 10 },
+      { key: "oct", label: "October",  max: 10 },
       { key: "nov", label: "November", max: 10 },
       { key: "dec", label: "December", max: 10 },
       { key: "feb", label: "February", max: 10 },
-      { key: "mar", label: "March", max: 10 },
+      { key: "mar", label: "March",    max: 10 },
     ],
   },
   {
     section: "Submissions",
     items: [
-      { key: "proposal", label: "Proposal Submission", max: 10 },
-      { key: "progress", label: "Progress Report", max: 20 },
+      { key: "proposal",        label: "Proposal Submission",   max: 10 },
+      { key: "progress_report", label: "Progress Report",       max: 20 },
+      { key: "thesis",          label: "Thesis / Report",       max: 20 },
+      { key: "code",            label: "Code / Practical Work", max: 10 },
+      { key: "prog_sim",        label: "Progress Similarity",   max: 5  },
+      { key: "thesis_sim",      label: "Thesis Similarity",     max: 5  },
     ],
   },
   {
@@ -81,162 +25,12 @@ const MARKS_SCHEMA = [
     items: [
       { key: "iv1", label: "Internal Viva 1", max: 25 },
       { key: "iv2", label: "Internal Viva 2", max: 25 },
-      { key: "ext", label: "External Viva", max: 50 },
+      { key: "ext", label: "External Viva",   max: 30 },
     ],
   },
 ];
-const MAX_TOTAL = MARKS_SCHEMA.reduce(
-  (sum, sec) => sum + sec.items.reduce((s, i) => s + i.max, 0),
-  0,
-); // = 180
 
-/* Students — now with detailed marks */
-const students = [
-  makeStudent("STD-20261001", "Ali Hassan", "TEAM-20261284", {
-    oct: 9,
-    nov: 8,
-    dec: 9,
-    feb: 10,
-    mar: 9,
-    proposal: 9,
-    progress: 18,
-    iv1: 22,
-    iv2: 23,
-    ext: 45,
-  }),
-  makeStudent("STD-20261002", "Mariam Khan", "TEAM-20261284", {
-    oct: 10,
-    nov: 10,
-    dec: 9,
-    feb: 10,
-    mar: 10,
-    proposal: 10,
-    progress: 19,
-    iv1: 24,
-    iv2: 24,
-    ext: 48,
-  }),
-  makeStudent("STD-20261003", "Usman Tariq", "TEAM-20261284", {
-    oct: 8,
-    nov: 9,
-    dec: 8,
-    feb: 9,
-    mar: 9,
-    proposal: 9,
-    progress: 17,
-    iv1: 21,
-    iv2: 22,
-    ext: 43,
-  }),
-  makeStudent("STD-20261004", "Ayesha Malik", "TEAM-20261284", {
-    oct: 10,
-    nov: 10,
-    dec: 10,
-    feb: 10,
-    mar: 10,
-    proposal: 10,
-    progress: 20,
-    iv1: 25,
-    iv2: 24,
-    ext: 47,
-  }),
-  makeStudent("STD-20261005", "Bilal Ahmed", "TEAM-20261283", {
-    oct: 7,
-    nov: 8,
-    dec: 8,
-    feb: 9,
-    mar: 8,
-    proposal: 8,
-    progress: 16,
-    iv1: 20,
-    iv2: 21,
-    ext: 40,
-  }),
-  makeStudent("STD-20261006", "Fatima Noor", "TEAM-20261283", {
-    oct: 8,
-    nov: 7,
-    dec: 7,
-    feb: 8,
-    mar: 8,
-    proposal: 8,
-    progress: 15,
-    iv1: 19,
-    iv2: 20,
-    ext: 38,
-  }),
-  makeStudent("STD-20261007", "Hamza Sheikh", "TEAM-20261283", {
-    oct: 8,
-    nov: 9,
-    dec: 8,
-    feb: 8,
-    mar: 8,
-    proposal: 8,
-    progress: 16,
-    iv1: 21,
-    iv2: 20,
-    ext: 40,
-  }),
-  makeStudent("STD-20261008", "Zara Hussain", "TEAM-20261282", {
-    oct: 6,
-    nov: 7,
-    dec: 6,
-    feb: 7,
-    mar: 6,
-    proposal: 7,
-    progress: 13,
-    iv1: 16,
-    iv2: 17,
-    ext: 33,
-  }),
-  makeStudent("STD-20261009", "Omar Latif", "TEAM-20261282", {
-    oct: 6,
-    nov: 6,
-    dec: 6,
-    feb: 6,
-    mar: 6,
-    proposal: 6,
-    progress: 12,
-    iv1: 15,
-    iv2: 15,
-    ext: 34,
-  }),
-  makeStudent("STD-20261010", "Iqra Rashid", "TEAM-20261281", {
-    oct: 9,
-    nov: 10,
-    dec: 9,
-    feb: 10,
-    mar: 9,
-    proposal: 9,
-    progress: 18,
-    iv1: 23,
-    iv2: 23,
-    ext: 46,
-  }),
-  makeStudent("STD-20261011", "Saad Munir", "TEAM-20261281", {
-    oct: 9,
-    nov: 9,
-    dec: 9,
-    feb: 9,
-    mar: 9,
-    proposal: 9,
-    progress: 17,
-    iv1: 22,
-    iv2: 22,
-    ext: 43,
-  }),
-  makeStudent("STD-20261012", "Hira Aslam", "TEAM-20261280", {
-    oct: 7,
-    nov: 7,
-    dec: 7,
-    feb: 7,
-    mar: 7,
-    proposal: 7,
-    progress: 14,
-    iv1: 18,
-    iv2: 18,
-    ext: 36,
-  }),
-];
+const MAX_TOTAL = 200;
 
 function makeStudent(id, name, teamId, marks) {
   return { id, name, teamId, marks };
@@ -265,10 +59,21 @@ const studentsByTeam = (teamId) => students.filter((s) => s.teamId === teamId);
 const teamsBySupervisor = (supId) => teams.filter((t) => t.supId === supId);
 
 function generateSupId() {
-  const max = Math.max(
-    ...supervisors.map((s) => parseInt(s.id.replace("SUP-2026", ""))),
-  );
-  return "SUP-2026" + String(max + 1).padStart(4, "0");
+  const list = SUPERVISORS_DATA || [];
+  if (!list.length) {
+    const year = new Date().getFullYear();
+    return `SUP-${year}0001`;
+  }
+  const year = new Date().getFullYear();
+  const numbers = list
+    .map(s => {
+      const code = s.sup_code || "";
+      const match = code.match(/SUP-\d{4}(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    })
+    .filter(n => !isNaN(n));
+  const max = numbers.length ? Math.max(...numbers) : 0;
+  return `SUP-${year}${String(max + 1).padStart(4, "0")}`;
 }
 function generatePassword() {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -344,30 +149,55 @@ $("#mobileMenuBtn")?.addEventListener("click", () => {
 /* ════════════════════════════════════
    RENDER: SUPERVISORS
 ══════════════════════════════════════ */
-function renderSupervisors() {
+async function renderSupervisors() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const grid  = $("#supervisorCards");
+  grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-mute)">Loading...</div>`;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/supervisors", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    SUPERVISORS_DATA = data;
+    renderSupervisorCards(data);
+  } catch (err) {
+    grid.innerHTML = `<div style="padding:40px;color:#dc2626">Failed: ${err.message}</div>`;
+  }
+}
+
+function renderSupervisorCards(list) {
   const grid = $("#supervisorCards");
-  grid.innerHTML = supervisors
-    .map((s) => {
-      const assignedTeams = teamsBySupervisor(s.id).length;
-      const available = s.capacity - assignedTeams;
-      return `
-    <div class="entity-card" onclick="openSupDetail('${s.id}')">
+  if (!list.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(sup => `
+    <div class="entity-card" onclick="openSupDetail('${sup._id}')">
       <div class="entity-card-head">
-        <div class="entity-avatar">${initials(s.name)}</div>
+        <div class="entity-avatar">${initials(sup.name)}</div>
         <div class="entity-info">
-          <strong>${s.name}</strong>
-          <p>${s.email}</p>
+          <strong>${sup.name}</strong>
+          <p>${sup.email}</p>
         </div>
       </div>
-      <div style="margin-bottom:10px"><span class="id-pill">${s.id}</span></div>
+      <div style="margin-bottom:12px"><span class="id-pill">${sup.sup_code || "—"}</span></div>
       <div class="entity-stats">
-        <div class="entity-stat-cell"><strong>${assignedTeams}</strong><span>Teams</span></div>
-        <div class="entity-stat-cell"><strong>${available}</strong><span>Available</span></div>
+        <div class="entity-stat-cell">
+          <strong>${sup.teamCount || 0}</strong>
+          <span>Teams</span>
+        </div>
+        <div class="entity-stat-cell">
+          <strong>${sup.designation || "Lecturer"}</strong>
+          <span>Designation</span>
+        </div>
       </div>
-      <div style="text-align:center;font-size:.72rem;color:var(--secondary);font-weight:700">Click to view teams →</div>
-    </div>`;
-    })
-    .join("");
+      <div style="text-align:center;font-size:.72rem;color:var(--secondary);font-weight:700;margin-top:10px">
+        Click to view teams →
+      </div>
+    </div>`).join("");
 }
 /* ════════════════════════════════════
    DISPLAY LOGGED-IN ADMIN INFO
@@ -403,108 +233,159 @@ function displayAdminInfo() {
 /* ════════════════════════════════════
    SUPERVISOR DETAIL VIEW
 ══════════════════════════════════════ */
-function openSupDetail(supId) {
-  const sup = supById(supId);
-  const myTeams = teamsBySupervisor(supId);
-  const totalStudents = myTeams.reduce(
-    (sum, t) => sum + studentsByTeam(t.id).length,
-    0,
-  );
+async function openSupDetail(supId) {
+  const admin = JSON.parse(localStorage.getItem("admin"));
 
-  let html = `
-    <div class="sup-detail-header">
-      <div class="sup-detail-avatar">${initials(sup.name)}</div>
-      <div class="sup-detail-info">
-        <h2>${sup.name}</h2>
-        <p>${sup.email}</p>
-        <div class="sup-detail-stats">
-          <div class="sup-detail-stat"><strong>${sup.id}</strong></div>
-          <div class="sup-detail-stat">📋 <strong>${myTeams.length}</strong> Teams</div>
-          <div class="sup-detail-stat">👥 <strong>${totalStudents}</strong> Students</div>
-        </div>
-      </div>
-    </div>
-  `;
+  // Show detail view immediately with loading state
+  $$(".view").forEach(v => v.classList.remove("active"));
+  $("#view-sup-detail").classList.add("active");
+  $("#supDetailContent").innerHTML = `
+    <div style="padding:60px 20px;text-align:center;color:var(--text-mute)">
+      Loading supervisor details...
+    </div>`;
 
-  if (myTeams.length === 0) {
-    html += `
-      <div class="dash-panel">
-        <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
-          <p>No teams assigned to this supervisor yet.</p>
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/supervisors/${supId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    const sup    = data.supervisor;
+    const groups = data.groups || [];
+    const totalStudents = groups.reduce((sum, g) => {
+      return sum + (g.members?.length || 0) + (g.leader ? 1 : 0);
+    }, 0);
+
+    let html = `
+      <div class="sup-detail-header">
+        <div class="sup-detail-avatar">${initials(sup.name)}</div>
+        <div class="sup-detail-info">
+          <h2>${sup.name}</h2>
+          <p>${sup.email}</p>
+          <div class="sup-detail-stats">
+            <div class="sup-detail-stat">
+              <strong>${sup.sup_code || "—"}</strong>
+              <span>SUP ID</span>
+            </div>
+            <div class="sup-detail-stat">
+              <strong>${sup.designation || "Lecturer"}</strong>
+              <span>Designation</span>
+            </div>
+            <div class="sup-detail-stat">
+              📋 <strong>${groups.length}</strong> Teams
+            </div>
+            <div class="sup-detail-stat">
+              👥 <strong>${totalStudents}</strong> Students
+            </div>
+          </div>
         </div>
       </div>`;
-  } else {
-    html += myTeams.map((team) => renderTeamBlock(team)).join("");
+
+    if (groups.length === 0) {
+      html += `
+        <div class="dash-panel">
+          <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
+            <p>No teams assigned to this supervisor yet.</p>
+          </div>
+        </div>`;
+    } else {
+      html += groups.map(group => renderTeamBlockFromDB(group)).join("");
+    }
+
+    $("#supDetailContent").innerHTML = html;
+
+  } catch (err) {
+    console.error(err);
+    $("#supDetailContent").innerHTML = `
+      <div style="padding:40px;text-align:center;color:#dc2626">
+        Failed to load: ${err.message}
+      </div>`;
   }
 
-  $("#supDetailContent").innerHTML = html;
-  $$(".view").forEach((v) => v.classList.remove("active"));
-  $("#view-sup-detail").classList.add("active");
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function renderTeamBlock(team) {
-  const members = studentsByTeam(team.id);
-  if (members.length === 0) {
+// Render team block using real DB data
+function renderTeamBlockFromDB(group) {
+  const leader  = group.leader;
+  const members = group.members || [];
+  const allStudents = [
+    leader ? { ...leader, role: "Leader" } : null,
+    ...members.map(m => ({ ...m, role: "Member" }))
+  ].filter(Boolean);
+
+  if (allStudents.length === 0) {
     return `
       <div class="team-block">
         <div class="team-block-head">
           <div class="team-block-head-left">
-            <div class="team-avatar">${team.id.slice(-2)}</div>
+            <div class="team-avatar">${(group.group_code || group.team_code || "—").slice(-2)}</div>
             <div>
-              <h3>${team.id}</h3>
-              <p>${team.members} members · No students linked</p>
+              <h3>${group.group_code || group.team_code || "—"}</h3>
+              <p>${group.project_title || "—"} · No students linked</p>
             </div>
           </div>
         </div>
       </div>`;
   }
 
-  // Build header columns from schema
-  const componentHeaders = MARKS_SCHEMA.flatMap((sec) =>
-    sec.items.map(
-      (it) =>
-        `<th title="${sec.section} · max ${it.max}">${it.label}<br><small style="color:var(--text-mute);font-weight:600">/${it.max}</small></th>`,
-    ),
+  const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
+    sec.items.map(it =>
+      `<th title="${sec.section} · max ${it.max}">${it.label}<br>
+       <small style="color:var(--text-mute);font-weight:600">/${it.max}</small></th>`
+    )
   ).join("");
 
-  // Build rows for each student
-  const rows = members
-    .map((s) => {
-      const cells = MARKS_SCHEMA.flatMap((sec) =>
-        sec.items.map(
-          (it) => `
+  const rows = allStudents.map(s => {
+    const cells = MARKS_SCHEMA.flatMap(sec =>
+      sec.items.map(it => `
         <td class="mark-input-cell">
           <input type="number" min="0" max="${it.max}"
             class="mark-input"
-            data-student="${s.id}" data-key="${it.key}" data-max="${it.max}"
-            value="${s.marks[it.key] ?? 0}"
+            data-student="${s._id}"
+            data-key="${it.key}"
+            data-max="${it.max}"
+            value=""
+            placeholder="—"
             oninput="onMarkChange(this)">
-        </td>`,
-        ),
-      ).join("");
-      return `
+        </td>`)
+    ).join("");
+
+    return `
       <tr>
         <td><strong>${s.name}</strong></td>
-        <td><span class="id-pill">${s.id}</span></td>
+        <td><span class="id-pill">${s.student_code || s._id}</span></td>
+        <td><span class="id-pill" style="background:rgba(191,161,74,.1);color:#9a7e2a">
+          ${s.role}
+        </span></td>
         ${cells}
-        <td><span class="mark-total-display" id="total-${s.id}">${studentTotal(s)}<span class="out">/${MAX_TOTAL}</span></span></td>
+        <td><span class="mark-total-display" id="total-${s._id}">
+          0<span class="out">/${MAX_TOTAL}</span>
+        </span></td>
       </tr>`;
-    })
-    .join("");
+  }).join("");
 
   return `
     <div class="team-block">
       <div class="team-block-head">
         <div class="team-block-head-left">
-          <div class="team-avatar">${team.id.slice(-2)}</div>
+          <div class="team-avatar">${(group.group_code || "—").slice(-2)}</div>
           <div>
-            <h3>${team.id}</h3>
-            <p>${members.length} members · Max total: ${MAX_TOTAL} marks</p>
+            <h3>${group.group_code || group.team_code || "—"}</h3>
+            <p>${group.project_title || "—"} · ${allStudents.length} students</p>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="saveTeamMarks('${team.id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        <button class="btn btn-primary btn-sm"
+                onclick="saveTeamMarks('${group._id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
           Save Changes
         </button>
       </div>
@@ -514,6 +395,7 @@ function renderTeamBlock(team) {
             <tr>
               <th>Student</th>
               <th>ID</th>
+              <th>Role</th>
               ${componentHeaders}
               <th>Total</th>
             </tr>
@@ -521,13 +403,135 @@ function renderTeamBlock(team) {
           <tbody>${rows}</tbody>
         </table>
       </div>
-      <div class="team-marks-foot">
-        <div class="team-marks-foot-info">
-          ✓ Changes are validated in real time. Click <strong>Save Changes</strong> to commit.
-        </div>
-      </div>
-    </div>
-  `;
+    </div>`;
+}
+
+async function renderTeams() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const tbody = $("#teamsTable tbody");
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/groups", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+
+    const ct = res.headers.get("content-type") || "";
+    if (!ct.includes("application/json")) {
+      throw new Error("Server returned HTML — route not registered");
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    TEAMS_DATA = Array.isArray(data) ? data : data.groups || [];
+    renderTeamsTable(TEAMS_DATA);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc2626;padding:30px">${err.message}</td></tr>`;
+  }
+}
+
+function renderTeamsTable(list) {
+  const tbody = $("#teamsTable tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-mute)">No teams found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(g => {
+    const sup      = g.supervisor;
+    const supName  = sup ? sup.name : "Unassigned";
+    const teamCode = g.group_code || g.team_code || "—";
+    return `
+      <tr>
+        <td><span class="id-pill gold">${teamCode}</span></td>
+        <td>${g.project_title || "—"}</td>
+        <td><span style="font-weight:600;color:var(--text)">${supName}</span></td>
+        <td>
+          <div class="action-row">
+            <button class="icon-action" title="Reassign supervisor"
+                    onclick="event.stopPropagation();openReassignModal('${g._id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+            </button>
+            <button class="icon-action" title="View team details"
+                    onclick="event.stopPropagation();openTeamDetail('${g._id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+}
+
+// Open team detail — fetches the team's supervisor and shows their detail page
+async function openTeamDetail(teamId) {
+  const team = TEAMS_DATA.find(t => t._id === teamId);
+  if (!team) {
+    toast("Error", "Team not found", "error");
+    return;
+  }
+  if (team.supervisor && team.supervisor._id) {
+    openSupDetail(team.supervisor._id);
+  } else {
+    toast("No supervisor", "This team has no supervisor assigned yet", "warn");
+  }
+}
+
+
+let reassignTeamId = null;
+
+function openReassignModal(teamId) {
+  reassignTeamId = teamId;
+  const team = TEAMS_DATA.find(t => t._id === teamId);
+  if (!team) return;
+
+  const currentSup = team.supervisor;
+  $("#reassignTeamName").textContent = team.group_code || team.team_code;
+  $("#currentSup").value = currentSup
+    ? `${currentSup.name} (${currentSup.sup_code})`
+    : "Unassigned";
+
+  const select = $("#newSup");
+  select.innerHTML = '<option value="">— Choose a supervisor —</option>' +
+    SUPERVISORS_DATA
+      .filter(s => s._id !== currentSup?._id)
+      .map(s => `<option value="${s._id}">${s.name} · ${s.sup_code}</option>`)
+      .join("");
+
+  $("#reassignModal").classList.add("open");
+}
+
+async function confirmReassign() {
+  const newSupId = $("#newSup").value;
+  if (!newSupId) {
+    toast("Select a supervisor", "Please choose a new supervisor", "error");
+    return;
+  }
+
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/groups/${reassignTeamId}/reassign`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
+      body: JSON.stringify({ supervisor_id: newSupId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    closeReassignModal();
+    await renderTeams();
+    await renderSupervisors();
+    toast("Supervisor reassigned", `Updated successfully`, "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
 }
 
 /* Live mark validation + total update */
@@ -562,72 +566,218 @@ function saveTeamMarks(teamId) {
 }
 
 /* ════════════════════════════════════
-   RENDER: TEAMS
-══════════════════════════════════════ */
-function renderTeams() {
-  const tbody = $("#teamsTable tbody");
-  tbody.innerHTML = teams
-    .map((t) => {
-      const sup = supById(t.supId);
-      return `
-    <tr>
-      <td><span class="id-pill gold">${t.id}</span></td>
-      <td>${t.members}</td>
-      <td><span style="font-weight:600;color:var(--text)">${sup.name}</span></td>
-      <td>
-        <div class="action-row">
-          <button class="icon-action" onclick="openReassignModal('${t.id}')" title="Reassign supervisor">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          </button>
-          <button class="icon-action" onclick="openSupDetail('${t.supId}')" title="View team details">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-      </td>
-    </tr>`;
-    })
-    .join("");
-}
-
-/* ════════════════════════════════════
    RENDER: STUDENTS
 ══════════════════════════════════════ */
-function renderStudents() {
+async function renderStudents() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = $("#studentsTable tbody");
-  tbody.innerHTML = students
-    .map((s) => {
-      const team = teamById(s.teamId);
-      const sup = supById(team.supId);
-      return `
-    <tr>
-      <td><div class="team-info"><strong>${s.name}</strong><span>Semester 7</span></div></td>
-      <td><span class="id-pill">${s.id}</span></td>
-      <td>${sup.name}</td>
-      <td><strong style="color:var(--primary);font-family:monospace">${studentTotal(s)}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span></strong></td>
-      <td><button class="icon-action" onclick="openSupDetail('${team.supId}')" title="View / edit marks">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button></td>
-    </tr>`;
-    })
-    .join("");
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/admin/students", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    STUDENTS_DATA = Array.isArray(data) ? data : data.students || [];
+    renderStudentsTable(STUDENTS_DATA);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:30px">${err.message}</td></tr>`;
+  }
 }
 
+function renderStudentsTable(list) {
+  const tbody = $("#studentsTable tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(s => {
+    const group = s.group;
+    const supId = group?.supervisor?._id || "";
+    const supName = group?.supervisor?.name || "—";
+    const totalMarks = s.total_marks || 0;
+    return `
+      <tr>
+        <td>
+          <div class="team-info">
+            <strong>${s.name}</strong>
+            <span>${s.email || ""}</span>
+          </div>
+        </td>
+        <td><span class="id-pill">${s.student_code || "—"}</span></td>
+        <td>${supName}</td>
+        <td>
+          <strong style="font-family:monospace;color:var(--primary)">
+            ${totalMarks}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span>
+          </strong>
+        </td>
+        <td>
+          <button class="icon-action" title="Edit marks"
+                  onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+        </td>
+      </tr>`;
+  }).join("");
+}
+
+function renderTeamBlockFromDB(group) {
+  const leader  = group.leader;
+  const members = group.members || [];
+  const allStudents = [
+    leader ? { ...leader, role: "Leader" } : null,
+    ...members.map(m => ({ ...m, role: "Member" }))
+  ].filter(Boolean);
+
+  if (allStudents.length === 0) {
+    return `<div class="team-block">...</div>`;
+  }
+
+  const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
+    sec.items.map(it => `
+      <th title="${sec.section} · max ${it.max}">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <span>${it.label}</span>
+          <small style="color:var(--text-mute);font-weight:600">/${it.max}</small>
+          <label class="mark-toggle" title="Enable for supervisor">
+            <input type="checkbox"
+                   class="mark-enable-toggle"
+                   data-key="${it.key}"
+                   data-group="${group._id}"
+                   onchange="toggleMarkEnabled('${group._id}','${it.key}',this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </th>`)
+  ).join("");
+
+  const rows = allStudents.map(s => {
+    const cells = MARKS_SCHEMA.flatMap(sec =>
+      sec.items.map(it => `
+        <td class="mark-input-cell">
+          <input type="number" min="0" max="${it.max}"
+            class="mark-input"
+            data-student="${s._id}"
+            data-key="${it.key}"
+            data-max="${it.max}"
+            value=""
+            placeholder="—"
+            disabled
+            oninput="onMarkChange(this)">
+        </td>`)
+    ).join("");
+
+    return `
+      <tr>
+        <td><strong>${s.name}</strong></td>
+        <td><span class="id-pill">${s.student_code || s._id}</span></td>
+        <td><span class="id-pill" style="background:rgba(191,161,74,.1);color:#9a7e2a">${s.role}</span></td>
+        ${cells}
+        <td><span class="mark-total-display" id="total-${s._id}">0<span class="out">/${MAX_TOTAL}</span></span></td>
+      </tr>`;
+  }).join("");
+
+  return `
+    <div class="team-block">
+      <div class="team-block-head">
+        <div class="team-block-head-left">
+          <div class="team-avatar">${(group.group_code || "—").slice(-2)}</div>
+          <div>
+            <h3>${group.group_code || group.team_code || "—"}</h3>
+            <p>${group.project_title || "—"} · ${allStudents.length} students</p>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="saveTeamMarks('${group._id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Save Changes
+        </button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="marks-edit-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>ID</th>
+              <th>Role</th>
+              ${componentHeaders}
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <div style="padding:12px 16px;background:rgba(191,161,74,.08);border-top:1px solid var(--border-soft);font-size:.78rem;color:var(--text-soft)">
+        💡 Toggle the switch above each column to <strong>enable that mark</strong> so the supervisor can fill it in.
+      </div>
+    </div>`;
+}
+
+function toggleMarkEnabled(groupId, key, enabled) {
+  // Enable/disable all input fields for this column in this team
+  const inputs = document.querySelectorAll(
+    `.mark-input[data-key="${key}"]`
+  );
+  inputs.forEach(inp => {
+    inp.disabled = !enabled;
+    if (!enabled) inp.value = "";
+  });
+  toast(
+    enabled ? "Mark enabled" : "Mark disabled",
+    `${key} is now ${enabled ? "open for supervisor entry" : "locked"}`,
+    enabled ? "success" : "warn"
+  );
+}
 /* ════════════════════════════════════
    RENDER: MARKS (overview)
 ══════════════════════════════════════ */
-function renderMarks() {
+// ✅ NEW renderMarks — fetches from DB instead of hardcoded array
+async function renderMarks() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = $("#marksTable tbody");
   if (!tbody) return;
-  tbody.innerHTML = students
-    .map(
-      (s) => `
-    <tr>
-      <td><strong>${s.name}</strong></td>
-      <td><span class="id-pill">${s.id}</span></td>
-      <td><strong style="font-family:monospace;color:var(--primary)">${studentTotal(s)}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span></strong></td>
-    </tr>`,
-    )
-    .join("");
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/admin/students", {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    const students = Array.isArray(data) ? data : data.students || [];
+
+    if (!students.length) {
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text-mute)">No students yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = students.map(s => `
+      <tr>
+        <td><strong>${s.name}</strong></td>
+        <td><span class="id-pill">${s.student_code || "—"}</span></td>
+        <td>
+          <strong style="font-family:monospace;color:var(--primary)">
+            — <span style="color:var(--text-mute);font-weight:500">/ 200</span>
+          </strong>
+        </td>
+      </tr>`
+    ).join("");
+
+  } catch (err) {
+    console.error(err);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="3" style="color:#dc2626;text-align:center;padding:20px">Failed to load marks: ${err.message}</td></tr>`;
+  }
 }
 
 /* ════════════════════════════════════
@@ -638,9 +788,8 @@ function openSupervisorModal() {
   $("#supName").value = "";
   $("#supEmail").value = "";
   $("#supPassword").value = "";
-  $("#forceChange").checked = true;
-  $("#pwdHelp").textContent =
-    "Minimum 8 characters · Will be sent to supervisor via email";
+  if ($("#forceChange")) $("#forceChange").checked = true;
+  $("#pwdHelp").textContent = "Minimum 8 characters · Will be sent to supervisor via email";
   $("#pwdHelp").className = "form-help";
   $("#supervisorModal").classList.add("open");
 }
@@ -704,26 +853,6 @@ async function submitSupervisor() {
 /* ════════════════════════════════════
    REASSIGN MODAL
 ══════════════════════════════════════ */
-let reassignTeamId = null;
-function openReassignModal(teamId) {
-  reassignTeamId = teamId;
-  const team = teamById(teamId);
-  const currentSupervisor = supById(team.supId);
-  $("#reassignTeamName").textContent = team.id;
-  $("#currentSup").value =
-    `${currentSupervisor.name} (${currentSupervisor.id})`;
-  const select = $("#newSup");
-  select.innerHTML =
-    '<option value="">— Choose a supervisor —</option>' +
-    supervisors
-      .filter((s) => s.id !== team.supId)
-      .map(
-        (s) =>
-          `<option value="${s.id}">${s.name} · ${teamsBySupervisor(s.id).length}/${s.capacity} teams</option>`,
-      )
-      .join("");
-  $("#reassignModal").classList.add("open");
-}
 function closeReassignModal() {
   $("#reassignModal").classList.remove("open");
 }
@@ -758,11 +887,55 @@ $$(".modal-overlay").forEach((overlay) => {
   });
 });
 
+let SUPERVISORS_DATA = [];
+let TEAMS_DATA = [];
+let STUDENTS_DATA = [];
+
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape")
     $$(".modal-overlay.open").forEach((m) => m.classList.remove("open"));
 });
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("searchSupervisors")?.addEventListener("input", e => {
+    filterSupervisors(e.target.value);
+  });
+  document.getElementById("searchTeams")?.addEventListener("input", e => {
+    filterTeams(e.target.value);
+  });
+  document.getElementById("searchStudents")?.addEventListener("input", e => {
+    filterStudents(e.target.value);
+  });
+});
 
+function filterSupervisors(query) {
+  const q = (query || "").trim().toLowerCase();
+  const filtered = SUPERVISORS_DATA.filter(s =>
+    s.name?.toLowerCase().includes(q) ||
+    s.email?.toLowerCase().includes(q) ||
+    s.sup_code?.toLowerCase().includes(q)
+  );
+  renderSupervisorCards(filtered);
+}
+
+function filterTeams(query) {
+  const q = (query || "").trim().toLowerCase();
+  const filtered = TEAMS_DATA.filter(t =>
+    (t.group_code || t.team_code || "").toLowerCase().includes(q) ||
+    (t.project_title || "").toLowerCase().includes(q) ||
+    (t.supervisor?.name || "").toLowerCase().includes(q)
+  );
+  renderTeamsTable(filtered);
+}
+
+function filterStudents(query) {
+  const q = (query || "").trim().toLowerCase();
+  const filtered = STUDENTS_DATA.filter(s =>
+    s.name?.toLowerCase().includes(q) ||
+    s.email?.toLowerCase().includes(q) ||
+    s.student_code?.toLowerCase().includes(q)
+  );
+  renderStudentsTable(filtered);
+}
 /* ════════════════════════════════════
    FETCH REAL DASHBOARD STATS
 ══════════════════════════════════════ */
@@ -867,17 +1040,18 @@ function updateMarksSummary(marksData) {
 
 /* ════════════════════════════════════ INIT ══════════════════════════════════════ */
 async function initDashboard() {
-  // Display admin info first
   displayAdminInfo();
-  
-  // Fetch real stats
   await fetchDashboardStats();
-  
-  // Render data
-  renderSupervisors();
-  renderTeams();
-  renderStudents();
-  renderMarks();
+  await renderSupervisors();
+  await renderTeams();
+  await renderStudents();
 }
 
 initDashboard();
+
+function logout() {
+  if (confirm("Are you sure you want to logout?")) {
+    localStorage.removeItem("admin");
+    window.location.href = "../../Admin/login.html";
+  }
+}

@@ -1,7 +1,7 @@
 const sup = JSON.parse(localStorage.getItem("supervisor"));
 if (!sup) window.location.href = "login.html";
 if (sup.force_password_change) window.location.href = "change-password.html";
-const SUPERVISOR = { id: "SUP-20260001", name: "Dr. Aftab Ahmad" };
+const SUPERVISOR = { id: sup.sup_code, name: sup.name };
 
 const MARK_COMPONENTS = [
   {
@@ -101,8 +101,13 @@ let TEAMS = [
   },
 ];
 
-document.getElementById("nav-sup-name").textContent = sup.name || "Supervisor";
-document.getElementById("nav-sup-code").textContent = sup.sup_code || "";
+const welcomeName = document.getElementById("welcome-name");
+const welcomeDes  = document.getElementById("welcome-designation");
+const welcomeId   = document.getElementById("welcome-sup-id");
+
+if (welcomeName) welcomeName.textContent = `Welcome back, ${sup.name} 👋`;
+if (welcomeDes)  welcomeDes.textContent  = `${sup.designation || "Faculty Member"} · CS Department`;
+if (welcomeId)   welcomeId.textContent   = sup.sup_code || "—";
 
 function studentTotal(s) {
   let t = 0;
@@ -468,3 +473,57 @@ function toast(msg, type) {
 }
 
 renderDashboard();
+
+/* ════════════════════════════════════
+   SIDEBAR TOGGLE (mobile)
+════════════════════════════════════ */
+function toggleSidebar() {
+  const sidebar  = document.getElementById("sidebar") 
+                 || document.querySelector(".sidebar");
+  const overlay  = document.getElementById("sidebarOverlay");
+  const hamburger = document.getElementById("hamburgerBtn");
+
+  const isOpen = sidebar.classList.contains("open");
+
+  if (isOpen) {
+    closeSidebar();
+  } else {
+    sidebar.classList.add("open");
+    overlay.classList.add("show");
+    hamburger.classList.add("open");
+    document.body.style.overflow = "hidden"; // prevent scroll behind
+  }
+}
+
+function closeSidebar() {
+  const sidebar   = document.querySelector(".sidebar");
+  const overlay   = document.getElementById("sidebarOverlay");
+  const hamburger = document.getElementById("hamburgerBtn");
+
+  sidebar.classList.remove("open");
+  overlay.classList.remove("show");
+  hamburger.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+// Close sidebar when a tab button is clicked on mobile
+document.querySelectorAll(".sb-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (window.innerWidth <= 900) {
+      closeSidebar();
+    }
+  });
+});
+const navName = document.getElementById("nav-sup-name");
+const navCode = document.getElementById("nav-sup-code");
+if (navName) navName.textContent = sup.name     || "Supervisor";
+if (navCode) navCode.textContent = sup.sup_code || "";
+// Close sidebar on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSidebar();
+});
+
+function logout() {
+  localStorage.removeItem("supervisor");
+  window.location.href = "/Client/Auth/login.html"; 
+}
