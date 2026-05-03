@@ -4,14 +4,22 @@ import mongoose from "mongoose";
 import Admin from "./Models/admin.js";
 
 mongoose.connect(process.env.MONGO_URI).then(async () => {
-  await Admin.create({
+  // Delete existing admin first
+  await Admin.deleteOne({ email: "aftab.ahmed.khan@awkum.edu.pk" });
+  
+  // Create new admin - the password will be auto-hashed by the model
+  const admin = new Admin({
     name: "Aftab Ahmed Khan",
-    email: "aftab.ahmed.khan@awkum.edu.pk",
+    email: "awkum.fyp.team@gmail.com",
     password: "aftabakhan",
+    role: "admin" // Make sure role is set!
   });
-  console.log("Admin created ");
+  
+  await admin.save(); // This triggers the pre-save hook that hashes the password
+  
+  console.log("Admin created successfully!");
   process.exit();
 }).catch(err => {
-  console.log(err);
+  console.log("Error:", err);
   process.exit(1);
 });

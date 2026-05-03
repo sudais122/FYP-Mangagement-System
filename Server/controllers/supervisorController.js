@@ -20,6 +20,40 @@ export const getAllSupervisors = async (req, res) => {
   }
 };
 
+// Get all available supervisors
+// ── GET AVAILABLE SUPERVISORS (for student setup — any logged-in user) ──
+export const getAvailableSupervisors = async (req, res) => {
+  try {
+    const supervisors = await Supervisor.find()
+      .select("name email designation research_areas office office_hours sup_code max_groups")
+      .sort({ name: 1 });
+
+    // Count how many groups each supervisor already has
+    const result = await Promise.all(
+      supervisors.map(async (sup) => {
+        const teamCount = await Group.countDocuments({ supervisor: sup._id });
+        const available = teamCount < (sup.max_groups || 5);
+        return {
+          id:             sup._id,
+          sup_code:       sup.sup_code,
+          name:           sup.name,
+          email:          sup.email,
+          designation:    sup.designation || "Assistant Professor",
+          research_areas: sup.research_areas || [],
+          office:         sup.office || "",
+          office_hours:   sup.office_hours || "",
+          teamCount,
+          available,
+        };
+      })
+    );
+
+    res.json({ success: true, supervisors: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ── CREATE SUPERVISOR (Admin) ──────────────────────────────────
 export const createSupervisor = async (req, res) => {
   const { name, email, password } = req.body;
@@ -61,6 +95,34 @@ export const createSupervisor = async (req, res) => {
       }
     });
 
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//Force sup to cahnge his pasword after ist login
+export const changePassword = async (req, res) => {
+  const { newPassword, confirmPassword } = req.body;
+
+  if (!newPassword || !confirmPassword) {
+    return res.status(400).json({ message: "Both fields are required" });
+  }
+
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match" });
+  }
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ message: "Password must be at least 8 characters" });
+  }
+
+  try {
+    const supervisor = await Supervisor.findById(req.user.id);
+    supervisor.password = newPassword; // pre-save hook will hash it
+    supervisor.force_password_change = false; // ← clear the flag
+    await supervisor.save();
+
+    res.json({ message: "Password changed successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

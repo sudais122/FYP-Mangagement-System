@@ -1,19 +1,34 @@
+// routes/adminRoutes.js
 import express from "express";
-import {
-  addSupervisor,
-  getDashboardStats,
+import { 
+  addSupervisor, 
+  getDashboardStats, 
   getAllStudents,
+  getAllSupervisors,
+  getAllGroups,
   adminSaveMarks,
-  deleteSupervisor,
+  deleteSupervisor 
 } from "../controllers/adminController.js";
-import { protect, adminOnly } from "../middleware/auth.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get ("/stats",              protect, adminOnly, getDashboardStats);
-router.post("/supervisor",         protect, adminOnly, addSupervisor);
-router.get ("/students",           protect, adminOnly, getAllStudents);
-router.post("/marks",              protect, adminOnly, adminSaveMarks);
-router.delete("/supervisor/:id",   protect, adminOnly, deleteSupervisor);
+// Dashboard stats
+router.get("/stats", protect, adminOnly, getDashboardStats);
+
+// Supervisors
+router.post("/supervisors", protect, adminOnly, addSupervisor);
+router.get("/supervisors", protect, adminOnly, getAllSupervisors);
+router.delete("/supervisors/:id", protect, adminOnly, deleteSupervisor);
+router.post("/supervisor", protect, adminOnly, addSupervisor);
+
+// Students
+router.get("/students", protect, adminOnly, getAllStudents);
+
+// Groups/Teams
+router.get("/groups", protect, adminOnly, getAllGroups);
+
+// Marks
+router.put("/marks", protect, adminOnly, adminSaveMarks);
 
 export default router;

@@ -363,7 +363,6 @@ async function handleLogin(e) {
   if (!email || !password) {
     btn.style.background = "#DC2626";
     btn.innerHTML = "⚠ Please fill all fields";
-
     setTimeout(() => {
       btn.style.background = "";
       btn.innerHTML = "Sign In";
@@ -377,52 +376,71 @@ async function handleLogin(e) {
   try {
     const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email,
-        password: password,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
 
     const data = await res.json();
-
-    console.log("full response:", data);
-    console.log("user object:", data.user);
 
     if (!res.ok) {
       throw new Error(data.message || "Login failed");
     }
 
-    // Save user
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
+    btn.style.background = "#16A34A";
+    btn.innerHTML = "Login Successful";
+
+    if (data.role === "student") {
+      localStorage.setItem("user", JSON.stringify({
         id: data._id,
         name: data.name,
         student_code: data.student_code,
         token: data.token,
-      }),
-    );
+      }));
+      setTimeout(() => {
+        window.location.href = "../Dashboards/Student/index.html";
+      }, 1000);
 
-    // Success UI
-    btn.style.background = "#16A34A";
-    btn.innerHTML = "Login Successful";
+    } else if (data.role === "supervisor") {
+      localStorage.setItem("supervisor", JSON.stringify({
+        id: data._id,
+        name: data.name,
+        sup_code: data.sup_code,
+        token: data.token,
+        force_password_change: data.force_password_change,
+      }));
+      setTimeout(() => {
+        if (data.force_password_change) {
+          window.location.href = "../Dashboards/Supervisor/change-password.html";
+        } else {
+          window.location.href = "../Dashboards/Supervisor/index.html";
+        }
+      }, 1000);
 
-    setTimeout(() => {
-      window.location.href = "../Dashboards/Student/index.html";
-    }, 1000);
+    } else if (data.role === "admin") {
+      localStorage.setItem("admin", JSON.stringify({
+        id: data._id,
+        name: data.name,
+        email: data.email,
+        token: data.token,
+      }));
+      setTimeout(() => {
+        window.location.href = "../Dashboards/Admin/index.html";
+      }, 1000);
+
+    } else {
+      btn.style.background = "#DC2626";
+      btn.innerHTML = "⚠ Access denied";
+      btn.disabled = false;
+    }
+
   } catch (err) {
     console.log(err);
     btn.style.background = "#DC2626";
     btn.innerHTML = "⚠ " + err.message;
-
     setTimeout(() => {
       btn.style.background = "";
       btn.innerHTML = "Sign In";
     }, 2500);
-  } finally {
     btn.disabled = false;
   }
 }

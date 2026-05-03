@@ -1,3 +1,6 @@
+const sup = JSON.parse(localStorage.getItem("supervisor"));
+if (!sup) window.location.href = "login.html";
+if (sup.force_password_change) window.location.href = "change-password.html";
 const SUPERVISOR = { id: "SUP-20260001", name: "Dr. Aftab Ahmad" };
 
 const MARK_COMPONENTS = [
@@ -97,6 +100,9 @@ let TEAMS = [
     ],
   },
 ];
+
+document.getElementById("nav-sup-name").textContent = sup.name || "Supervisor";
+document.getElementById("nav-sup-code").textContent = sup.sup_code || "";
 
 function studentTotal(s) {
   let t = 0;
@@ -366,7 +372,70 @@ function updateTotal(sid) {
   if (a) a.textContent = total;
   if (b) b.textContent = total;
 }
+function openChangePwModal() {
+  const existing = document.getElementById("change-pw-modal");
+  if (existing) existing.remove();
 
+  document.body.insertAdjacentHTML("beforeend", `
+    <div id="change-pw-modal" style="position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:9999">
+      <div style="background:var(--surface);border-radius:18px;padding:36px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.12)">
+        <h3 style="margin-bottom:20px;color:var(--primary)">Change Password</h3>
+        <input type="password" id="cpw-new" placeholder="New password (min 8 chars)"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:12px;font-size:.9rem;box-sizing:border-box"/>
+        <input type="password" id="cpw-confirm" placeholder="Confirm new password"
+          style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;margin-bottom:16px;font-size:.9rem;box-sizing:border-box"/>
+        <p id="cpw-err" style="color:#dc2626;font-size:.82rem;margin-bottom:12px;display:none"></p>
+        <div style="display:flex;gap:10px">
+          <button onclick="document.getElementById('change-pw-modal').remove()"
+            style="flex:1;padding:10px;border:1.5px solid var(--border);border-radius:10px;background:none;cursor:pointer;font-weight:600">Cancel</button>
+          <button onclick="submitChangePw()"
+            style="flex:1;padding:10px;background:var(--primary);color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:700">Update</button>
+        </div>
+      </div>
+    </div>`);
+}
+
+async function submitChangePw() {
+  const newPw = document.getElementById("cpw-new").value;
+  const confirmPw = document.getElementById("cpw-confirm").value;
+  const err = document.getElementById("cpw-err");
+  err.style.display = "none";
+
+  if (!newPw || newPw.length < 8) {
+    err.textContent = "Minimum 8 characters";
+    err.style.display = "block";
+    return;
+  }
+  if (newPw !== confirmPw) {
+    err.textContent = "Passwords do not match";
+    err.style.display = "block";
+    return;
+  }
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/supervisors/change-password", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${sup.token}`
+      },
+      body: JSON.stringify({ newPassword: newPw, confirmPassword: confirmPw })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      err.textContent = data.message || "Failed";
+      err.style.display = "block";
+      return;
+    }
+
+    document.getElementById("change-pw-modal").remove();
+    toast("Password updated successfully ✓", "green");
+  } catch {
+    err.textContent = "Server error";
+    err.style.display = "block";
+  }
+}
 function saveMarks(teamId, sid) {
   const team = TEAMS.find((t) => t.teamId === teamId),
     student = team?.students.find((s) => s.id === sid);

@@ -5,7 +5,6 @@ const supervisorSchema = new mongoose.Schema({
   sup_code: {
     type: String,
     unique: true,
-    // e.g. SUP-20260001
   },
   name: {
     type: String,
@@ -26,16 +25,6 @@ const supervisorSchema = new mongoose.Schema({
   department: {
     type: String,
     default: "Computer Science",
-  },
-  designation: {
-    type: String, // e.g. "Associate Professor"
-  },
-  research_areas: [String],
-  office: String,
-  office_hours: String,
-  max_groups: {
-    type: Number,
-    default: 5,
   },
   role: {
     type: String,

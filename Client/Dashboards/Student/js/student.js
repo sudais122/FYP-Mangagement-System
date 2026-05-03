@@ -42,48 +42,6 @@ const STATE = {
 };
 
 /* ══════════════════════════════════
-   SUPERVISORS DATA
-══════════════════════════════════ */
-const SUPERVISORS = [
-  {
-    id: "SUP-001",
-    name: "Dr. Aftab Ahmad",
-    dept: "FYP Coordinator · Dept. of Computer Science",
-    tags: ["AI", "Machine Learning", "Computer Vision", "NLP"],
-  },
-  {
-    id: "SUP-002",
-    name: "Dr. Nadeem Iqbal",
-    dept: "Head, CS Department",
-    tags: ["Networks", "Security", "IoT"],
-  },
-  {
-    id: "SUP-003",
-    name: "Dr. Sara Khan",
-    dept: "Assistant Professor",
-    tags: ["Web Dev", "Cloud", "Software Eng"],
-  },
-  {
-    id: "SUP-004",
-    name: "Dr. Bilal Hussain",
-    dept: "Associate Professor",
-    tags: ["Data Science", "Big Data", "Analytics"],
-  },
-  {
-    id: "SUP-005",
-    name: "Dr. Zara Mahmood",
-    dept: "Lecturer, CS",
-    tags: ["Mobile Dev", "Flutter", "Android"],
-  },
-  {
-    id: "SUP-006",
-    name: "Dr. Faisal Mehmood",
-    dept: "Associate Professor",
-    tags: ["Cybersecurity", "Cryptography"],
-  },
-];
-
-/* ══════════════════════════════════
    MARKS DATA TEMPLATE
 ══════════════════════════════════ */
 const MARKS_TEMPLATE = [
@@ -152,7 +110,30 @@ function ensureMarksExist() {
 /* ══════════════════════════════════
    API CALLS
 ══════════════════════════════════ */
+let SUPERVISORS = []; // Initialize as empty array
 
+async function loadSupervisors() {
+  try {
+    const response = await fetch(`${API_BASE}/supervisors/available`, {
+      method: "GET",
+      headers: API_HEADERS, 
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to load supervisors");
+    }
+
+    SUPERVISORS = data.supervisors;
+    return SUPERVISORS;
+
+  } catch (error) {
+    console.error("Supervisor load error:", error);
+    toast("Failed to load supervisors: " + error.message, "red");
+    return [];
+  }
+}
 // Load dashboard data on page load
 async function loadDashboard() {
   try {
@@ -207,15 +188,26 @@ async function loadDashboard() {
       }
 
       // Populate supervisor
-      if (data.group.supervisor) {
-        STATE.selectedSupervisor = data.group.supervisor._id;
-        STATE.supervisorData = data.group.supervisor;
-      }
-
+      // Populate supervisor
+if (data.group.supervisor) {
+  STATE.selectedSupervisor = data.group.supervisor._id;
+  // ✅ Map all fields properly
+  STATE.supervisorData = {
+    _id:            data.group.supervisor._id,
+    name:           data.group.supervisor.name,
+    email:          data.group.supervisor.email,
+    designation:    data.group.supervisor.designation || "Faculty Member",
+    research_areas: data.group.supervisor.research_areas || [],
+    office:         data.group.supervisor.office || "CS Department",
+    office_hours:   data.group.supervisor.office_hours || "Contact supervisor",
+    sup_code:       data.group.supervisor.sup_code,
+  };
+}
       // Update UI
       updateDashboardUI();
       renderTeamTab();
       updateBannerForTeam();
+      renderSupervisorTab();
     } else {
       // User is NOT part of a team - show setup
       setTimeout(() => openSetup(), 500);
@@ -262,7 +254,7 @@ async function createTeamAPI() {
         project_title: STATE.projectTitle,
         category: STATE.category,
         member_codes: memberCodes,
-        // supervisor_id: STATE.selectedSupervisor,
+        supervisor_id: STATE.selectedSupervisor,
       }),
     });
 
@@ -858,9 +850,12 @@ async function openSetup() {
 
   setupOverlay.style.display = "flex";
 
+  // Load supervisors first
+  await loadSupervisors();
+
   // Get next team ID from backend
   const nextTeamId = await getNextTeamId();
-  STATE.teamId = nextTeamId; // Store it
+  STATE.teamId = nextTeamId;
 
   const displayTeamId = document.getElementById("display-team-id");
   const leaderStdId = document.getElementById("leader-std-id");
@@ -925,8 +920,24 @@ function backStep1() {
 }
 
 function goStep3() {
-  const sel = document.getElementById("sup-select");
-  if (sel) sel.value = STATE.selectedSupervisor || "";
+  // Populate supervisor dropdown with real data
+  const supSelect = document.getElementById("sup-select");
+  if (supSelect) {
+    supSelect.innerHTML = '<option value="">— Choose a supervisor —</option>' +
+      SUPERVISORS.map(sup => {
+        const researchAreas = sup.research_areas && sup.research_areas.length > 0
+          ? ` — ${sup.research_areas.slice(0, 3).join(", ")}`
+          : "";
+        
+        return `<option value="${sup.id}">${sup.name}${researchAreas}</option>`;
+      }).join("");
+    
+    // Set previously selected supervisor if exists
+    if (STATE.selectedSupervisor) {
+      supSelect.value = STATE.selectedSupervisor;
+    }
+  }
+
   updateSupPreview(STATE.selectedSupervisor);
   showStep(3);
 }
@@ -946,18 +957,25 @@ function updateSupPreview(id) {
     if (preview) preview.style.display = "none";
     return;
   }
+  
   const sup = SUPERVISORS.find((s) => s.id === id);
   if (!sup) {
     preview.style.display = "none";
     return;
   }
-  const supPreviewAv = document.getElementById("sup-preview-av");
+  
   const supPreviewName = document.getElementById("sup-preview-name");
   const supPreviewDept = document.getElementById("sup-preview-dept");
 
-  if (supPreviewAv) supPreviewAv.textContent = initials(sup.name);
   if (supPreviewName) supPreviewName.textContent = sup.name;
-  if (supPreviewDept) supPreviewDept.textContent = sup.dept;
+  if (supPreviewDept) {
+    const deptText = sup.designation || "Faculty Member";
+    const researchText = sup.research_areas && sup.research_areas.length > 0
+      ? ` · ${sup.research_areas.slice(0, 2).join(", ")}`
+      : "";
+    supPreviewDept.textContent = deptText + researchText;
+  }
+  
   preview.style.display = "flex";
 }
 
@@ -978,12 +996,25 @@ async function finishSetup() {
   }
 
   STATE.teamCreated = true;
-  STATE.teamId = result.group.group_code;
+STATE.teamId = result.group.group_code;
 
-  // Reset marks for new team
-  STUDENT_MARKS = {};
+// Reset marks for new team
+STUDENT_MARKS = {};
 
-  const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
+
+const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
+if (selSup) {
+  STATE.supervisorData = {
+    _id:            selSup.id,
+    name:           selSup.name,
+    email:          selSup.email,
+    designation:    selSup.designation || "Faculty Member",
+    research_areas: selSup.research_areas || [],
+    office:         selSup.office || "CS Department",
+    office_hours:   selSup.office_hours || "Contact for details",
+    sup_code:       selSup.sup_code,
+  };
+}
   const chips = [
     { icon: "id", text: STATE.teamId },
     {
@@ -1264,21 +1295,80 @@ function saveNewMember() {
 
 /* ══ Render supervisor tab ══ */
 function renderSupervisorTab() {
-  // If supervisor data is loaded from backend, display it
-  // Otherwise show placeholder
-  if (STATE.supervisorData) {
-    // Update supervisor details in the tab
-    // This would depend on your HTML structure
-    console.log("Supervisor data:", STATE.supervisorData);
+  if (!STATE.supervisorData) {
+    // Show a "no supervisor yet" state
+    const card = document.querySelector("#tab-supervisor .dash-card-body");
+    if (card) {
+      card.innerHTML = `
+        <div style="text-align:center;padding:36px 20px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+               stroke-linecap="round" stroke-linejoin="round"
+               width="48" height="48" style="margin:0 auto 16px;color:var(--border)">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <h4 style="font-size:1rem;font-weight:700;color:var(--text-soft);margin-bottom:8px">
+            No Supervisor Assigned
+          </h4>
+          <p style="font-size:.84rem;color:var(--text-mute)">
+            Complete your team setup to get a supervisor.
+          </p>
+        </div>`;
+    }
+    return;
   }
+
+  const sup = STATE.supervisorData;
+
+  // Build the supervisor tab content dynamically
+  const card = document.querySelector("#tab-supervisor .dash-card-body");
+  if (!card) return;
+
+  card.innerHTML = `
+    <div class="sup-card">
+      <div class="sup-avatar">${initials(sup.name || "")}</div>
+      <div class="sup-info">
+        <strong>${sup.name || "—"}</strong>
+        <span>${sup.designation || "Faculty Member"} · Dept. of Computer Science</span>
+      </div>
+    </div>
+    <div class="proj-row">
+      <span class="proj-key">Email</span>
+      <span class="proj-val">${sup.email || "—"}</span>
+    </div>
+    <div class="proj-row">
+      <span class="proj-key">Office</span>
+      <span class="proj-val">${sup.office || "CS Department"}</span>
+    </div>
+    <div class="proj-row">
+      <span class="proj-key">Office Hours</span>
+      <span class="proj-val">${sup.office_hours || "Contact supervisor directly"}</span>
+    </div>
+    <div class="proj-row">
+      <span class="proj-key">Research Areas</span>
+      <span class="proj-val">${
+        sup.research_areas && sup.research_areas.length
+          ? sup.research_areas.join(", ")
+          : "—"
+      }</span>
+    </div>
+    ${sup.sup_code ? `
+    <div class="proj-row">
+      <span class="proj-key">Supervisor ID</span>
+      <span class="proj-val">
+        <span class="id-highlight id-highlight-team">${sup.sup_code}</span>
+      </span>
+    </div>` : ""}
+  `;
 }
 
 function updateBannerForTeam() {
   if (STATE.teamId) {
-    const bannerTeamId = document.getElementById("banner-team-id");
-    if (bannerTeamId) bannerTeamId.textContent = STATE.teamId;
-    const ovTeamId = document.getElementById("ov-team-id");
-    if (ovTeamId) ovTeamId.textContent = STATE.teamId;
+    const ids = ["banner-team-id", "ov-team-id", "proj-team-id", "team-tab-id", "proj-tab-team-id"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = STATE.teamId;
+    });
   }
 }
 
@@ -1289,6 +1379,8 @@ function updateDashboardUI() {
     "ov-team-id": STATE.teamId,
     "team-tab-id": STATE.teamId,
     "team-tab-proj": STATE.projectTitle,
+    "proj-team-id": STATE.teamId,       
+    "proj-tab-team-id": STATE.teamId,
     "stat-project-title": STATE.projectTitle,
     "ov-proj-title": STATE.projectTitle,    
     "ov-student-id": STATE.studentId,        
@@ -1297,7 +1389,9 @@ function updateDashboardUI() {
     "ov-proj-category": STATE.category, 
     "proj-tab-team-id": STATE.teamId,   
     "proj-tab-title": STATE.projectTitle,    
-    "proj-tab-category": STATE.category,   
+    "proj-tab-category": STATE.category,  
+    "stat-supervisor-name":  STATE.supervisorData?.name || "Not assigned",
+    "proj-supervisor-name":  STATE.supervisorData?.name || "Not assigned",
   };
 
   Object.entries(elements).forEach(([id, value]) => {

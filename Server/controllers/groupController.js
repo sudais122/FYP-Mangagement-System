@@ -91,9 +91,9 @@ export const createGroup = async (req, res) => {
 
     // ── RESPONSE ───────────────────────────────────
     const populated = await Group.findById(group._id)
-      .populate("leader", "name student_code")
-      .populate("members", "name student_code")
-      .populate("supervisor", "name sup_code");
+      .populate("leader",   "name student_code")
+      .populate("members",  "name student_code")
+      .populate("supervisor", "name sup_code email designation research_areas office office_hours");
 
     res.status(201).json({
       message: "Group created successfully",

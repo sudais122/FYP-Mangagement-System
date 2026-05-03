@@ -1,9 +1,10 @@
 import express from "express";
 import {
   getAllSupervisors,
+  getAvailableSupervisors,
   getSupervisorDetail,
   getMyStudents,
-  createSupervisor
+  changePassword,
 } from "../controllers/supervisorController.js";
 import {
   protect,
@@ -13,9 +14,15 @@ import {
 
 const router = express.Router();
 
-router.get ("/",          protect, adminOnly,      getAllSupervisors);
-router.post("/", protect, adminOnly, createSupervisor);
-router.get ("/students",  protect, supervisorOnly, getMyStudents);
-router.get ("/:id",       protect, adminOnly,      getSupervisorDetail);
+// ── PUBLIC to ALL logged-in users (students need this for setup) ──
+router.get("/available", protect, getAvailableSupervisors);
+
+// ── Supervisor routes ──
+router.get("/students",  protect, supervisorOnly, getMyStudents);
+router.put("/change-password", protect, supervisorOnly, changePassword);
+
+// ── Admin only routes ──
+router.get("/",          protect, adminOnly, getAllSupervisors);
+router.get("/:id",       protect, adminOnly, getSupervisorDetail);
 
 export default router;

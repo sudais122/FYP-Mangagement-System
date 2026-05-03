@@ -369,6 +369,36 @@ function renderSupervisors() {
     })
     .join("");
 }
+/* ════════════════════════════════════
+   DISPLAY LOGGED-IN ADMIN INFO
+══════════════════════════════════════ */
+function displayAdminInfo() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  
+  if (!admin) {
+    // If no admin in localStorage, redirect to login
+    window.location.href = "../../Auth/login.html";
+    return;
+  }
+
+  // Update navbar user info
+  const navUserInfo = document.querySelector(".nav-user-info strong");
+  if (navUserInfo) {
+    navUserInfo.textContent = admin.name;
+  }
+
+  // Update navbar avatar initials
+  const navAvatar = document.querySelector(".nav-avatar");
+  if (navAvatar) {
+    navAvatar.textContent = initials(admin.name);
+  }
+
+  // Update banner welcome message
+  const bannerTitle = document.querySelector(".banner-content h2");
+  if (bannerTitle) {
+    bannerTitle.textContent = `Welcome back, ${admin.name}`;
+  }
+}
 
 /* ════════════════════════════════════
    SUPERVISOR DETAIL VIEW
@@ -619,14 +649,14 @@ function closeSupervisorModal() {
 }
 
 async function submitSupervisor() {
-  const name = $("#supName").value.trim();
+  const name  = $("#supName").value.trim();
   const email = $("#supEmail").value.trim();
-  const pwd = $("#supPassword").value.trim();
-
-  console.log("Submitting:", { name, email, pwd });
+  const pwd   = $("#supPassword").value.trim();
+  const designation = $("#supDesignation")?.value.trim() || "";
+  const office      = $("#supOffice")?.value.trim() || "";
 
   if (!name || !email || !pwd) {
-    toast("Missing fields", "Please fill in name, email, and password", "error");
+    toast("Missing fields", "Please fill in name, email and password", "error");
     return;
   }
   if (pwd.length < 8) {
@@ -635,16 +665,15 @@ async function submitSupervisor() {
   }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
-   console.log("Admin token:", admin?.token); 
 
   try {
-      const res = await fetch("http://127.0.0.1:5001 /api/supervisors", {
+    const res = await fetch("http://127.0.0.1:5001/api/admin/supervisor", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${admin.token}`
       },
-      body: JSON.stringify({ name, email, password: pwd })
+      body: JSON.stringify({ name, email, password: pwd, designation, office })
     });
 
     const data = await res.json();
@@ -654,12 +683,13 @@ async function submitSupervisor() {
       return;
     }
 
+    // Add to local array so UI updates instantly
     supervisors.unshift({
-      id: data.supervisor.sup_code,
-      name: data.supervisor.name,
-      email: data.supervisor.email,
-      teams: 0,
-      capacity: 6
+      id:       data.supervisor.sup_code,
+      name:     data.supervisor.name,
+      email:    data.supervisor.email,
+      teams:    0,
+      capacity: 6,
     });
 
     closeSupervisorModal();
@@ -667,6 +697,7 @@ async function submitSupervisor() {
     toast("Supervisor created", `${name} · ${data.supervisor.sup_code}`, "success");
 
   } catch (err) {
+    console.error(err);
     toast("Network error", "Could not connect to server", "error");
   }
 }
@@ -733,9 +764,120 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ════════════════════════════════════
-   INIT
+   FETCH REAL DASHBOARD STATS
 ══════════════════════════════════════ */
-renderSupervisors();
-renderTeams();
-renderStudents();
-renderMarks();
+async function fetchDashboardStats() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  
+  if (!admin || !admin.token) {
+    console.error("No admin token found");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/admin/stats", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Failed to fetch stats:", data.message);
+      return;
+    }
+
+    // Update dashboard stat cards
+    updateDashboardStats(data.stats);
+    
+    // Update sidebar badges
+    updateSidebarBadges(data.stats);
+    
+    // Update marks summary if exists
+    if (data.stats.marks) {
+      updateMarksSummary(data.stats.marks);
+    }
+
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+  }
+}
+
+function updateDashboardStats(stats) {
+  // Update the three main stat cards
+  const statCards = document.querySelectorAll(".dstat-card");
+  
+  if (statCards[0]) {
+    statCards[0].querySelector(".dstat-value").textContent = stats.students;
+  }
+  
+  if (statCards[1]) {
+    statCards[1].querySelector(".dstat-value").textContent = stats.supervisors;
+  }
+  
+  if (statCards[2]) {
+    statCards[2].querySelector(".dstat-value").textContent = stats.teams;
+  }
+}
+
+function updateSidebarBadges(stats) {
+  // Update sidebar navigation badges
+  const navItems = document.querySelectorAll(".nav-item");
+  
+  navItems.forEach(item => {
+    const view = item.dataset.view;
+    const badge = item.querySelector(".nav-item-badge");
+    
+    if (badge) {
+      if (view === "supervisors") {
+        badge.textContent = stats.supervisors;
+      } else if (view === "teams") {
+        badge.textContent = stats.teams;
+      } else if (view === "students") {
+        badge.textContent = stats.students;
+      }
+    }
+  });
+}
+
+function updateMarksSummary(marksData) {
+  // Update marks summary stats in the marks view
+  const marksStats = document.querySelectorAll(".marks-stat");
+  
+  if (marksStats[0]) {
+    marksStats[0].querySelector(".marks-stat-value").innerHTML = 
+      `${marksData.avgScore}<span style="font-size: 0.9rem; color: var(--text-mute); font-weight: 600;">/180</span>`;
+  }
+  
+  if (marksStats[1]) {
+    marksStats[1].querySelector(".marks-stat-value").textContent = marksData.topScore;
+  }
+  
+  if (marksStats[2]) {
+    marksStats[2].querySelector(".marks-stat-value").textContent = marksData.pendingMarks;
+  }
+  
+  if (marksStats[3]) {
+    marksStats[3].querySelector(".marks-stat-value").textContent = `${marksData.completedPct}%`;
+  }
+}
+
+/* ════════════════════════════════════ INIT ══════════════════════════════════════ */
+async function initDashboard() {
+  // Display admin info first
+  displayAdminInfo();
+  
+  // Fetch real stats
+  await fetchDashboardStats();
+  
+  // Render data
+  renderSupervisors();
+  renderTeams();
+  renderStudents();
+  renderMarks();
+}
+
+initDashboard();

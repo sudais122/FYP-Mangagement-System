@@ -7,41 +7,39 @@ import generatePassword from "../utils/generatePassword.js";
 
 // ── ADD SUPERVISOR ─────────────────────────────────────────────
 export const addSupervisor = async (req, res) => {
-  const { name, email, designation, research_areas, office, office_hours, max_groups } = req.body;
-  if (!name || !email) {
-    return res.status(400).json({ message: "Name and email are required" });
-  }
+  const { name, email, password } = req.body;
+
   try {
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password are required" });
+    }
+
     const exists = await Supervisor.findOne({ email });
     if (exists) {
-      return res.status(400).json({ message: "Email already registered" });
+      return res.status(400).json({ message: "Supervisor with this email already exists" });
     }
-    const tempPassword = generatePassword();
+
     const supervisor = await Supervisor.create({
-      name, email,
-      password: tempPassword,
-      designation,
-      research_areas: research_areas || [],
-      office,
-      office_hours,
-      max_groups: max_groups || 5,
+      name,
+      email,
+      password,
+      force_password_change: true,
     });
 
     res.status(201).json({
       message: "Supervisor created successfully",
       supervisor: {
-        _id:          supervisor._id,
-        name:         supervisor.name,
-        email:        supervisor.email,
-        sup_code:     supervisor.sup_code,
-        tempPassword, // send this to frontend to show admin
-      },
+        _id: supervisor._id,
+        name: supervisor.name,
+        email: supervisor.email,
+        sup_code: supervisor.sup_code,
+      }
     });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 // ── GET DASHBOARD STATS ────────────────────────────────────────
 export const getDashboardStats = async (req, res) => {
   try {
@@ -61,18 +59,24 @@ export const getDashboardStats = async (req, res) => {
       : 0;
 
     res.json({
-      students,
-      supervisors,
-      groups,
-      marks: {
-        avgScore,
-        topScore,
-        pendingMarks,
-        completedPct,
+      success: true,
+      stats: {
+        students,
+        supervisors,
+        teams: groups, // Changed "groups" to "teams" for frontend consistency
+        marks: {
+          avgScore,
+          topScore,
+          pendingMarks,
+          completedPct,
+        },
       },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 };
 
@@ -89,6 +93,47 @@ export const getAllStudents = async (req, res) => {
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// ── GET ALL SUPERVISORS ────────────────────────────────────────
+export const getAllSupervisors = async (req, res) => {
+  try {
+    const supervisors = await Supervisor.find()
+      .select("-password")
+      .populate({
+        path: "groups",
+        select: "team_code project_title"
+      });
+    
+    res.json({
+      success: true,
+      supervisors
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
+  }
+};
+
+// ── GET ALL GROUPS/TEAMS ───────────────────────────────────────
+export const getAllGroups = async (req, res) => {
+  try {
+    const groups = await Group.find()
+      .populate("supervisor", "name sup_code email")
+      .populate("members", "name std_code email");
+    
+    res.json({
+      success: true,
+      groups
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 };
 

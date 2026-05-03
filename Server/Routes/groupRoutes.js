@@ -18,7 +18,7 @@ import {
 const router = express.Router();
 
 router.post("/create",             protect, studentOnly,    createGroup);
-router.get ("/next-id",            protect,                 getNextTeamId);  
+router.get  ("/next-id",           protect, studentOnly,    getNextTeamId); 
 router.get ("/my",                 protect, studentOnly,    getMyGroup);
 router.get ("/supervisor",         protect, supervisorOnly, getGroupsBySupervisor);
 router.get ("/all",                protect, adminOnly,      getAllGroups);
