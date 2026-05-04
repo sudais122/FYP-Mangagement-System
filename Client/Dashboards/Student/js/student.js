@@ -247,7 +247,7 @@ async function createTeamAPI() {
   const memberCodes = STATE.members.map((m) => m.student_code);
 
   try {
-    const response = await fetch(`${API_BASE}/groups/create`, {
+    const response = await fetch(`${API_BASE}/groups`, {
       method: "POST",
       headers: API_HEADERS,
       body: JSON.stringify({

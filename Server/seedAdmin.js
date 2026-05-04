@@ -12,10 +12,10 @@ mongoose.connect(process.env.MONGO_URI).then(async () => {
     name: "Aftab Ahmed Khan",
     email: "awkum.fyp.team@gmail.com",
     password: "aftabakhan",
-    role: "admin" // Make sure role is set!
+    role: "admin" 
   });
   
-  await admin.save(); // This triggers the pre-save hook that hashes the password
+  await admin.save();
   
   console.log("Admin created successfully!");
   process.exit();

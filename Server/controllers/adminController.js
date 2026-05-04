@@ -142,6 +142,88 @@ export const getAllGroups = async (req, res) => {
   }
 };
 
+// Delete orphaned teams
+export const cleanupOrphanedTeams = async (req, res) => {
+  try {
+    const groups = await Group.find();
+    let deletedCount = 0;
+
+    for (const group of groups) {
+      // Check if leader still exists
+      const leaderExists = group.leader
+        ? await Student.findById(group.leader)
+        : null;
+
+      // Check if any member still exists
+      let anyMemberExists = false;
+      if (group.members && group.members.length > 0) {
+        for (const memberId of group.members) {
+          const exists = await Student.findById(memberId);
+          if (exists) {
+            anyMemberExists = true;
+            break;
+          }
+        }
+      }
+
+      // If neither leader nor any member exists, delete the team
+      if (!leaderExists && !anyMemberExists) {
+        await Marks.deleteMany({ group: group._id });
+        await Group.findByIdAndDelete(group._id);
+        deletedCount++;
+        console.log(`🧹 Deleted orphaned team: ${group.group_code}`);
+      }
+    }
+
+    res.json({
+      message: `Cleanup complete — deleted ${deletedCount} orphaned teams`,
+      deleted: deletedCount,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ── DELETE STUDENT
+export const deleteStudent = async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // If student is in a team, remove them from it
+    if (student.group) {
+      const group = await Group.findById(student.group);
+      if (group) {
+        // If they were the leader, delete the entire team
+        if (group.leader?.toString() === student._id.toString()) {
+          // Free all members from this team
+          await Student.updateMany(
+            { group: group._id },
+            { $set: { group: null, team_role: null } }
+          );
+          // Delete marks records for this team
+          await Marks.deleteMany({ group: group._id });
+          // Delete the team
+          await Group.findByIdAndDelete(group._id);
+          console.log(`🧹 Deleted team ${group.group_code} (leader removed)`);
+        } else {
+          // Just remove them from the members array
+          await Group.findByIdAndUpdate(group._id, {
+            $pull: { members: student._id }
+          });
+          await Marks.deleteMany({ student: student._id });
+        }
+      }
+    }
+
+    await Student.findByIdAndDelete(student._id);
+    res.json({ message: "Student deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // ── ADMIN SAVE ANY STUDENT'S MARKS ────────────────────────────
 export const adminSaveMarks = async (req, res) => {
   const { student_id, monthly, submissions, viva, documentation } = req.body;

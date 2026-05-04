@@ -5,7 +5,6 @@ const studentSchema = new mongoose.Schema({
   student_code: {
     type: String,
     unique: true,
-    // e.g. STD-20264731
   },
   name: {
     type: String,
@@ -24,8 +23,20 @@ const studentSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+  whatsapp: {
+    type: String,
+    required: [true, "WhatsApp number is required"],
+    trim: true,
+    validate: {
+      validator: function (v) {
+        return /^[0-9]{11}$/.test(v);
+      },
+      message: "WhatsApp number must be exactly 11 digits with no spaces or dashes",
+    },
+  },
   roll_number: {
-    roll_number: String
+    type: String,
+    trim: true,
   },
   group: {
     type: mongoose.Schema.Types.ObjectId,
@@ -47,13 +58,10 @@ const studentSchema = new mongoose.Schema({
   },
 });
 
-// Auto-generate student_code before saving
 studentSchema.pre("save", async function (next) {
-  // Hash password
   if (this.isModified("password")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
-  // Generate student code if not set
   if (!this.student_code) {
     const year = new Date().getFullYear();
     const rand = Math.floor(1000 + Math.random() * 9000);

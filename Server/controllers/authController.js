@@ -89,39 +89,38 @@ export const login = async (req, res) => {
 
 // ── STUDENT REGISTER ──────────────────────────────────────────
 export const registerStudent = async (req, res) => {
+  const { name, email, password, whatsapp, roll_number, batch } = req.body;
+
+  if (!name || !email || !password || !whatsapp) {
+    return res.status(400).json({ message: "Name, email, password and WhatsApp number are required" });
+  }
+
   try {
-    const { name, email, password } = req.body;
-
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields required" });
-    }
-
     const exists = await Student.findOne({ email });
     if (exists) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    const student = await Student.create({ 
-      name, 
-      email, 
-      password, 
-      student_code: await generateStudentId(), // ← Add this line
-      role: "student" 
+    const student = await Student.create({
+      name,
+      email,
+      password,
+      whatsapp,
+      roll_number,
+      batch,
     });
 
+    const token = generateToken(student._id, "student");
     res.status(201).json({
-      message: "Registered successfully",
-      user: {
-        _id:   student._id,
-        name:  student.name,
-        email: student.email,
-        student_code: student.student_code, 
-        role:  student.role,
-      },
+      _id:           student._id,
+      name:          student.name,
+      email:         student.email,
+      whatsapp:      student.whatsapp,
+      student_code:  student.student_code,
+      role:          "student",
+      token,
     });
-
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: error.message });
   }
 };

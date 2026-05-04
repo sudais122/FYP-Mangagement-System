@@ -22,62 +22,51 @@ var topI = [
 ];
 
 async function doReg() {
-  var fn = document.getElementById("r-fn").value.trim();
-  var ln = document.getElementById("r-ln").value.trim();
-  var em = document.getElementById("r-em").value.trim();
-  var pw = document.getElementById("r-pw").value;
-  var cpw = document.getElementById("r-cpw").value;
-  var cv = document.getElementById("r-cv").files[0];
+  const fn  = document.getElementById("r-fn").value.trim();
+  const ln  = document.getElementById("r-ln").value.trim();
+  const em  = document.getElementById("r-em").value.trim();
+  const wa  = document.getElementById("r-wa").value.trim();
+  const pw  = document.getElementById("r-pw").value;
+  const cpw = document.getElementById("r-cpw").value;
+  const cv  = document.getElementById("r-cv").files[0];
 
-  var ok = true;
-  if (!fn) {
-    showErr("fn", "First name is required");
+  let ok = true;
+
+  if (!fn) { showErr("fn", "First name is required"); ok = false; }
+  if (!ln) { showErr("ln", "Last name is required"); ok = false; }
+  if (!em || !em.includes("@")) { showErr("em", "Enter a valid email"); ok = false; }
+
+  // ✅ WhatsApp validation — exactly 11 digits, no dashes, no spaces
+  if (!wa) {
+    showErr("wa", "WhatsApp number is required");
+    ok = false;
+  } else if (!/^[0-9]{11}$/.test(wa)) {
+    showErr("wa", "Must be exactly 11 digits (e.g. 03001234567)");
     ok = false;
   }
-  if (!ln) {
-    showErr("ln", "Last name is required");
-    ok = false;
-  }
-  if (!em) {
-    showErr("em", "Email required");
-    ok = false;
-  }
-  if (!pw || pw.length < 8) {
-    showErr("pw", "Weak password");
-    ok = false;
-  }
-  if (pw !== cpw) {
-    showErr("cpw", "Passwords do not match");
-    ok = false;
-  }
-  if (!cv) {
-    showErr("cv", "Upload CV");
-    ok = false;
-  }
+
+  if (!pw || pw.length < 8) { showErr("pw", "Weak password (min 8 chars)"); ok = false; }
+  if (pw !== cpw) { showErr("cpw", "Passwords do not match"); ok = false; }
+  if (!cv) { showErr("cv", "Upload CV"); ok = false; }
+
   if (!ok) return;
 
-  var btn = document.getElementById("rbtn");
+  const btn = document.getElementById("rbtn");
   btn.disabled = true;
   btn.textContent = "Registering...";
 
   try {
-    const formData = new FormData();
-    formData.append("name", fn + " " + ln);
-    formData.append("email", em);
-    formData.append("password", pw);
-    formData.append("cv", cv);
-
     const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: fn + " " + ln,
-        email: em,
+        name:     fn + " " + ln,
+        email:    em,
         password: pw,
+        whatsapp: wa,
       }),
     });
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Registration failed");
 
@@ -89,6 +78,13 @@ async function doReg() {
   }
 }
 
+function onWaInput(input) {
+  input.value = input.value.replace(/[^0-9]/g, "");
+  if (input.value.length > 11) {
+    input.value = input.value.slice(0, 11);
+  }
+  clr("wa");
+}
 // otp send for forgot password
 async function sendOtp(email) {
   const res = await fetch("/api/auth/forgot-password", {
@@ -346,6 +342,7 @@ function setRole(role, el) {
 function togglePw() {
   const inp = document.getElementById("login-pw");
   const eye = document.getElementById("pw-eye");
+  if (!inp || !eye) return;
   const show = inp.type === "password";
   inp.type = show ? "text" : "password";
   eye.innerHTML = show
@@ -445,11 +442,13 @@ async function handleLogin(e) {
   }
 }
 //Register Javascript logic
-function togglePw(id, eyeId) {
-  var i = document.getElementById(id);
-  var show = i.type === "password";
+function togPw(id, eyeId) {
+  const i   = document.getElementById(id);
+  const eye = document.getElementById(eyeId);
+  if (!i || !eye) return;
+  const show = i.type === "password";
   i.type = show ? "text" : "password";
-  document.getElementById(eyeId).innerHTML = show
+  eye.innerHTML = show
     ? '<path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.06-5.94M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
     : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }

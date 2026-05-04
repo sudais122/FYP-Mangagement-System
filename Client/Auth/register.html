@@ -16,7 +16,10 @@
     <div>
       <div class="left-logo">
         <div class="lmark">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+          </svg>
         </div>
         <div class="lbrand"><strong>FYP Management</strong><small>AWKUM · CS Dept</small></div>
       </div>
@@ -27,7 +30,7 @@
       <div class="steps">
         <div class="step">
           <div class="step-num done" id="sn1">1</div>
-          <div class="step-txt"><strong>Fill in your details</strong><span>Name, email &amp; password</span></div>
+          <div class="step-txt"><strong>Fill in your details</strong><span>Name, email, WhatsApp &amp; password</span></div>
         </div>
         <div class="step">
           <div class="step-num" id="sn2">2</div>
@@ -47,66 +50,122 @@
     <h3>Create Account</h3>
     <p class="sub">All fields are required to complete registration</p>
 
+    <!-- First & Last Name -->
     <div class="row2">
       <div class="fg">
         <label>First Name</label>
         <div class="iw">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
           <input type="text" id="r-fn" placeholder="Ahmed" oninput="clr('fn')"/>
         </div>
         <div class="err-msg" id="e-fn">First name is required</div>
       </div>
+
       <div class="fg">
         <label>Last Name</label>
         <div class="iw">
-          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
           <input type="text" id="r-ln" placeholder="Saeed" oninput="clr('ln')"/>
         </div>
         <div class="err-msg" id="e-ln">Last name is required</div>
       </div>
     </div>
 
+    <!-- Email -->
     <div class="fg">
       <label>Email Address</label>
       <div class="iw">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+          <polyline points="22,6 12,13 2,6"/>
+        </svg>
         <input type="email" id="r-em" placeholder="ahmed.saeed@awkum.edu.pk" oninput="clr('em')"/>
       </div>
       <div class="err-msg" id="e-em">Enter a valid email address</div>
     </div>
 
+    <!-- ✅ WhatsApp Number -->
+    <div class="fg">
+      <label>WhatsApp Number</label>
+      <div class="iw">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.37 1.91.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.33 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        <input type="tel"
+               id="r-wa"
+               maxlength="11"
+               inputmode="numeric"
+               pattern="[0-9]{11}"
+               placeholder="WhatsApp Number e.g. 03001234567"
+               oninput="onWaInput(this)"/>
+      </div>
+      <div class="err-msg" id="e-wa">WhatsApp number must be exactly 11 digits</div>
+    </div>
+
+    <!-- Password -->
     <div class="fg">
       <label>Password</label>
       <div class="iw">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
         <input type="password" id="r-pw" placeholder="Create a strong password" oninput="onPw(this.value);clr('pw')"/>
-        <button class="pw-tog" onclick="togglePw('r-pw','eye1')" type="button">
-          <svg id="eye1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <button class="pw-tog" onclick="togPw('r-pw','eye1')" type="button">
+          <svg id="eye1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
         </button>
       </div>
-      <div class="str-bars"><div class="sb" id="b1"></div><div class="sb" id="b2"></div><div class="sb" id="b3"></div><div class="sb" id="b4"></div></div>
+      <div class="str-bars">
+        <div class="sb" id="b1"></div>
+        <div class="sb" id="b2"></div>
+        <div class="sb" id="b3"></div>
+        <div class="sb" id="b4"></div>
+      </div>
       <div class="str-lbl" id="str-lbl">Enter a password to check strength</div>
       <div class="err-msg" id="e-pw">Password must be at least 8 characters</div>
     </div>
 
+    <!-- Confirm Password -->
     <div class="fg">
       <label>Confirm Password</label>
       <div class="iw">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
         <input type="password" id="r-cpw" placeholder="Repeat your password" oninput="clr('cpw')"/>
-        <button class="pw-tog" onclick="togglePw('r-cpw','eye2')" type="button">
-          <svg id="eye2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <button class="pw-tog" onclick="togPw('r-cpw','eye2')" type="button">
+          <svg id="eye2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
         </button>
       </div>
       <div class="err-msg" id="e-cpw">Passwords do not match</div>
     </div>
 
+    <!-- CV Upload -->
     <div class="fg">
       <label>CV / Resume</label>
       <div class="cv-zone" id="cv-zone">
         <input type="file" id="r-cv" accept=".pdf" onchange="onCV(this)"/>
         <div class="cv-ic">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="12"/><line x1="15" y1="15" x2="12" y2="12"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="12" y2="12"/>
+            <line x1="15" y1="15" x2="12" y2="12"/>
+          </svg>
         </div>
         <div class="cv-text">
           <p id="cv-lbl">Click to upload or drag &amp; drop</p>
@@ -115,21 +174,30 @@
       </div>
       <div class="err-msg" id="e-cv">Please upload your CV as a PDF file</div>
     </div>
+
+    <!-- Submit -->
     <button class="btn-reg" id="rbtn" onclick="doReg()" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <line x1="19" y1="8" x2="19" y2="14"/>
+        <line x1="22" y1="11" x2="16" y2="11"/>
+      </svg>
       Register
     </button>
 
     <p style="margin-top:14px;text-align:center;font-size:0.8rem;color:#6c757d;">
       Already have an account?
-      <a href="login.html" style="color:#004b2d;font-weight:700;text-decoration:none;margin-left:3px;">Login</a>
+      <a href="login.html" style="color:var(--primary);font-weight:700;text-decoration:none;margin-left:3px;">Login</a>
     </p>
   </div>
 
   <!-- SUCCESS SCREEN -->
   <div class="right success" id="success-area">
     <div class="suc-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
     </div>
     <h4>Registration Successful!</h4>
     <p>Welcome to the FYP Portal. Your account has been created successfully.</p>
@@ -137,7 +205,8 @@
     <button class="btn-go" onclick="window.location.href='login.html'">Go to Sign In</button>
   </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="./js/auth.js"></script
+<script src="./js/auth.js"></script>
 </body>
 </html>

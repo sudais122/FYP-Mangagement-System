@@ -1,19 +1,19 @@
-/* ════════════ROYAL BLUE ═════════════*/
+/* ════════════ FOREST GREEN ═════════════ */
 :root {
-  --primary:      #2255A4;
-  --primary-dark: #1A3F7C;
-  --primary-mid:  #2E6BBF;
-  --secondary:    #3A7FD4;
-  --secondary-lt: #5A9AE0;
-  --bg:           #F4F7FC;
+  --primary:      #1F7A3A;
+  --primary-dark: #14532D;
+  --primary-mid:  #2A9450;
+  --secondary:    #3FAF65;
+  --secondary-lt: #6FCC8B;
+  --bg:           #F4FAF6;
   --surface:      #FFFFFF;
   --gold:         #C9A227;
   --gold-lt:      #DDB94A;
   --text:         #1A1A1A;
   --text-soft:    #4A4A4A;
   --text-mute:    #6C757D;
-  --border:       #CFDAEE;
-  --border-soft:  #E5EDF8;
+  --border:       #CFE5D7;
+  --border-soft:  #E5F2EA;
   --danger:       #DC2626;
   --warning:      #D97706;
   --info:         #0284C7;
@@ -28,9 +28,9 @@
   --txt-m:        var(--text-mute);
   --bdr:          var(--border);
 
-  --shadow-sm:    0 1px 3px rgba(34,85,164,.08);
-  --shadow:       0 4px 18px rgba(34,85,164,.10);
-  --shadow-lg:    0 14px 40px rgba(34,85,164,.14);
+  --shadow-sm:    0 1px 3px rgba(31,122,58,.08);
+  --shadow:       0 4px 18px rgba(31,122,58,.10);
+  --shadow-lg:    0 14px 40px rgba(31,122,58,.14);
 
   --radius:       12px;
   --radius-lg:    18px;

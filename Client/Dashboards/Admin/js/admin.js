@@ -334,13 +334,32 @@ function renderTeamBlockFromDB(group) {
       </div>`;
   }
 
+
+  // Header row with toggle (toggle controls SUPERVISOR access only)
   const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
-    sec.items.map(it =>
-      `<th title="${sec.section} · max ${it.max}">${it.label}<br>
-       <small style="color:var(--text-mute);font-weight:600">/${it.max}</small></th>`
-    )
+    sec.items.map(it => `
+      <th title="${sec.section} · max ${it.max}">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+          <span>${it.label}</span>
+          <small style="color:var(--text-mute);font-weight:600">/${it.max}</small>
+          <label class="mark-toggle" title="Enable for supervisor — admin can always edit">
+            <input type="checkbox"
+                   class="mark-enable-toggle"
+                   data-key="${it.key}"
+                   data-group="${group._id}"
+                   onchange="toggleMarkEnabled('${group._id}','${it.key}',this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+          <small id="toggle-status-${group._id}-${it.key}" 
+                 style="font-size:.55rem;font-weight:700;color:var(--danger);text-transform:uppercase">
+            Locked
+          </small>
+        </div>
+      </th>`)
   ).join("");
 
+
+  // Mark inputs — ALWAYS enabled for admin
   const rows = allStudents.map(s => {
     const cells = MARKS_SCHEMA.flatMap(sec =>
       sec.items.map(it => `
@@ -350,6 +369,7 @@ function renderTeamBlockFromDB(group) {
             data-student="${s._id}"
             data-key="${it.key}"
             data-max="${it.max}"
+            data-group="${group._id}"
             value=""
             placeholder="—"
             oninput="onMarkChange(this)">
@@ -360,13 +380,9 @@ function renderTeamBlockFromDB(group) {
       <tr>
         <td><strong>${s.name}</strong></td>
         <td><span class="id-pill">${s.student_code || s._id}</span></td>
-        <td><span class="id-pill" style="background:rgba(191,161,74,.1);color:#9a7e2a">
-          ${s.role}
-        </span></td>
+        <td><span class="id-pill" style="background:rgba(191,161,74,.1);color:#9a7e2a">${s.role}</span></td>
         ${cells}
-        <td><span class="mark-total-display" id="total-${s._id}">
-          0<span class="out">/${MAX_TOTAL}</span>
-        </span></td>
+        <td><span class="mark-total-display" id="total-${s._id}">0<span class="out">/${MAX_TOTAL}</span></span></td>
       </tr>`;
   }).join("");
 
@@ -380,10 +396,8 @@ function renderTeamBlockFromDB(group) {
             <p>${group.project_title || "—"} · ${allStudents.length} students</p>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm"
-                onclick="saveTeamMarks('${group._id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2.2" stroke-linecap="round">
+        <button class="btn btn-primary btn-sm" onclick="saveTeamMarks('${group._id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
           Save Changes
@@ -402,6 +416,17 @@ function renderTeamBlockFromDB(group) {
           </thead>
           <tbody>${rows}</tbody>
         </table>
+      </div>
+      <div style="padding:12px 16px;background:rgba(191,161,74,.08);border-top:1px solid var(--border-soft);font-size:.78rem;color:var(--text-soft);display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="color:var(--gold)">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>
+          You (admin) can edit any mark anytime. Toggle each switch to <strong>unlock that mark for the supervisor</strong>.
+        </span>
       </div>
     </div>`;
 }
@@ -538,6 +563,13 @@ async function confirmReassign() {
 function onMarkChange(input) {
   const max = parseInt(input.dataset.max);
   let val = parseInt(input.value);
+
+  if (input.value === "") {
+    input.classList.remove("invalid");
+    updateStudentTotal(input.dataset.student);
+    return;
+  }
+
   if (isNaN(val)) val = 0;
   if (val < 0) val = 0;
   if (val > max) {
@@ -548,21 +580,88 @@ function onMarkChange(input) {
   } else {
     input.classList.remove("invalid");
   }
-  // Update student object live
-  const s = students.find((st) => st.id === input.dataset.student);
-  if (s) {
-    s.marks[input.dataset.key] = val;
-    const totalEl = $(`#total-${s.id}`);
-    if (totalEl)
-      totalEl.innerHTML = `${studentTotal(s)}<span class="out">/${MAX_TOTAL}</span>`;
+
+  updateStudentTotal(input.dataset.student);
+}
+
+function updateStudentTotal(studentId) {
+  let total = 0;
+  document.querySelectorAll(`.mark-input[data-student="${studentId}"]`).forEach(inp => {
+    if (inp.value !== "") {
+      const v = parseInt(inp.value);
+      if (!isNaN(v) && v >= 0) total += v;
+    }
+  });
+  const el = document.getElementById(`total-${studentId}`);
+  if (el) {
+    el.innerHTML = `${total}<span class="out">/${MAX_TOTAL}</span>`;
   }
 }
 
-function saveTeamMarks(teamId) {
-  // In a real app this would POST to the server.
-  // For now, the data is already updated live in `students`.
-  renderMarks(); // refresh marks view if visible
-  toast("Marks saved", `Updated marks for ${teamId}`, "success");
+async function saveTeamMarks(groupId) {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const inputs = document.querySelectorAll(`.mark-input[data-group="${groupId}"]`);
+
+  // Group marks by student
+  const marksByStudent = {};
+  inputs.forEach(inp => {
+    const sid = inp.dataset.student;
+    const key = inp.dataset.key;
+    if (!marksByStudent[sid]) marksByStudent[sid] = {};
+    if (inp.value !== "") {
+      marksByStudent[sid][key] = parseInt(inp.value) || 0;
+    }
+  });
+
+  try {
+    // Save marks for each student
+    for (const studentId in marksByStudent) {
+      const marks = marksByStudent[studentId];
+
+      // Map keys to nested structure expected by backend
+      const monthly = {};
+      const submissions = {};
+      const viva = {};
+      const documentation = {};
+
+      Object.entries(marks).forEach(([key, value]) => {
+        if (["oct","nov","dec","feb","mar"].includes(key)) {
+          monthly[key] = value;
+        } else if (["proposal","progress_report","code","prog_sim","thesis_sim"].includes(key)) {
+          submissions[key === "progress_report" ? "progress" : key] = value;
+        } else if (["iv1","iv2","ext"].includes(key)) {
+          viva[key === "iv1" ? "internal1" : key === "iv2" ? "internal2" : "external"] = value;
+        } else if (key === "thesis") {
+          documentation.final = value;
+        }
+      });
+
+      const res = await fetch("http://127.0.0.1:5001/api/admin/marks", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${admin.token}`
+        },
+        body: JSON.stringify({
+          student_id: studentId,
+          monthly,
+          submissions,
+          viva,
+          documentation
+        })
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Save failed");
+      }
+    }
+
+    toast("Saved", `Marks saved for ${Object.keys(marksByStudent).length} students`, "success");
+  } catch (err) {
+    console.error(err);
+    toast("Error", err.message, "error");
+  }
 }
 
 /* ════════════════════════════════════
@@ -593,11 +692,14 @@ function renderStudentsTable(list) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
     return;
   }
+
   tbody.innerHTML = list.map(s => {
-    const group = s.group;
-    const supId = group?.supervisor?._id || "";
-    const supName = group?.supervisor?.name || "—";
+    const group      = s.group;
+    const supId      = group?.supervisor?._id || "";
+    const supName    = group?.supervisor?.name || "—";
     const totalMarks = s.total_marks || 0;
+    const safeName   = (s.name || "").replace(/'/g, "\\'");
+
     return `
       <tr>
         <td>
@@ -614,126 +716,65 @@ function renderStudentsTable(list) {
           </strong>
         </td>
         <td>
-          <button class="icon-action" title="Edit marks"
-                  onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-          </button>
+          <div class="action-row">
+            <button class="icon-action" title="Edit marks"
+                    onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="icon-action danger" title="Delete student"
+                    style="color:#dc2626"
+                    onclick="deleteStudent('${s._id}', '${safeName}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+            </button>
+          </div>
         </td>
       </tr>`;
   }).join("");
 }
 
-function renderTeamBlockFromDB(group) {
-  const leader  = group.leader;
-  const members = group.members || [];
-  const allStudents = [
-    leader ? { ...leader, role: "Leader" } : null,
-    ...members.map(m => ({ ...m, role: "Member" }))
-  ].filter(Boolean);
-
-  if (allStudents.length === 0) {
-    return `<div class="team-block">...</div>`;
+function toggleMarkEnabled(groupId, key, enabled) {
+  // Update the status label under the toggle
+  const statusEl = document.getElementById(`toggle-status-${groupId}-${key}`);
+  if (statusEl) {
+    statusEl.textContent = enabled ? "Open" : "Locked";
+    statusEl.style.color = enabled ? "var(--success, #15803d)" : "var(--danger, #dc2626)";
   }
 
-  const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
-    sec.items.map(it => `
-      <th title="${sec.section} · max ${it.max}">
-        <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
-          <span>${it.label}</span>
-          <small style="color:var(--text-mute);font-weight:600">/${it.max}</small>
-          <label class="mark-toggle" title="Enable for supervisor">
-            <input type="checkbox"
-                   class="mark-enable-toggle"
-                   data-key="${it.key}"
-                   data-group="${group._id}"
-                   onchange="toggleMarkEnabled('${group._id}','${it.key}',this.checked)">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-      </th>`)
-  ).join("");
+  // Save toggle state to backend so supervisor sees it
+  saveMarkToggle(groupId, key, enabled);
 
-  const rows = allStudents.map(s => {
-    const cells = MARKS_SCHEMA.flatMap(sec =>
-      sec.items.map(it => `
-        <td class="mark-input-cell">
-          <input type="number" min="0" max="${it.max}"
-            class="mark-input"
-            data-student="${s._id}"
-            data-key="${it.key}"
-            data-max="${it.max}"
-            value=""
-            placeholder="—"
-            disabled
-            oninput="onMarkChange(this)">
-        </td>`)
-    ).join("");
-
-    return `
-      <tr>
-        <td><strong>${s.name}</strong></td>
-        <td><span class="id-pill">${s.student_code || s._id}</span></td>
-        <td><span class="id-pill" style="background:rgba(191,161,74,.1);color:#9a7e2a">${s.role}</span></td>
-        ${cells}
-        <td><span class="mark-total-display" id="total-${s._id}">0<span class="out">/${MAX_TOTAL}</span></span></td>
-      </tr>`;
-  }).join("");
-
-  return `
-    <div class="team-block">
-      <div class="team-block-head">
-        <div class="team-block-head-left">
-          <div class="team-avatar">${(group.group_code || "—").slice(-2)}</div>
-          <div>
-            <h3>${group.group_code || group.team_code || "—"}</h3>
-            <p>${group.project_title || "—"} · ${allStudents.length} students</p>
-          </div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="saveTeamMarks('${group._id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          Save Changes
-        </button>
-      </div>
-      <div style="overflow-x:auto">
-        <table class="marks-edit-table">
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>ID</th>
-              <th>Role</th>
-              ${componentHeaders}
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-      <div style="padding:12px 16px;background:rgba(191,161,74,.08);border-top:1px solid var(--border-soft);font-size:.78rem;color:var(--text-soft)">
-        💡 Toggle the switch above each column to <strong>enable that mark</strong> so the supervisor can fill it in.
-      </div>
-    </div>`;
-}
-
-function toggleMarkEnabled(groupId, key, enabled) {
-  // Enable/disable all input fields for this column in this team
-  const inputs = document.querySelectorAll(
-    `.mark-input[data-key="${key}"]`
-  );
-  inputs.forEach(inp => {
-    inp.disabled = !enabled;
-    if (!enabled) inp.value = "";
-  });
   toast(
-    enabled ? "Mark enabled" : "Mark disabled",
-    `${key} is now ${enabled ? "open for supervisor entry" : "locked"}`,
+    enabled ? "Mark unlocked" : "Mark locked",
+    `Supervisor ${enabled ? "can now edit" : "cannot edit"} this mark`,
     enabled ? "success" : "warn"
   );
+}
+
+// Send toggle state to backend
+async function saveMarkToggle(groupId, key, enabled) {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    await fetch(`http://127.0.0.1:5001/api/admin/mark-toggle`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      },
+      body: JSON.stringify({ group_id: groupId, mark_key: key, enabled })
+    });
+  } catch (err) {
+    console.error("Failed to save toggle:", err);
+  }
 }
 /* ════════════════════════════════════
    RENDER: MARKS (overview)
@@ -833,13 +874,14 @@ async function submitSupervisor() {
     }
 
     // Add to local array so UI updates instantly
-    supervisors.unshift({
-      id:       data.supervisor.sup_code,
-      name:     data.supervisor.name,
-      email:    data.supervisor.email,
-      teams:    0,
-      capacity: 6,
-    });
+SUPERVISORS_DATA.unshift({
+  _id: data.supervisor._id,
+  sup_code: data.supervisor.sup_code,
+  name: data.supervisor.name,
+  email: data.supervisor.email,
+  designation: data.supervisor.designation || "Lecturer",
+  teamCount: 0,
+});
 
     closeSupervisorModal();
     renderSupervisors();
@@ -855,27 +897,6 @@ async function submitSupervisor() {
 ══════════════════════════════════════ */
 function closeReassignModal() {
   $("#reassignModal").classList.remove("open");
-}
-function confirmReassign() {
-  const newSupId = $("#newSup").value;
-  if (!newSupId) {
-    toast(
-      "Select a supervisor",
-      "Please choose a new supervisor first",
-      "error",
-    );
-    return;
-  }
-  const team = teamById(reassignTeamId);
-  team.supId = newSupId;
-  closeReassignModal();
-  renderTeams();
-  renderSupervisors();
-  toast(
-    "Supervisor reassigned",
-    `${team.id} now under ${supById(newSupId).name}`,
-    "success",
-  );
 }
 
 /* ════════════════════════════════════
@@ -1037,7 +1058,39 @@ function updateMarksSummary(marksData) {
     marksStats[3].querySelector(".marks-stat-value").textContent = `${marksData.completedPct}%`;
   }
 }
+// In admin.js — add a delete button to each student row
+async function deleteStudent(studentId, studentName) {
+  if (!confirm(`Delete ${studentName}?\n\nThis will also remove them from their team. If they're a team leader, the entire team will be deleted.`)) {
+    return;
+  }
 
+  const admin = JSON.parse(localStorage.getItem("admin"));
+
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/admin/student/${studentId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    toast("Student deleted", `${studentName} has been removed`, "success");
+
+    // Refresh everything since deleting a student may also have deleted their team
+    await fetchDashboardStats();
+    await renderStudents();
+    await renderTeams();
+    await renderSupervisors();
+
+  } catch (err) {
+    console.error(err);
+    toast("Error", err.message, "error");
+  }
+}
 /* ════════════════════════════════════ INIT ══════════════════════════════════════ */
 async function initDashboard() {
   displayAdminInfo();
@@ -1050,8 +1103,6 @@ async function initDashboard() {
 initDashboard();
 
 function logout() {
-  if (confirm("Are you sure you want to logout?")) {
     localStorage.removeItem("admin");
     window.location.href = "../../Admin/login.html";
   }
-}
