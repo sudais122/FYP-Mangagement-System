@@ -3,6 +3,7 @@ import Supervisor from "../Models/supervisor.js";
 import Student    from "../Models/student.js";
 import Group      from "../Models/group.js";
 import Marks      from "../Models/marks.js";
+import Settings from '../Models/Settings.js';
 import generatePassword from "../utils/generatePassword.js";
 
 // ── ADD SUPERVISOR ─────────────────────────────────────────────
@@ -84,14 +85,13 @@ export const getDashboardStats = async (req, res) => {
 export const getAllStudents = async (req, res) => {
   try {
     const students = await Student.find()
-      .select("-password")
+      .select("name email student_code whatsapp team_role group")
       .populate({
         path: "group",
         select: "group_code project_title supervisor",
         populate: { path: "supervisor", select: "name sup_code" },
       });
 
-    // Attach total marks for each student
     const Marks = (await import("../Models/marks.js")).default;
     const result = await Promise.all(
       students.map(async (s) => {
@@ -243,6 +243,30 @@ export const adminSaveMarks = async (req, res) => {
   }
 };
 
+// GET — load all toggle states
+export const getMarkToggles = async (req, res) => {
+  try {
+    const settings = await Settings.findOne({ type: 'mark_toggles' });
+    res.json({ toggles: settings?.toggles || {} });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// POST — save all toggle states at once
+export const saveMarkToggles = async (req, res) => {
+  try {
+    const { toggles } = req.body;
+    await Settings.findOneAndUpdate(
+      { type: 'mark_toggles' },
+      { type: 'mark_toggles', toggles },
+      { upsert: true, new: true }
+    );
+    res.json({ message: 'Toggles saved successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 // ── DELETE SUPERVISOR ──────────────────────────────────────────
 export const deleteSupervisor = async (req, res) => {
   try {

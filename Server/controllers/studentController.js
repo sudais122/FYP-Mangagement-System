@@ -2,37 +2,44 @@ import Student from "../Models/student.js";
 import Group   from "../Models/group.js";
 import Marks   from "../Models/marks.js";
 
-// ── SEARCH STUDENT BY CODE (for adding to team) ────────────────
+// ── SEARCH STUDENT BY CODE 
 export const searchStudent = async (req, res) => {
   const { student_code } = req.query;
 
   if (!student_code) {
-    return res.status(400).json({ message: "student_code is required" });
+    return res.status(400).json({ message: "Student code is required" });
   }
 
   try {
-    const student = await Student.findOne({ student_code })
-      .select("name student_code group");
+    const student = await Student.findOne({ student_code }).select(
+      "name student_code email group"
+    );
 
     if (!student) {
-      return res.status(404).json({ message: "No student found with this ID" });
+      return res.status(404).json({ message: `Student ${student_code} not found` });
     }
 
-    return res.json({
-      name: student.name,
-      student_code: student.student_code,
-      initials: student.name
-        .split(" ")
-        .map(w => w[0])
-        .join("")
-        .toUpperCase(),
-      in_team: !!student.group
-    });
+    const initials = (student.name || "")
+      .split(" ")
+      .filter(Boolean)
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
+    res.json({
+      _id: student._id,
+      student_code: student.student_code,
+      name: student.name,
+      email: student.email,
+      initials,
+      in_team: !!student.group,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // GET MT DASHBOARD
 export const getMyDashboard = async (req, res) => {

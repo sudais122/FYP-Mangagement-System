@@ -1,6 +1,7 @@
 import Supervisor from "../Models/supervisor.js";
 import Group      from "../Models/group.js";
 import Student    from "../Models/student.js";
+import Settings from "../Models/Settings.js";
 import Marks      from "../Models/marks.js";
 
 // ── GET ALL SUPERVISORS (Admin) ────────────────────────────────
@@ -21,7 +22,6 @@ export const getAllSupervisors = async (req, res) => {
 };
 
 // Get all available supervisors
-// ── GET AVAILABLE SUPERVISORS (for student setup — any logged-in user) ──
 export const getAvailableSupervisors = async (req, res) => {
   try {
     const supervisors = await Supervisor.find()
@@ -134,8 +134,8 @@ export const getSupervisorDetail = async (req, res) => {
     if (!supervisor) return res.status(404).json({ message: "Supervisor not found" });
 
     const groups = await Group.find({ supervisor: req.params.id })
-      .populate("leader",  "name student_code")
-      .populate("members", "name student_code");
+      .populate("leader",  "name student_code email whatsapp")    // ✅ added email + whatsapp
+      .populate("members", "name student_code email whatsapp");   // ✅ added email + whatsapp
 
     const groupsWithMarks = await Promise.all(
       groups.map(async (group) => {
@@ -160,6 +160,21 @@ export const getSupervisorDetail = async (req, res) => {
   }
 };
 
+const getGroupsBySupervisor = async (req, res) => {
+  try {
+    const supervisorId = req.user._id;
+
+    const groups = await Group.find({ supervisor: supervisorId })
+      .populate('leader', 'name email student_code whatsapp')   
+      .populate('members', 'name email student_code whatsapp')  
+      .populate('supervisor', 'name email sup_code designation');
+
+    return res.status(200).json({ groups });
+
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
 // ── GET MY STUDENTS (Supervisor) ───────────────────────────────
 export const getMyStudents = async (req, res) => {
   try {
@@ -182,5 +197,15 @@ export const getMyStudents = async (req, res) => {
     res.json(students);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Supervisor reads same settings
+export const getMarkTogglesForSupervisor = async (req, res) => {
+  try {
+    const settings = await Settings.findOne({ type: 'mark_toggles' });
+    res.json({ toggles: settings?.toggles || {} });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

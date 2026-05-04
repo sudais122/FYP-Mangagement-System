@@ -310,10 +310,13 @@ async function openSupDetail(supId) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// Render team block using real DB data
+/* ════════════════════════════════════
+   RENDER TEAM BLOCK FROM DB
+══════════════════════════════════════ */
 function renderTeamBlockFromDB(group) {
   const leader  = group.leader;
   const members = group.members || [];
+
   const allStudents = [
     leader ? { ...leader, role: "Leader" } : null,
     ...members.map(m => ({ ...m, role: "Member" }))
@@ -334,32 +337,18 @@ function renderTeamBlockFromDB(group) {
       </div>`;
   }
 
-
-  // Header row with toggle (toggle controls SUPERVISOR access only)
+  // Simple headers — no toggles (toggles moved to global Mark Settings view)
   const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
     sec.items.map(it => `
       <th title="${sec.section} · max ${it.max}">
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
           <span>${it.label}</span>
           <small style="color:var(--text-mute);font-weight:600">/${it.max}</small>
-          <label class="mark-toggle" title="Enable for supervisor — admin can always edit">
-            <input type="checkbox"
-                   class="mark-enable-toggle"
-                   data-key="${it.key}"
-                   data-group="${group._id}"
-                   onchange="toggleMarkEnabled('${group._id}','${it.key}',this.checked)">
-            <span class="toggle-slider"></span>
-          </label>
-          <small id="toggle-status-${group._id}-${it.key}" 
-                 style="font-size:.55rem;font-weight:700;color:var(--danger);text-transform:uppercase">
-            Locked
-          </small>
         </div>
       </th>`)
   ).join("");
 
-
-  // Mark inputs — ALWAYS enabled for admin
+  // Mark inputs — always editable for admin
   const rows = allStudents.map(s => {
     const cells = MARKS_SCHEMA.flatMap(sec =>
       sec.items.map(it => `
@@ -378,7 +367,16 @@ function renderTeamBlockFromDB(group) {
 
     return `
       <tr>
-        <td><strong>${s.name}</strong></td>
+        <td>
+          <strong>${s.name}</strong>
+          <div style="font-size:.66rem;color:var(--text-mute);margin-top:2px">${s.email || ""}</div>
+          <div style="font-size:.66rem;color:#15803d;font-weight:600;margin-top:2px;display:inline-flex;align-items:center;gap:3px">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="10" height="10">
+              <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+            </svg>
+            ${s.whatsapp || "—"}
+          </div>
+        </td>
         <td><span class="id-pill">${s.student_code || s._id}</span></td>
         <td><span class="id-pill" style="background:rgba(191,161,74,.1);color:#9a7e2a">${s.role}</span></td>
         ${cells}
@@ -416,17 +414,6 @@ function renderTeamBlockFromDB(group) {
           </thead>
           <tbody>${rows}</tbody>
         </table>
-      </div>
-      <div style="padding:12px 16px;background:rgba(191,161,74,.08);border-top:1px solid var(--border-soft);font-size:.78rem;color:var(--text-soft);display:flex;align-items:center;gap:8px">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="color:var(--gold)">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <span>
-          You (admin) can edit any mark anytime. Toggle each switch to <strong>unlock that mark for the supervisor</strong>.
-        </span>
       </div>
     </div>`;
 }
@@ -699,13 +686,19 @@ function renderStudentsTable(list) {
     const supName    = group?.supervisor?.name || "—";
     const totalMarks = s.total_marks || 0;
     const safeName   = (s.name || "").replace(/'/g, "\\'");
+    const whatsapp   = s.whatsapp || "—";
 
     return `
       <tr>
         <td>
           <div class="team-info">
             <strong>${s.name}</strong>
-            <span>${s.email || ""}</span>
+            <span style="display:block">${s.email || ""}</span>
+            <span style="display:block;font-size:.7rem;color:var(--success);font-weight:600">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11" style="display:inline;vertical-align:middle;margin-right:3px">
+                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+              </svg>${whatsapp}
+            </span>
           </div>
         </td>
         <td><span class="id-pill">${s.student_code || "—"}</span></td>
@@ -928,25 +921,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-function filterSupervisors(query) {
-  const q = (query || "").trim().toLowerCase();
-  const filtered = SUPERVISORS_DATA.filter(s =>
-    s.name?.toLowerCase().includes(q) ||
-    s.email?.toLowerCase().includes(q) ||
-    s.sup_code?.toLowerCase().includes(q)
-  );
-  renderSupervisorCards(filtered);
-}
-
-function filterTeams(query) {
-  const q = (query || "").trim().toLowerCase();
-  const filtered = TEAMS_DATA.filter(t =>
-    (t.group_code || t.team_code || "").toLowerCase().includes(q) ||
-    (t.project_title || "").toLowerCase().includes(q) ||
-    (t.supervisor?.name || "").toLowerCase().includes(q)
-  );
-  renderTeamsTable(filtered);
-}
 
 function filterStudents(query) {
   const q = (query || "").trim().toLowerCase();
@@ -1091,6 +1065,315 @@ async function deleteStudent(studentId, studentName) {
     toast("Error", err.message, "error");
   }
 }
+
+function logout() {
+    localStorage.removeItem("admin");
+    window.location.href = "../../Admin/login.html";
+  }
+
+  /* ════════════════════════════════════
+   SEARCH HELPERS
+══════════════════════════════════════ */
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => (
+    { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]
+  ));
+}
+
+function highlightText(text, query) {
+  const safe = escapeHtml(text);
+  if (!query) return safe;
+  const q = query.trim();
+  if (!q) return safe;
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  return safe.replace(re, '<mark class="q-hl">$1</mark>');
+}
+
+function matches(haystack, query) {
+  if (!query) return true;
+  return String(haystack ?? "").toLowerCase().includes(query.trim().toLowerCase());
+}
+
+/* ════════════════════════════════════
+   SUPERVISORS SEARCH
+══════════════════════════════════════ */
+/* ════════════════════════════════════
+   SEARCH / FILTER FUNCTIONS (final — no duplicates)
+══════════════════════════════════════ */
+
+function filterSupervisors(query) {
+  if (!Array.isArray(SUPERVISORS_DATA)) return;
+  const q = (query || "").trim().toLowerCase();
+
+  const matched = [], rest = [];
+  SUPERVISORS_DATA.forEach(sup => {
+    const hit = !q ||
+      (sup.name || "").toLowerCase().includes(q) ||
+      (sup.sup_code || "").toLowerCase().includes(q) ||
+      (sup.email || "").toLowerCase().includes(q);
+    (hit ? matched : rest).push(sup);
+  });
+
+  const matchSet = new Set(matched.map(s => s._id));
+  const grid = $("#supervisorCards");
+
+  if (!SUPERVISORS_DATA.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
+    return;
+  }
+
+  // matched on top, rest below
+  grid.innerHTML = [...matched, ...rest].map(sup => {
+    const isMatch = q && matchSet.has(sup._id);
+    return `
+      <div class="entity-card ${isMatch ? "search-match" : ""}" onclick="openSupDetail('${sup._id}')">
+        <div class="entity-card-head">
+          <div class="entity-avatar">${initials(sup.name)}</div>
+          <div class="entity-info">
+            <strong>${highlightText(sup.name, q)}</strong>
+            <p>${highlightText(sup.email, q)}</p>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <span class="id-pill">${highlightText(sup.sup_code || "—", q)}</span>
+        </div>
+        <div class="entity-stats">
+          <div class="entity-stat-cell"><strong>${sup.teamCount || 0}</strong><span>Teams</span></div>
+          <div class="entity-stat-cell"><strong>${sup.designation || "Lecturer"}</strong><span>Designation</span></div>
+        </div>
+        <div style="text-align:center;font-size:.72rem;color:var(--secondary);font-weight:700;margin-top:10px">
+          Click to view teams →
+        </div>
+      </div>`;
+  }).join("");
+}
+
+
+
+// Update renderStudentsTable to accept highlight params
+function renderStudentsTable(list, query = "", matchSet = new Set()) {
+  const tbody = $("#studentsTable tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(s => {
+    const isMatch = query && matchSet.has(s._id);
+    const supId      = s.group?.supervisor?._id || "";
+    const supName    = s.group?.supervisor?.name || "—";
+    const totalMarks = s.total_marks || 0;
+    const safeName   = (s.name || "").replace(/'/g, "\\'");
+    const whatsapp   = s.whatsapp || "—";
+
+    return `
+      <tr class="${isMatch ? "search-match" : ""}">
+        <td>
+          <div class="team-info">
+            <strong>${highlightText(s.name, query)}</strong>
+            <span style="display:block">${s.email || ""}</span>
+            <span style="display:block;font-size:.7rem;color:var(--success);font-weight:600">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11" style="display:inline;vertical-align:middle;margin-right:3px">
+                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+              </svg>${whatsapp}
+            </span>
+          </div>
+        </td>
+        <td><span class="id-pill">${highlightText(s.student_code || "—", query)}</span></td>
+        <td>${highlightText(supName, query)}</td>
+        <td>
+          <strong style="font-family:monospace;color:var(--primary)">
+            ${totalMarks}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span>
+          </strong>
+        </td>
+        <td>
+          <div class="action-row">
+            <button class="icon-action" title="Edit marks"
+                    onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="icon-action danger" title="Delete student" style="color:#dc2626"
+                    onclick="deleteStudent('${s._id}', '${safeName}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+}
+/* ════════════════════════════════════
+   TEAMS SEARCH
+══════════════════════════════════════ */
+function filterTeams(query) {
+  if (!Array.isArray(TEAMS_DATA)) return;
+  const q = (query || "").trim().toLowerCase();
+
+  const matched = [], rest = [];
+  TEAMS_DATA.forEach(g => {
+    const supName = g.supervisor?.name || "";
+    const supCode = g.supervisor?.sup_code || "";
+    const code = g.group_code || g.team_code || "";
+    const hit = !q
+      || matches(code, q)
+      || matches(g.project_title, q)
+      || matches(supName, q)
+      || matches(supCode, q);
+    (hit ? matched : rest).push(g);
+  });
+
+  renderTeamsTableFiltered([...matched, ...rest], q, new Set(matched.map(g => g._id)));
+}
+
+function renderTeamsTableFiltered(list, query, matchSet) {
+  const tbody = $("#teamsTable tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-mute)">No teams found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(g => {
+    const sup = g.supervisor;
+    const supName = sup ? sup.name : "Unassigned";
+    const teamCode = g.group_code || g.team_code || "—";
+    const isMatch = query && matchSet.has(g._id);
+    return `
+      <tr class="${isMatch ? "search-match" : ""}">
+        <td><span class="id-pill gold">${highlightText(teamCode, query)}</span></td>
+        <td>${highlightText(g.project_title || "—", query)}</td>
+        <td><span style="font-weight:600;color:var(--text)">${highlightText(supName, query)}</span></td>
+        <td>
+          <div class="action-row">
+            <button class="icon-action" title="Reassign supervisor"
+                    onclick="event.stopPropagation();openReassignModal('${g._id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+            </button>
+            <button class="icon-action" title="View team details"
+                    onclick="event.stopPropagation();openTeamDetail('${g._id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }).join("");
+}
+
+
+/* ════════════════════════════════════
+   GLOBAL MARK TOGGLES
+══════════════════════════════════════ */
+
+// Stores current toggle state — key = mark key, value = true/false
+let GLOBAL_TOGGLES = {};
+
+// Load toggle state from backend on init
+async function loadGlobalToggles() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/admin/mark-toggles", {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // data should be { toggles: { oct: true, nov: false, ... } }
+    GLOBAL_TOGGLES = data.toggles || {};
+  } catch (err) {
+    console.error("Failed to load toggles:", err);
+  }
+  renderGlobalToggles();
+}
+
+// Render the toggles UI in the settings view
+function renderGlobalToggles() {
+  const body = $("#global-toggles-body");
+  if (!body) return;
+
+  body.innerHTML = MARKS_SCHEMA.map(sec => `
+    <div style="margin-bottom:28px">
+      <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+                  color:var(--text-mute);margin-bottom:12px;padding-bottom:6px;
+                  border-bottom:1px solid var(--border-soft)">
+        ${sec.section}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
+        ${sec.items.map(it => {
+          const enabled = GLOBAL_TOGGLES[it.key] === true;
+          return `
+            <div style="display:flex;align-items:center;justify-content:space-between;
+                        padding:12px 16px;border:1.5px solid var(--border-soft);
+                        border-radius:12px;background:var(--surface)">
+              <div>
+                <div style="font-size:.85rem;font-weight:600;color:var(--text)">${it.label}</div>
+                <div style="font-size:.7rem;color:var(--text-mute);margin-top:2px">
+                  Max: ${it.max} marks ·
+                  <span id="gtoggle-status-${it.key}"
+                        style="font-weight:700;color:${enabled ? 'var(--success,#15803d)' : '#dc2626'}">
+                    ${enabled ? "Open" : "Locked"}
+                  </span>
+                </div>
+              </div>
+              <label class="mark-toggle">
+                <input type="checkbox"
+                       id="gtoggle-${it.key}"
+                       ${enabled ? "checked" : ""}
+                       onchange="onGlobalToggleChange('${it.key}', this.checked)">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>`;
+        }).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
+// Update local state + status label when a toggle is clicked
+function onGlobalToggleChange(key, enabled) {
+  GLOBAL_TOGGLES[key] = enabled;
+  const statusEl = document.getElementById(`gtoggle-status-${key}`);
+  if (statusEl) {
+    statusEl.textContent = enabled ? "Open" : "Locked";
+    statusEl.style.color = enabled ? "var(--success,#15803d)" : "#dc2626";
+  }
+}
+
+// Save all toggles to backend at once
+async function saveGlobalToggles() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/admin/mark-toggles", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      },
+      body: JSON.stringify({ toggles: GLOBAL_TOGGLES })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    toast("Settings saved", "Supervisor mark access updated for all teams", "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
+
+// Call after rendering student cards
+
 /* ════════════════════════════════════ INIT ══════════════════════════════════════ */
 async function initDashboard() {
   displayAdminInfo();
@@ -1098,11 +1381,7 @@ async function initDashboard() {
   await renderSupervisors();
   await renderTeams();
   await renderStudents();
+  await loadGlobalToggles(); 
 }
 
 initDashboard();
-
-function logout() {
-    localStorage.removeItem("admin");
-    window.location.href = "../../Admin/login.html";
-  }

@@ -2200,3 +2200,18 @@ a {
   gap: 6px;
   align-items: center;
 }
+/* Add to admin.css */
+mark.q-hl {
+  background: rgba(191, 161, 74, 0.35);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: 700;
+}
+
+tr.search-match,
+.entity-card.search-match {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  background: rgba(0, 75, 45, 0.04);
+}

@@ -5,6 +5,7 @@ import {
   getSupervisorDetail,
   getMyStudents,
   changePassword,
+  getMarkTogglesForSupervisor
 } from "../controllers/supervisorController.js";
 import {
   protect,
@@ -20,6 +21,7 @@ router.get("/available", protect, getAvailableSupervisors);
 // ── Supervisor routes ──
 router.get("/students",  protect, supervisorOnly, getMyStudents);
 router.put("/change-password", protect, supervisorOnly, changePassword);
+router.get('/mark-toggles', protect, getMarkTogglesForSupervisor);
 
 // ── Admin only routes ──
 router.get("/",          protect, adminOnly, getAllSupervisors);

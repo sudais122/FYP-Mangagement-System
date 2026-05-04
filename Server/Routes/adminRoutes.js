@@ -9,7 +9,9 @@ import {
   adminSaveMarks,
   deleteSupervisor,
   cleanupOrphanedTeams,
-  deleteStudent
+  deleteStudent,
+  getMarkToggles,
+  saveMarkToggles
 } from "../controllers/adminController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
@@ -24,6 +26,8 @@ router.get("/supervisors", protect, adminOnly, getAllSupervisors);
 router.delete("/supervisors/:id", protect, adminOnly, deleteSupervisor,cleanupOrphanedTeams);
 router.delete("/student/:id", protect, adminOnly, deleteStudent);
 router.post("/supervisor", protect, adminOnly, addSupervisor);
+router.get('/mark-toggles', protect, getMarkToggles);
+router.post('/mark-toggles', protect, saveMarkToggles);
 
 // Students
 router.get("/students", protect, adminOnly, getAllStudents);

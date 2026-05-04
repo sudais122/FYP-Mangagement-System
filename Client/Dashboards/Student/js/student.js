@@ -1148,7 +1148,37 @@ function removeMember(idx) {
   renderMemberSlots();
   toast(removed + " removed");
 }
+async function addMemberAPI(studentCode) {
+  if (!STATE.teamId) {
+    toast("No team", "Create a team first", "red");
+    return { error: "No team" };
+  }
 
+  // Get the MongoDB _id of the group from STATE
+  const groupId = STATE.groupData?._id;
+  if (!groupId) {
+    toast("Error", "Team data not loaded", "red");
+    return { error: "No team ID" };
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/groups/${groupId}/add-member`, {
+      method: "PUT",
+      headers: API_HEADERS,
+      body: JSON.stringify({ student_code: studentCode }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    // Update local state with new group data
+    STATE.groupData = data.group;
+
+    return { success: true, group: data.group };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
 function clearSearch() {
   const memberSearch = document.getElementById("member-search");
   const searchResult = document.getElementById("search-result");
@@ -1524,6 +1554,48 @@ async function getNextTeamId() {
     console.error("Team ID fetch error:", error);
     toast("Failed to generate Team ID. Please refresh and try again.", "red");
     return "TEAM-PENDING"; // Better fallback that shows something went wrong
+  }
+}
+
+async function addMember(studentCode, name, ini) {
+  if (STATE.members.length >= 2) {
+    toast("Team is full", "red");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/groups/${STATE.groupData._id}/add-member`, {
+      method: "PUT",
+      headers: API_HEADERS,
+      body: JSON.stringify({ student_code: studentCode }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      toast(data.message || "Failed to add member", "red");
+      return;
+    }
+
+    // Update local state with returned data
+    STATE.members.push({
+      _id: data.member._id,
+      student_code: data.member.student_code,
+      name: data.member.name,
+      initials: initials(data.member.name),
+      role: "Member",
+    });
+
+    const memberSearch = document.getElementById("member-search");
+    const searchResult = document.getElementById("search-result");
+    if (memberSearch) memberSearch.value = "";
+    if (searchResult) searchResult.classList.remove("show");
+
+    renderMemberSlots();
+    toast(name + " added to team ✓");
+
+  } catch (error) {
+    toast("Failed to add member: " + error.message, "red");
   }
 }
 /* ══════════════════════════════════

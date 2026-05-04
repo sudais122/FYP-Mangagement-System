@@ -94,6 +94,7 @@ async function loadTeams() {
           _id:      s._id,
           name:     s.name,
           email:    s.email || "",
+          whatsapp: s.whatsapp || "",          // ✅ ADDED
           role:     s.role,
           marks:    {
             oct: null, nov: null, dec: null, feb: null, mar: null,
@@ -299,21 +300,23 @@ function filterStudents(query) {
   );
   const filtered = allStudents.filter(s =>
     (s.id || "").toLowerCase().includes(q) ||
-    (s.name || "").toLowerCase().includes(q)
+    (s.name || "").toLowerCase().includes(q) ||
+    (s.email || "").toLowerCase().includes(q) ||
+    (s.whatsapp || "").includes(q)
   );
 
   const tbody = document.getElementById("dash-students-tbody");
   if (!tbody) return;
 
   if (allStudents.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-mute)">
       No students assigned yet.
     </td></tr>`;
     return;
   }
 
   if (filtered.length === 0) {
-    tbody.innerHTML = emptySearchRow(5, query);
+    tbody.innerHTML = emptySearchRow(6, query);
     return;
   }
 
@@ -321,7 +324,20 @@ function filterStudents(query) {
     const total = studentTotal(s);
     return `<tr>
       <td><span class="s-id">${highlightMatch(s.id, q)}</span></td>
-      <td><span class="s-name">${highlightMatch(s.name, q)}</span></td>
+      <td>
+        <div>${highlightMatch(s.name, q)}</div>
+        <small style="color:var(--text-mute);font-size:.66rem">${s.email || ""}</small>
+      </td>
+      <td>
+        <a href="https://wa.me/${(s.whatsapp || "").replace(/^0/, "92")}"
+           target="_blank"
+           style="color:#15803d;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px;font-size:.74rem">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+            <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+          </svg>
+          ${s.whatsapp || "—"}
+        </a>
+      </td>
       <td><span class="tid">${s.teamId}</span></td>
       <td><span class="s-role ${s.role.toLowerCase()}">${s.role}</span></td>
       <td style="text-align:right">
@@ -393,6 +409,39 @@ function openGroupDetail(teamMongoId) {
   const leader = t.students.find(s => s.role === "Leader");
   const members = t.students.filter(s => s.role !== "Leader");
 
+  // Helper to format WhatsApp link (Pakistan format → international)
+  const waLink = (num) => {
+    if (!num) return null;
+    const intl = num.replace(/^0/, "92").replace(/[^0-9]/g, "");
+    return `https://wa.me/${intl}`;
+  };
+
+  // Helper to render contact info row (email + clickable WhatsApp)
+  const contactRow = (s) => {
+    const wa = waLink(s.whatsapp);
+    return `
+      <div style="display:flex;flex-wrap:wrap;gap:10px;font-size:.7rem;margin-top:4px">
+        <span style="color:var(--text-mute);display:inline-flex;align-items:center;gap:4px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          ${s.email || "—"}
+        </span>
+        ${wa ? `
+          <a href="${wa}" target="_blank"
+             style="color:#15803d;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;gap:4px"
+             title="Open WhatsApp chat">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+              <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+            </svg>
+            ${s.whatsapp}
+          </a>` : `
+          <span style="color:var(--text-mute);font-style:italic">No WhatsApp</span>`}
+      </div>`;
+  };
+
   d.innerHTML = `
     <button class="back-btn" onclick="showGroupsList()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -429,22 +478,22 @@ function openGroupDetail(teamMongoId) {
       </div>
       <div class="card-body" style="padding:14px 18px">
         ${leader ? `
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:rgba(191,161,74,.08);border:1px solid rgba(191,161,74,.2);border-radius:10px;margin-bottom:10px">
-            <div class="stu-dot leader"></div>
-            <div style="flex:1">
-              <div style="font-weight:600;font-size:.86rem">${leader.name}</div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(191,161,74,.08);border:1px solid rgba(191,161,74,.2);border-radius:10px;margin-bottom:10px">
+            <div class="stu-dot leader" style="margin-top:6px"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.88rem;margin-bottom:2px">${leader.name}</div>
               <div style="font-size:.7rem;color:var(--text-mute);font-family:monospace">${leader.id}</div>
-              <div style="font-size:.7rem;color:var(--text-mute)">${leader.email}</div>
+              ${contactRow(leader)}
             </div>
             <span class="stu-role-tag leader">Team Leader</span>
           </div>` : ""}
         ${members.map(m => `
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border-soft);border-radius:10px;margin-bottom:8px">
-            <div class="stu-dot member"></div>
-            <div style="flex:1">
-              <div style="font-weight:600;font-size:.86rem">${m.name}</div>
+          <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--border-soft);border-radius:10px;margin-bottom:8px">
+            <div class="stu-dot member" style="margin-top:6px"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:.88rem;margin-bottom:2px">${m.name}</div>
               <div style="font-size:.7rem;color:var(--text-mute);font-family:monospace">${m.id}</div>
-              <div style="font-size:.7rem;color:var(--text-mute)">${m.email}</div>
+              ${contactRow(m)}
             </div>
             <span class="stu-role-tag member">Member</span>
           </div>`).join("")}

@@ -146,19 +146,95 @@ export const getMyGroup = async (req, res) => {
   }
 };
 
+
 // ── GET ALL GROUPS (Supervisor — only theirs) ──────────────────
 export const getGroupsBySupervisor = async (req, res) => {
   try {
     const groups = await Group.find({ supervisor: req.user.id })
-      .populate("leader", "name student_code")
-      .populate("members", "name student_code");
-
+      .populate("leader",  "name student_code email whatsapp")   
+      .populate("members", "name student_code email whatsapp");   
     res.json(groups);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ADD MEMBER TO EXISTING GROUP
+// ── ADD MEMBER TO EXISTING GROUP (Leader only) ─────────────
+export const addMemberToGroup = async (req, res) => {
+  const { student_code } = req.body;
+  const groupId  = req.params.id;
+  const leaderId = req.user.id;
+
+  if (!student_code) {
+    return res.status(400).json({ message: "Student code is required" });
+  }
+
+  try {
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Only the team leader can add members
+    if (group.leader.toString() !== leaderId) {
+      return res.status(403).json({ message: "Only the team leader can add members" });
+    }
+
+    // Max 3 students total (1 leader + 2 members)
+    if (group.members.length >= 2) {
+      return res.status(400).json({ message: "Team is already full (max 2 additional members)" });
+    }
+
+    // Find the new student
+    const newMember = await Student.findOne({ student_code });
+    if (!newMember) {
+      return res.status(404).json({ message: `Student ${student_code} not found` });
+    }
+
+    // Check they're not already in a team
+    if (newMember.group) {
+      return res.status(400).json({ message: `${newMember.name} is already in another team` });
+    }
+
+    // Don't add the leader as a member of their own team
+    if (newMember._id.toString() === leaderId) {
+      return res.status(400).json({ message: "You cannot add yourself as a member" });
+    }
+
+    // Add to group
+    group.members.push(newMember._id);
+    await group.save();
+
+    // Update student record
+    await Student.findByIdAndUpdate(newMember._id, {
+      group: group._id,
+      team_role: "Member",
+    });
+
+    // Initialize marks record
+    await Marks.findOneAndUpdate(
+      { student: newMember._id, group: group._id },
+      { student: newMember._id, group: group._id, supervisor: group.supervisor },
+      { upsert: true, new: true }
+    );
+
+    // Return populated group
+    const populated = await Group.findById(group._id)
+      .populate("leader",     "name student_code email whatsapp")
+      .populate("members",    "name student_code email whatsapp")
+      .populate("supervisor", "name sup_code email designation");
+
+    res.json({
+      message: `${newMember.name} added to team successfully`,
+      group: populated,
+    });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // ── GET ALL GROUPS (Admin) ─────────────────────────────────────
 export const getAllGroups = async (req, res) => {
