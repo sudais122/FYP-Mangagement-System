@@ -24,18 +24,15 @@ const marksSchema = new mongoose.Schema({
     feb:  { type: Number, default: null, min: 0, max: 10 },
     mar:  { type: Number, default: null, min: 0, max: 10 },
   },
-  // Submissions (30 total)
   submissions: {
     proposal: { type: Number, default: null, min: 0, max: 10 },
     progress:  { type: Number, default: null, min: 0, max: 20 },
   },
-  // Viva (100 total)
   viva: {
     internal1: { type: Number, default: null, min: 0, max: 25 },
     internal2: { type: Number, default: null, min: 0, max: 25 },
     external:  { type: Number, default: null, min: 0, max: 50 },
   },
-  // Documentation (20 total)
   documentation: {
     final: { type: Number, default: null, min: 0, max: 20 },
   },

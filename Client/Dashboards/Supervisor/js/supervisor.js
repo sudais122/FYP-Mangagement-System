@@ -176,12 +176,41 @@ async function loadAllMarks() {
           "Authorization": `Bearer ${sup.token}`
         }
       });
-      if (!res.ok) continue;
-      const marksList = await res.json();
+      if (!res.ok) {
+        console.warn(`Marks fetch failed for ${team.teamId}: ${res.status}`);
+        continue;
+      }
+
+      const data = await res.json();
+
+      let marksList = [];
+      if (Array.isArray(data)) marksList = data;
+      else if (Array.isArray(data?.marks)) marksList = data.marks;
+      else if (Array.isArray(data?.data)) marksList = data.data;
+      else { console.warn(`Unexpected shape:`, data); continue; }
+
+      console.log(`📊 ${team.teamId} — got ${marksList.length} mark records`);
 
       marksList.forEach(m => {
-        const student = team.students.find(s => s._id === m.student?._id);
-        if (!student) return;
+        // m.student might be either:
+        //   - populated: { _id: "...", name: "...", student_code: "..." }
+        //   - unpopulated: just the ObjectId string "abc123..."
+        const studentRefId =
+          (typeof m.student === "string") ? m.student :
+          (m.student?._id) ? m.student._id :
+          null;
+
+        if (!studentRefId) {
+          console.warn("Mark record has no student reference:", m);
+          return;
+        }
+
+        const student = team.students.find(s => s._id === studentRefId);
+        if (!student) {
+          console.warn(`No matching student for ${studentRefId} in team ${team.teamId}`);
+          return;
+        }
+
         student.marks = {
           oct: m.monthly?.oct ?? null,
           nov: m.monthly?.nov ?? null,
@@ -198,6 +227,8 @@ async function loadAllMarks() {
           iv2: m.viva?.internal2 ?? null,
           ext: m.viva?.external ?? null,
         };
+
+        console.log(`  ✓ ${student.name}: oct=${student.marks.oct}, total=${studentTotal(student)}`);
       });
     } catch (err) {
       console.error("Error loading marks for", team.teamId, err);

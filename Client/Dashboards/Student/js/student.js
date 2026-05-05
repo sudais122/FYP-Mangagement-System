@@ -81,28 +81,26 @@ function generateMarks(seed) {
 let STUDENT_MARKS = {};
 
 function getAllStudents() {
-  const students = [
+  return [
     {
-      id: STATE.studentId,
+      id: STATE.studentId,                    
       name: STATE.studentName,
       initials: initials(STATE.studentName),
     },
     ...STATE.members.map((m) => ({
-      id: m.student_code,
+      id: m.student_code,                     
       name: m.name,
       initials: initials(m.name),
     })),
   ];
-  return students;
 }
 
 function ensureMarksExist() {
   const students = getAllStudents();
-  students.forEach((s, i) => {
+  students.forEach((s) => {
     if (!STUDENT_MARKS[s.id]) {
-      STUDENT_MARKS[s.id] = generateMarks(
-        s.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0) + i * 1000,
-      );
+      // No marks from backend yet — show all pending
+      STUDENT_MARKS[s.id] = MARKS_TEMPLATE.map(item => ({ ...item, marks: null }));
     }
   });
 }
@@ -287,7 +285,9 @@ async function loadTeamMarks() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.message);
 
-    // Process each student's marks
+    // Reset map so we don't keep stale data
+    STUDENT_MARKS = {};
+
     data.forEach(markRecord => {
       const studentCode = markRecord.student?.student_code;
       if (studentCode) {
@@ -299,15 +299,41 @@ async function loadTeamMarks() {
 
   } catch (error) {
     console.error("Marks load error:", error);
-    ensureMarksExist();
+    // Don't fall back to fake data — show pending state instead
+    STUDENT_MARKS = {};
+    renderEvaluation();
   }
 }
-
 // Convert backend marks format to frontend format
 function convertBackendMarks(markRecord) {
-  // This function should map your backend marks structure to the frontend MARKS_TEMPLATE
-  // For now, using generated marks as placeholder
-  return generateMarks(Math.random() * 10000);
+  // Map backend nested structure → frontend MARKS_TEMPLATE flat array
+  const m = markRecord || {};
+  const monthly       = m.monthly       || {};
+  const submissions   = m.submissions   || {};
+  const viva          = m.viva          || {};
+  const documentation = m.documentation || {};
+
+  // Backend → frontend label mapping
+  const valueFor = (component) => {
+    switch (component) {
+      case "October":             return monthly.oct       ?? null;
+      case "November":            return monthly.nov       ?? null;
+      case "December":            return monthly.dec       ?? null;
+      case "February":            return monthly.feb       ?? null;
+      case "March":               return monthly.mar       ?? null;
+      case "Proposal Submission": return submissions.proposal ?? null;
+      case "Progress Report":     return submissions.progress ?? null;
+      case "Internal Viva 1":     return viva.internal1    ?? null;
+      case "Internal Viva 2":     return viva.internal2    ?? null;
+      case "External Viva":       return viva.external     ?? null;
+      default:                    return null;
+    }
+  };
+
+  return MARKS_TEMPLATE.map(item => ({
+    ...item,
+    marks: valueFor(item.component),
+  }));
 }
 
 /* ══════════════════════════════════
@@ -329,20 +355,18 @@ const SUBS = {
 };
 
 function switchTab(tab, el) {
-  document
-    .querySelectorAll(".dash-subpage")
-    .forEach((p) => p.classList.remove("active"));
+  document.querySelectorAll(".dash-subpage").forEach((p) => p.classList.remove("active"));
   const t = document.getElementById("tab-" + tab);
   if (t) t.classList.add("active");
-  document
-    .querySelectorAll(".sb-item")
-    .forEach((i) => i.classList.remove("active"));
+  document.querySelectorAll(".sb-item").forEach((i) => i.classList.remove("active"));
   if (el) el.classList.add("active");
   document.getElementById("page-title").textContent = TITLES[tab] || tab;
   document.getElementById("page-sub").textContent = SUBS[tab] || "";
+
   if (tab === "team") renderTeamTab();
   if (tab === "progress") {
-    loadTeamMarks().then(() => renderEvaluation());
+    // load fresh marks each time, then render
+    loadTeamMarks();   // already calls renderEvaluation() inside
   }
   if (tab === "project") setProposalState(STATE.proposalState);
   if (tab === "supervisor") renderSupervisorTab();
