@@ -1,6 +1,7 @@
 import Student from "../Models/student.js";
 import Group   from "../Models/group.js";
 import Marks   from "../Models/marks.js";
+import cloudinary from "../config/cloudinary.js";
 
 // ── SEARCH STUDENT BY CODE 
 export const searchStudent = async (req, res) => {
@@ -41,6 +42,37 @@ export const searchStudent = async (req, res) => {
 };
 
 
+
+export const uploadStudentCV = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const student = await Student.findById(req.user.id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    if (student.cv_public_id) {
+      await cloudinary.uploader.destroy(student.cv_public_id, {
+        resource_type: "raw",
+      });
+    }
+
+    student.cv_url = req.file.path;          
+    student.cv_public_id = req.file.filename; 
+    await student.save();
+
+    res.json({
+      message: "CV uploaded successfully",
+      cv_url: student.cv_url,
+    });
+  } catch (error) {
+    console.error("CV upload error:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
 // GET MT DASHBOARD
 export const getMyDashboard = async (req, res) => {
   try {

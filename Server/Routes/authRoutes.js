@@ -8,14 +8,15 @@ import {
 } from "../controllers/authController.js";
 
 import { protect } from "../middleware/auth.js";
+import { uploadCV } from "../config/cloudinary.js";
 
 const router = express.Router();
 
 /* ================= AUTH ================= */
 router.post("/login", login);
-router.post("/register", registerStudent);
+router.post("/register", uploadCV.single("cv"), registerStudent);
 
-/* ================= PASSWORD RESET (NEW SYSTEM) ================= */
+/* ================= PASSWORD RESET ================= */
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

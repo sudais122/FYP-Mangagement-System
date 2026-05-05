@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:5001";
+const API_BASE = "http://localhost:5001";
 var cur = 1;
 var rtimer = null;
 
@@ -22,6 +22,7 @@ var topI = [
 ];
 
 async function doReg() {
+  // 1. Collect values from form
   const fn  = document.getElementById("r-fn").value.trim();
   const ln  = document.getElementById("r-ln").value.trim();
   const em  = document.getElementById("r-em").value.trim();
@@ -30,51 +31,46 @@ async function doReg() {
   const cpw = document.getElementById("r-cpw").value;
   const cv  = document.getElementById("r-cv").files[0];
 
-  let ok = true;
+  // 2. Validate (your existing validation logic)
+  if (!fn) return showErr("fn");
+  if (!ln) return showErr("ln");
+  if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return showErr("em");
+  if (!/^[0-9]{11}$/.test(wa)) return showErr("wa");
+  if (pw.length < 8) return showErr("pw");
+  if (pw !== cpw) return showErr("cpw");
+  if (!cv) return showErr("cv");
 
-  if (!fn) { showErr("fn", "First name is required"); ok = false; }
-  if (!ln) { showErr("ln", "Last name is required"); ok = false; }
-  if (!em || !em.includes("@")) { showErr("em", "Enter a valid email"); ok = false; }
+  // 3. Build FormData (NOT JSON — because we have a file)
+  const formData = new FormData();
+  formData.append("name", `${fn} ${ln}`);
+  formData.append("email", em);
+  formData.append("whatsapp", wa);
+  formData.append("password", pw);
+  formData.append("cv", cv);  // ← the file
 
-  // ✅ WhatsApp validation — exactly 11 digits, no dashes, no spaces
-  if (!wa) {
-    showErr("wa", "WhatsApp number is required");
-    ok = false;
-  } else if (!/^[0-9]{11}$/.test(wa)) {
-    showErr("wa", "Must be exactly 11 digits (e.g. 03001234567)");
-    ok = false;
-  }
-
-  if (!pw || pw.length < 8) { showErr("pw", "Weak password (min 8 chars)"); ok = false; }
-  if (pw !== cpw) { showErr("cpw", "Passwords do not match"); ok = false; }
-  if (!cv) { showErr("cv", "Upload CV"); ok = false; }
-
-  if (!ok) return;
-
+  // 4. Submit
   const btn = document.getElementById("rbtn");
   btn.disabled = true;
-  btn.textContent = "Registering...";
+  btn.innerHTML = "Creating account...";
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+    const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name:     fn + " " + ln,
-        email:    em,
-        password: pw,
-        whatsapp: wa,
-      }),
+      // ⚠️ DO NOT set Content-Type — browser sets multipart boundary automatically
+      body: formData,
     });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Registration failed");
 
-    window.location.href = "login.html";
+    // Success → show success panel
+    document.getElementById("form-area").style.display = "none";
+    document.getElementById("success-area").style.display = "block";
+
   } catch (err) {
-    alert(err.message);
+    Swal.fire({ icon: "error", title: "Registration failed", text: err.message });
     btn.disabled = false;
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> Register`;
+    btn.innerHTML = `<svg ...>...</svg> Register`;
   }
 }
 

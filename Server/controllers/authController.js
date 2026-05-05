@@ -89,38 +89,46 @@ export const login = async (req, res) => {
 
 // ── STUDENT REGISTER ──────────────────────────────────────────
 export const registerStudent = async (req, res) => {
-  const { name, email, password, whatsapp, roll_number, batch } = req.body;
-
-  if (!name || !email || !password || !whatsapp) {
-    return res.status(400).json({ message: "Name, email, password and WhatsApp number are required" });
-  }
-
   try {
-    const exists = await Student.findOne({ email });
-    if (exists) {
+    const { name, email, whatsapp, password } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: "CV is required" });
+    }
+
+    const existing = await Student.findOne({ email });
+    if (existing) {
+      await cloudinary.uploader.destroy(req.file.filename, { resource_type: "raw" });
       return res.status(400).json({ message: "Email already registered" });
     }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const student_code = await generateStudentCode();
 
     const student = await Student.create({
       name,
       email,
-      password,
       whatsapp,
-      roll_number,
-      batch,
+      password: hashedPassword,
+      student_code,
+      cv_url: req.file.path,
+      cv_public_id: req.file.filename,
     });
 
-    const token = generateToken(student._id, "student");
     res.status(201).json({
-      _id:           student._id,
-      name:          student.name,
-      email:         student.email,
-      whatsapp:      student.whatsapp,
-      student_code:  student.student_code,
-      role:          "student",
-      token,
+      message: "Student registered successfully",
+      student: {
+        _id: student._id,
+        name: student.name,
+        email: student.email,
+        student_code: student.student_code,
+      },
     });
   } catch (error) {
+    if (req.file?.filename) {
+      await cloudinary.uploader.destroy(req.file.filename, { resource_type: "raw" });
+    }
     res.status(500).json({ message: error.message });
   }
 };

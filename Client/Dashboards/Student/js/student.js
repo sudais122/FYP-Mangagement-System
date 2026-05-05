@@ -1598,6 +1598,37 @@ async function addMember(studentCode, name, ini) {
     toast("Failed to add member: " + error.message, "red");
   }
 }
+
+async function uploadCV(file) {
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // FormData is required for file uploads — DON'T set Content-Type manually,
+  // the browser sets the correct multipart boundary automatically
+  const formData = new FormData();
+  formData.append("cv", file);  // "cv" must match upload.single("cv") in the route
+
+  try {
+    const res = await fetch(`${API_BASE}/students/upload-cv`, {
+      method: "POST",
+      headers: {
+        // ONLY Authorization here — no Content-Type!
+        "Authorization": `Bearer ${user.token}`,
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+
+    toast("CV uploaded ✓", "gold");
+    console.log("CV URL:", data.cv_url);
+    return data.cv_url;
+
+  } catch (err) {
+    toast("Upload failed: " + err.message, "red");
+    return null;
+  }
+}
 /* ══════════════════════════════════
    INIT
 ══════════════════════════════════ */

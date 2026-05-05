@@ -1,19 +1,31 @@
 import express from "express";
+import { uploadCV } from "../config/cloudinary.js";
+
 import {
+  uploadStudentCV,
   searchStudent,
   getMyMarks,
   getTeamMarks,
   getMyProfile,
   getMyDashboard
 } from "../controllers/studentController.js";
+
 import { protect, studentOnly } from "../middleware/auth.js";
 
 const router = express.Router();
 
-router.get("/search",    protect, studentOnly, searchStudent);
-router.get("/my-marks",  protect, studentOnly, getMyMarks);
-router.get("/team-marks",protect, studentOnly, getTeamMarks);
+router.post(
+  "/upload-cv",
+  protect,
+  studentOnly,
+  uploadCV.single("cv"),
+  uploadStudentCV
+);
+
+router.get("/search", protect, studentOnly, searchStudent);
+router.get("/my-marks", protect, studentOnly, getMyMarks);
+router.get("/team-marks", protect, studentOnly, getTeamMarks);
 router.get("/dashboard", protect, getMyDashboard);
-router.get("/profile",   protect, studentOnly, getMyProfile);
+router.get("/profile", protect, studentOnly, getMyProfile);
 
 export default router;
