@@ -45,6 +45,9 @@ const TOTAL_MARKS = 200;
 // Real data from DB
 let TEAMS = [];
 
+// Admin-controlled mark toggles (loaded once, applied after each render)
+let MARK_TOGGLES = {};
+
 // Set welcome info
 const welcomeName = document.getElementById("welcome-name");
 const welcomeDes  = document.getElementById("welcome-designation");
@@ -57,6 +60,51 @@ const navName = document.getElementById("nav-sup-name");
 const navCode = document.getElementById("nav-sup-code");
 if (navName) navName.textContent = sup.name     || "Supervisor";
 if (navCode) navCode.textContent = sup.sup_code || "";
+
+/* ═══════════════════════════════════
+   ADMIN MARK LOCKS (single source of truth)
+═══════════════════════════════════ */
+async function loadMarkToggles() {
+  try {
+    const res = await fetch(`${API_BASE}/supervisor/mark-toggles`, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${sup.token}`
+      }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    console.log("TOGGLES FROM SERVER:", data.toggles); // ← check this
+
+    MARK_TOGGLES = data.toggles || {};
+  } catch (err) {
+    console.error("Toggle load failed:", err);
+  }
+}
+
+function applyMarkLocks() {
+  document.querySelectorAll(".mk-input").forEach(input => {
+    const key = input.dataset.key;
+
+    const enabled = MARK_TOGGLES[key] === true || MARK_TOGGLES[key] === "true";
+
+    input.disabled      = !enabled;
+    input.style.opacity = enabled ? "1"    : "0.5";
+    input.style.cursor  = enabled ? "text" : "not-allowed";
+    input.title         = enabled ? ""     : "🔒 Locked by admin";
+
+    if (enabled) {
+      input.classList.remove("locked-by-admin");
+    } else {
+      input.classList.add("locked-by-admin");
+    }
+  });
+}
+async function refreshMarkLocks() {
+  await loadMarkToggles();
+  applyMarkLocks();
+}
 
 /* ═══════════════════════════════════
    FETCH TEAMS FROM BACKEND
@@ -94,7 +142,7 @@ async function loadTeams() {
           _id:      s._id,
           name:     s.name,
           email:    s.email || "",
-          whatsapp: s.whatsapp || "",          // ✅ ADDED
+          whatsapp: s.whatsapp || "",
           role:     s.role,
           marks:    {
             oct: null, nov: null, dec: null, feb: null, mar: null,
@@ -108,6 +156,9 @@ async function loadTeams() {
 
     // Load marks for each student
     await loadAllMarks();
+
+    // Load admin lock config alongside teams
+    await loadMarkToggles();
 
     renderDashboard();
   } catch (err) {
@@ -128,7 +179,6 @@ async function loadAllMarks() {
       if (!res.ok) continue;
       const marksList = await res.json();
 
-      // Map backend marks to frontend keys
       marksList.forEach(m => {
         const student = team.students.find(s => s._id === m.student?._id);
         if (!student) return;
@@ -249,7 +299,6 @@ function renderDashboard() {
 
 /* ═══════════════════════════════════
    GROUPS TABLE — DASHBOARD
-   Columns: Group ID | Project Title | Students
 ═══════════════════════════════════ */
 function filterDashGroups(query) {
   const q = (query || "").trim().toLowerCase();
@@ -291,7 +340,6 @@ function filterDashGroups(query) {
 
 /* ═══════════════════════════════════
    STUDENTS TABLE — DASHBOARD
-   Columns: Student ID | Name | Group | Role | Marks
 ═══════════════════════════════════ */
 function filterStudents(query) {
   const q = (query || "").trim().toLowerCase();
@@ -397,7 +445,7 @@ function filterGroupsList(query) {
 /* ═══════════════════════════════════
    GROUP DETAIL VIEW
 ═══════════════════════════════════ */
-function openGroupDetail(teamMongoId) {
+async function openGroupDetail(teamMongoId) {
   showTab("groups");
   const t = TEAMS.find((x) => x._id === teamMongoId);
   if (!t) return;
@@ -409,14 +457,12 @@ function openGroupDetail(teamMongoId) {
   const leader = t.students.find(s => s.role === "Leader");
   const members = t.students.filter(s => s.role !== "Leader");
 
-  // Helper to format WhatsApp link (Pakistan format → international)
   const waLink = (num) => {
     if (!num) return null;
     const intl = num.replace(/^0/, "92").replace(/[^0-9]/g, "");
     return `https://wa.me/${intl}`;
   };
 
-  // Helper to render contact info row (email + clickable WhatsApp)
   const contactRow = (s) => {
     const wa = waLink(s.whatsapp);
     return `
@@ -437,8 +483,7 @@ function openGroupDetail(teamMongoId) {
               <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
             </svg>
             ${s.whatsapp}
-          </a>` : `
-          <span style="color:var(--text-mute);font-style:italic">No WhatsApp</span>`}
+          </a>` : `<span style="color:var(--text-mute);font-style:italic">No WhatsApp</span>`}
       </div>`;
   };
 
@@ -464,7 +509,6 @@ function openGroupDetail(teamMongoId) {
       </div>
     </div>
 
-    <!-- Team Composition Card -->
     <div class="card" style="margin-bottom:18px">
       <div class="card-head">
         <h3>
@@ -500,7 +544,6 @@ function openGroupDetail(teamMongoId) {
       </div>
     </div>
 
-    <!-- Marks Cards (one per student) -->
     <h3 style="font-size:.95rem;font-weight:700;color:var(--primary-dark);margin:18px 0 10px;display:flex;align-items:center;gap:6px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
@@ -510,6 +553,9 @@ function openGroupDetail(teamMongoId) {
       Marks Entry
     </h3>
     ${t.students.map((s) => renderStudentCard(t, s)).join("")}`;
+
+  // ✅ Apply admin locks AFTER HTML is rendered
+  await refreshMarkLocks();
 }
 
 function renderStudentCard(team, student) {
@@ -619,14 +665,13 @@ async function saveMarks(teamMongoId, studentMongoId) {
   const student = team?.students.find(s => s._id === studentMongoId);
   if (!student) return;
 
-  // Collect values + validate
   const marks = {};
   let hasError = false;
 
   MARK_COMPONENTS.forEach(sec => {
     sec.items.forEach(item => {
       const inp = document.getElementById("mk-" + studentMongoId + "-" + item.key);
-      if (!inp) return;
+      if (!inp || inp.disabled) return;
       if (inp.value === "") {
         marks[item.key] = null;
       } else {
@@ -642,51 +687,38 @@ async function saveMarks(teamMongoId, studentMongoId) {
     });
   });
 
-  if (hasError) {
-    toast("Fix invalid marks (red fields)", "red");
-    return;
-  }
+  if (hasError) { toast("Fix invalid marks (red fields)", "red"); return; }
 
-  // Map frontend keys → backend nested structure
-  const monthly = {
-    oct: marks.oct, nov: marks.nov, dec: marks.dec,
-    feb: marks.feb, mar: marks.mar,
-  };
-  const submissions = {
-    proposal:   marks.proposal,
-    progress:   marks.progress_report,
-    code:       marks.code,
-    prog_sim:   marks.prog_sim,
-    thesis_sim: marks.thesis_sim,
-  };
-  const viva = {
-    internal1: marks.iv1,
-    internal2: marks.iv2,
-    external:  marks.ext,
-  };
+  const monthly       = { oct: marks.oct, nov: marks.nov, dec: marks.dec, feb: marks.feb, mar: marks.mar };
+  const submissions   = { proposal: marks.proposal, progress: marks.progress_report, code: marks.code, prog_sim: marks.prog_sim, thesis_sim: marks.thesis_sim };
+  const viva          = { internal1: marks.iv1, internal2: marks.iv2, external: marks.ext };
   const documentation = { final: marks.thesis };
 
   try {
     const res = await fetch(`${API_BASE}/marks/save`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${sup.token}`
-      },
-      body: JSON.stringify({
-        student_id: studentMongoId,
-        monthly, submissions, viva, documentation,
-      })
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` },
+      body: JSON.stringify({ student_id: studentMongoId, monthly, submissions, viva, documentation })
     });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
-    // Update local state
-    Object.assign(student.marks, marks);
+    Object.keys(marks).forEach(k => {
+      if (marks[k] !== null) student.marks[k] = marks[k];
+    });
 
-    toast(`${student.name} — saved (${studentTotal(student)}/${TOTAL_MARKS})`, "green");
+    const newTotal = data.total || studentTotal(student);
+
+    const tdEl = document.getElementById(`td-${studentMongoId}`);
+    const gtEl = document.getElementById(`gt-${studentMongoId}`);
+    if (tdEl) tdEl.textContent = newTotal;
+    if (gtEl) gtEl.textContent = newTotal;
+
     renderDashboard();
+
+    toast(`${student.name} — saved (${newTotal}/${TOTAL_MARKS})`, "green");
+
   } catch (err) {
     console.error(err);
     toast("Save failed: " + err.message, "red");

@@ -1432,3 +1432,10 @@ button {
   .gh-info { padding: 14px 16px; }
   .gh-tid  { font-size: .95rem; }
 }
+.mk-input:disabled,
+.mk-input.locked-by-admin {
+  background: rgba(220, 38, 38, .04);
+  border: 1.5px dashed rgba(220, 38, 38, .25);
+  color: #999;
+  cursor: not-allowed !important;
+}

@@ -1,10 +1,12 @@
-import mongoose from 'mongoose';
+// Models/Settings.js
+import mongoose from "mongoose";
 
-const settingsSchema = new mongoose.Schema({
-  type:    { type: String, required: true, unique: true },
-  toggles: { type: Object, default: {} }
-}, { timestamps: true });
+const settingsSchema = new mongoose.Schema(
+  {
+    type:    { type: String, required: true, unique: true },
+    toggles: { type: Map, of: Boolean, default: {} }, // ← Map not Object
+  },
+  { timestamps: true }
+);
 
-const Settings = mongoose.model('Settings', settingsSchema);
-
-export default Settings;
+export default mongoose.model("Settings", settingsSchema);

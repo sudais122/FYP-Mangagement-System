@@ -37,6 +37,9 @@ app.use("/api/proposals",   proposalRoutes);
 app.use("/api/files",       fileRoutes);
 app.use("/api/supervisors", supervisorRoutes);
 app.use("/api/admin",       adminRoutes);
+app.use("/api/supervisor", supervisorRoutes);
+
+
 
 app.get("/", (req, res) => {
   res.json({ message: "FYP Management System API is running" });

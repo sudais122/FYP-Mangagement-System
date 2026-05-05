@@ -1,6 +1,7 @@
 import Group from "../Models/group.js";
 import Student from "../Models/student.js";
 import Marks from "../Models/marks.js";
+import cloudinary from "../config/cloudinary.js";
 
 // ── TEAM ID GENERATOR ─────────────────────────────
 const generateTeamId = async () => {
@@ -123,30 +124,84 @@ export const getNextTeamId = async (req, res) => {
 export const getMyGroup = async (req, res) => {
   try {
     const student = await Student.findById(req.user.id);
-
     if (!student || !student.group) {
-      return res.status(404).json({
-        hasGroup: false,
-        message: "No team found"
-      });
+      return res.status(404).json({ hasGroup: false, message: "No team found" });
     }
 
     const group = await Group.findById(student.group)
       .populate("leader", "name student_code email")
       .populate("members", "name student_code email")
-      .populate("supervisor", "name sup_code email office office_hours research_areas");
+      .populate("supervisor", "name sup_code email office office_hours research_areas")
+      .populate("proposal_uploaded_by", "name student_code");  // ← add this
 
-    res.json({
-      hasGroup: true,
-      group
-    });
-
+    res.json({ hasGroup: true, group });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+// UPLOAD/REPLACE TEAM PROPOSAL 
+export const uploadProposal = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
 
+    const student = await Student.findById(req.user.id);
+    if (!student || !student.group) {
+      // Clean up the just-uploaded file
+      await cloudinary.uploader.destroy(req.file.filename, { resource_type: "raw" });
+      return res.status(400).json({ message: "You are not in a team" });
+    }
 
+    const group = await Group.findById(student.group);
+    if (!group) {
+      await cloudinary.uploader.destroy(req.file.filename, { resource_type: "raw" });
+      return res.status(404).json({ message: "Team not found" });
+    }
+
+    // Verify the uploader is actually a member of this team
+    const isLeader  = group.leader.toString() === student._id.toString();
+    const isMember  = group.members.some(m => m.toString() === student._id.toString());
+    if (!isLeader && !isMember) {
+      await cloudinary.uploader.destroy(req.file.filename, { resource_type: "raw" });
+      return res.status(403).json({ message: "You are not a member of this team" });
+    }
+
+    // Delete old proposal if it exists
+    if (group.proposal_public_id) {
+      await cloudinary.uploader.destroy(group.proposal_public_id, { resource_type: "raw" });
+    }
+
+    // Save new one
+    group.proposal_url         = req.file.path;
+    group.proposal_public_id   = req.file.filename;
+    group.proposal_filename    = req.file.originalname;
+    group.proposal_uploaded_by = student._id;
+    group.proposal_uploaded_at = new Date();
+    group.proposal_status      = "pending";
+    await group.save();
+
+    const populated = await Group.findById(group._id)
+      .populate("proposal_uploaded_by", "name student_code");
+
+    res.json({
+      message: "Proposal uploaded successfully",
+      proposal: {
+        url:          populated.proposal_url,
+        filename:     populated.proposal_filename,
+        status:       populated.proposal_status,
+        uploaded_by:  populated.proposal_uploaded_by,
+        uploaded_at:  populated.proposal_uploaded_at,
+      },
+    });
+  } catch (error) {
+    console.error("Proposal upload error:", error);
+    if (req.file?.filename) {
+      await cloudinary.uploader.destroy(req.file.filename, { resource_type: "raw" });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
 // ── GET ALL GROUPS (Supervisor — only theirs) ──────────────────
 export const getGroupsBySupervisor = async (req, res) => {
   try {

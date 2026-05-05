@@ -22,6 +22,8 @@ router.get("/available", protect, getAvailableSupervisors);
 router.get("/students",  protect, supervisorOnly, getMyStudents);
 router.put("/change-password", protect, supervisorOnly, changePassword);
 router.get('/mark-toggles', protect, getMarkTogglesForSupervisor);
+router.get("/mark-toggles", protect, supervisorOnly, getMarkTogglesForSupervisor);
+router.get('/mark-toggles', protect, getMarkTogglesForSupervisor);
 
 // ── Admin only routes ──
 router.get("/",          protect, adminOnly, getAllSupervisors);

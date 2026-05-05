@@ -225,44 +225,88 @@ export const deleteStudent = async (req, res) => {
   }
 };
 // ── ADMIN SAVE ANY STUDENT'S MARKS ────────────────────────────
+// In admin.controller.js — update adminSaveMarks
 export const adminSaveMarks = async (req, res) => {
   const { student_id, monthly, submissions, viva, documentation } = req.body;
   try {
     let marks = await Marks.findOne({ student: student_id });
     if (!marks) return res.status(404).json({ message: "Marks record not found" });
 
-    if (monthly)       Object.assign(marks.monthly,       monthly);
-    if (submissions)   Object.assign(marks.submissions,   submissions);
-    if (viva)          Object.assign(marks.viva,          viva);
-    if (documentation) Object.assign(marks.documentation, documentation);
+    if (monthly) {
+      Object.entries(monthly).forEach(([k, v]) => {
+        if (v !== null && v !== undefined) marks.monthly[k] = v;
+      });
+    }
+    if (submissions) {
+      Object.entries(submissions).forEach(([k, v]) => {
+        if (v !== null && v !== undefined) marks.submissions[k] = v;
+      });
+    }
+    if (viva) {
+      Object.entries(viva).forEach(([k, v]) => {
+        if (v !== null && v !== undefined) marks.viva[k] = v;
+      });
+    }
+    if (documentation) {
+      Object.entries(documentation).forEach(([k, v]) => {
+        if (v !== null && v !== undefined) marks.documentation[k] = v;
+      });
+    }
+
+    // Recalculate total
+    let total = 0;
+    const m = marks.monthly || {};
+    ["oct","nov","dec","feb","mar"].forEach(k => { total += Number(m[k]) || 0; });
+    const s = marks.submissions || {};
+    ["proposal","progress","code","prog_sim","thesis_sim"].forEach(k => { total += Number(s[k]) || 0; });
+    const d = marks.documentation || {};
+    total += Number(d.final) || 0;
+    const v = marks.viva || {};
+    ["internal1","internal2","external"].forEach(k => { total += Number(v[k]) || 0; });
+    marks.total = total;
+
+    marks.markModified("monthly");
+    marks.markModified("submissions");
+    marks.markModified("viva");
+    marks.markModified("documentation");
 
     await marks.save();
-    res.json({ message: "Marks updated by admin", marks });
+
+    res.json({ message: "Marks updated by admin", total: marks.total, marks });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// GET — load all toggle states
 export const getMarkToggles = async (req, res) => {
   try {
-    const settings = await Settings.findOne({ type: 'mark_toggles' });
-    res.json({ toggles: settings?.toggles || {} });
+    const settings = await Settings.findOne({ type: "marks" });
+
+    const toggles = settings?.toggles
+      ? Object.fromEntries(settings.toggles)
+      : {};
+
+    res.json({ toggles });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-// POST — save all toggle states at once
 export const saveMarkToggles = async (req, res) => {
   try {
     const { toggles } = req.body;
-    await Settings.findOneAndUpdate(
-      { type: 'mark_toggles' },
-      { type: 'mark_toggles', toggles },
+    if (!toggles || typeof toggles !== "object") {
+      return res.status(400).json({ message: "toggles object is required" });
+    }
+
+    const updated = await Settings.findOneAndUpdate(
+      { type: "marks" },
+      { $set: { toggles } }, // ← use $set not full replace
       { upsert: true, new: true }
     );
-    res.json({ message: 'Toggles saved successfully' });
+
+    const saved = Object.fromEntries(updated.toggles);
+    res.json({ message: "Settings saved", toggles: saved });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

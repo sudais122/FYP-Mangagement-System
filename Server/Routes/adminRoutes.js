@@ -28,6 +28,8 @@ router.delete("/student/:id", protect, adminOnly, deleteStudent);
 router.post("/supervisor", protect, adminOnly, addSupervisor);
 router.get('/mark-toggles', protect, getMarkToggles);
 router.post('/mark-toggles', protect, saveMarkToggles);
+router.get ("/mark-toggles", protect, adminOnly, getMarkToggles);
+router.post("/mark-toggles", protect, adminOnly, saveMarkToggles);
 
 // Students
 router.get("/students", protect, adminOnly, getAllStudents);

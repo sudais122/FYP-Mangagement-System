@@ -203,8 +203,13 @@ export const getMyStudents = async (req, res) => {
 // Supervisor reads same settings
 export const getMarkTogglesForSupervisor = async (req, res) => {
   try {
-    const settings = await Settings.findOne({ type: 'mark_toggles' });
-    res.json({ toggles: settings?.toggles || {} });
+    const settings = await Settings.findOne({ type: "marks" });
+
+    const toggles = settings?.toggles
+      ? Object.fromEntries(settings.toggles)
+      : {};
+
+    res.json({ toggles });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

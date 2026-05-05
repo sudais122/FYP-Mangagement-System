@@ -5254,3 +5254,8 @@ textarea {
     padding: 7px 8px;
   }
 }
+.mark-input:disabled {
+  background: rgba(220, 38, 38, .04);
+  border: 1.5px dashed rgba(220, 38, 38, .25);
+  color: #999;
+}

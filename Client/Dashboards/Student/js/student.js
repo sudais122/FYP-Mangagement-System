@@ -284,23 +284,21 @@ async function loadTeamMarks() {
       method: "GET",
       headers: API_HEADERS,
     });
-
     const data = await response.json();
+    if (!response.ok) throw new Error(data.message);
 
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to load marks");
-    }
-
-    // Process marks data
-    data.forEach((markRecord) => {
-      const studentCode = markRecord.student.student_code;
-      STUDENT_MARKS[studentCode] = convertBackendMarks(markRecord);
+    // Process each student's marks
+    data.forEach(markRecord => {
+      const studentCode = markRecord.student?.student_code;
+      if (studentCode) {
+        STUDENT_MARKS[studentCode] = convertBackendMarks(markRecord);
+      }
     });
 
-    ensureMarksExist(); // Fill in any missing data with generated marks
+    renderEvaluation();
+
   } catch (error) {
     console.error("Marks load error:", error);
-    // Fallback to generated marks
     ensureMarksExist();
   }
 }
@@ -1628,6 +1626,54 @@ async function uploadCV(file) {
     toast("Upload failed: " + err.message, "red");
     return null;
   }
+}
+
+/* Upload proposal to backend */
+async function uploadProposalAPI(file) {
+  const formData = new FormData();
+  formData.append("proposal", file);
+
+  try {
+    const res = await fetch(`${API_BASE}/groups/proposal`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${user.token}` }, // NO Content-Type
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+    return { success: true, proposal: data.proposal };
+  } catch (err) {
+    return { error: err.message };
+  }
+}
+
+/* Replace your existing handleProposalUpload */
+async function handleProposalUpload(files) {
+  if (!files.length) return;
+  const file = files[0];
+  const ext = file.name.split(".").pop().toLowerCase();
+  if (!["pdf", "docx", "doc"].includes(ext)) {
+    toast("Only PDF and DOCX files are accepted", "red");
+    return;
+  }
+  if (file.size > 20 * 1024 * 1024) {
+    toast("File exceeds 20 MB limit", "red");
+    return;
+  }
+
+  toast("Uploading proposal…", "gold");
+  const result = await uploadProposalAPI(file);
+  if (result.error) {
+    toast("Upload failed: " + result.error, "red");
+    return;
+  }
+
+  STATE.proposalFile     = result.proposal.filename;
+  STATE.proposalUrl      = result.proposal.url;
+  STATE.proposalUploader = result.proposal.uploaded_by;
+  STATE.proposalState    = "pending";
+  setProposalState("pending");
+  toast("Proposal uploaded ✓", "gold");
 }
 /* ══════════════════════════════════
    INIT

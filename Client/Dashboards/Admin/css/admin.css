@@ -2215,3 +2215,170 @@ tr.search-match,
   outline-offset: -2px;
   background: rgba(0, 75, 45, 0.04);
 }
+/* ════════ Document badges ════════ */
+.doc-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 140px;
+}
+
+.doc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.doc-badge svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+/* Available — has the file */
+.doc-badge.available {
+  background: rgba(0, 75, 45, .08);
+  color: var(--primary, #004b2d);
+  border: 1px solid rgba(0, 75, 45, .15);
+}
+
+/* Missing — no file uploaded */
+.doc-badge.missing {
+  background: rgba(220, 38, 38, .06);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, .15);
+  font-style: italic;
+}
+.doc-badge.missing small {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  opacity: .7;
+}
+.doc-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 3px;
+  border-radius: 4px;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  transition: background .15s;
+}
+.doc-btn svg {
+  width: 13px;
+  height: 13px;
+}
+.doc-btn:hover {
+  background: rgba(0, 75, 45, .12);
+}
+.doc-btn.dl:hover {
+  background: rgba(191, 161, 74, .15);
+  color: var(--secondary, #bfa14a);
+}
+/* ════════ Document badges in admin students table ════════ */
+.doc-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+}
+
+.doc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.doc-badge svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.doc-badge .doc-label {
+  font-weight: 700;
+}
+
+/* Available — has the file */
+.doc-badge.available {
+  background: rgba(0, 75, 45, .08);
+  color: var(--primary, #004b2d);
+  border: 1px solid rgba(0, 75, 45, .15);
+}
+
+/* Missing — no file uploaded */
+.doc-badge.missing {
+  background: rgba(220, 38, 38, .06);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, .15);
+  font-style: italic;
+}
+.doc-badge.missing small {
+  font-size: .62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  opacity: .7;
+  font-style: normal;
+}
+
+.doc-uploader {
+  font-size: .62rem;
+  font-weight: 600;
+  color: var(--text-mute);
+  font-style: italic;
+}
+
+.doc-status {
+  font-size: .58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.doc-status-pending  { background: rgba(191,161,74,.18); color: #9a7e2a; }
+.doc-status-approved { background: rgba(21,128,61,.15);  color: #15803d; }
+.doc-status-rejected { background: rgba(220,38,38,.12);  color: #dc2626; }
+
+/* View + Download buttons */
+.doc-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  transition: background .15s;
+  margin-left: auto;
+}
+.doc-btn:first-of-type { margin-left: auto; }
+.doc-btn + .doc-btn { margin-left: 0; }
+
+.doc-btn svg {
+  width: 13px;
+  height: 13px;
+}
+.doc-btn:hover {
+  background: rgba(0, 75, 45, .12);
+}
+.doc-btn.dl:hover {
+  background: rgba(191, 161, 74, .15);
+  color: var(--secondary, #bfa14a);
+}
