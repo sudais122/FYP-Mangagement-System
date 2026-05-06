@@ -5259,3 +5259,51 @@ textarea {
   border: 1.5px dashed rgba(220, 38, 38, .25);
   color: #999;
 }
+/* DEBUG - FORCE VISIBILITY */
+#marks-comp-tbody {
+    background: yellow !important;
+    min-height: 100px !important;
+}
+
+#marks-comp-tbody tr {
+    background: lightblue !important;
+    min-height: 40px !important;
+}
+
+#student-tabs {
+    background: lightgreen !important;
+    min-height: 50px !important;
+}
+
+.marks-comp-table {
+    background: pink !important;
+    border: 5px solid red !important;
+}
+/* FORCE TABLE VISIBILITY */
+.marks-comp-table {
+    display: table !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.marks-comp-table tbody {
+    display: table-row-group !important;
+}
+
+.marks-comp-table tr {
+    display: table-row !important;
+    height: auto !important;
+    min-height: 30px !important;
+}
+
+.marks-comp-table td {
+    display: table-cell !important;
+    padding: 13px 16px !important;
+    opacity: 1 !important;
+    color: var(--text) !important;
+}
+
+#tab-progress {
+    display: block !important;
+    opacity: 1 !important;
+}

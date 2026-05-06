@@ -548,18 +548,49 @@ function renderEvaluation() {
   console.log("STUDENT_MARKS:", STUDENT_MARKS);
   
   const students = getAllStudents();
+  
+  // Make sure we have students
+  if (students.length === 0) {
+    console.error("No students found!");
+    return;
+  }
+  
+  // Render the tabs
   renderStudentTabs();
+  
+  // Render marks for the selected student
+  if (STATE.selectedEvalStudent >= students.length) {
+    STATE.selectedEvalStudent = 0; // Reset to first student if out of bounds
+  }
   renderMarksForStudent(STATE.selectedEvalStudent);
 }
 
 function renderMarksForStudent(idx) {
   const students = getAllStudents();
   const student = students[idx];
-  if (!student) return;
-
+  
+  if (!student) {
+    console.error("No student at index", idx);
+    return;
+  }
+  
+  console.log("Rendering marks for student:", student.id, student.name);
+  
   const marks = STUDENT_MARKS[student.id];
-  if (!marks) return;
+  
+  if (!marks) {
+    console.error("No marks found for student:", student.id);
+    console.log("Available keys in STUDENT_MARKS:", Object.keys(STUDENT_MARKS));
+    
+    // Show empty state
+    const tbody = document.getElementById("marks-comp-tbody");
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">No marks available yet</td></tr>';
+    }
+    return;
+  }
 
+  // Calculate totals
   let totalObtained = 0;
   let totalMax = 0;
   marks.forEach((m) => {
@@ -568,22 +599,27 @@ function renderMarksForStudent(idx) {
   });
   const pct = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
 
-  const evalTotalVal     = document.getElementById("eval-total-val");
-  const evalPctRing      = document.getElementById("eval-pct-ring");
+  // Update top cards
+  const evalTotalVal = document.getElementById("eval-total-val");
+  const evalPctRing = document.getElementById("eval-pct-ring");
   const evalStudentLabel = document.getElementById("eval-student-name-label");
 
-  if (evalTotalVal)     evalTotalVal.textContent = totalObtained;
-  if (evalPctRing)      evalPctRing.innerHTML    = pct + "<small>%</small>";
+  if (evalTotalVal) evalTotalVal.textContent = totalObtained;
+  if (evalPctRing) evalPctRing.innerHTML = pct + "<small>%</small>";
   if (evalStudentLabel) evalStudentLabel.textContent = student.name;
 
-  const progBarPct   = document.getElementById("prog-bar-pct");
+  // Update progress bar
+  const progBarPct = document.getElementById("prog-bar-pct");
   const evalProgFill = document.getElementById("eval-prog-fill");
-  if (progBarPct)    progBarPct.textContent  = pct + "%";
-  if (evalProgFill)  evalProgFill.style.width = pct + "%";
+  if (progBarPct) progBarPct.textContent = pct + "%";
+  if (evalProgFill) evalProgFill.style.width = pct + "%";
 
+  // Render table, chart, and breakdown
   renderMarksTable(marks, totalObtained, totalMax);
   renderPieChart(marks);
   renderBreakdown(marks, totalObtained, totalMax);
+  
+  console.log("Finished rendering marks for:", student.name, "Total:", totalObtained, "/", totalMax);
 }
 
 function renderStudentTabs() {
