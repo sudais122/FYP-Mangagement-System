@@ -4,7 +4,8 @@ import {
   registerStudent,
   forgotPassword,
   resetPassword,
-  getProfile
+  getProfile,
+  verifyOtp
 } from "../controllers/authController.js";
 
 import { protect } from "../middleware/auth.js";
@@ -19,6 +20,9 @@ router.post("/register", uploadCV.single("cv"), registerStudent);
 /* ================= PASSWORD RESET ================= */
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
+router.post("/auth/verify-otp", verifyOtp);
+router.post("/auth/forgot-password", forgotPassword);
+
 
 /* ================= PROFILE ================= */
 router.get("/profile", protect, getProfile);

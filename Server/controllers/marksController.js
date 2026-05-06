@@ -89,7 +89,7 @@ export const getGroupMarks = async (req, res) => {
   try {
     const marks = await Marks.find({ group: req.params.groupId })
       .populate("student", "name student_code team_role");
-    res.json(marks);                    // ← this should send the array directly
+    res.json(marks);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

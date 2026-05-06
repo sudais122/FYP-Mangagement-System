@@ -133,6 +133,7 @@ function clearE(id, eid) {
 async function step1Submit() {
   const email = document.getElementById("s1-email").value.trim();
   const btn = document.querySelector("#step1 .btn-primary");
+  console.log("Sending to:", `${API_BASE_URL}/api/auth/forgot-password`, "email:", email);
 
   if (!email || !email.includes("@")) {
     document.getElementById("e1-email").textContent =
@@ -145,7 +146,7 @@ async function step1Submit() {
   btn.textContent = "Sending...";
 
   try {
-    const res = await fetch(`${API_BASE_URL}/api/auth/change-password`, {
+    const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

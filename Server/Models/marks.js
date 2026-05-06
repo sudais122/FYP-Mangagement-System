@@ -16,26 +16,37 @@ const marksSchema = new mongoose.Schema({
     ref: "Supervisor",
     required: true,
   },
-  // Monthly Meetings (10 each = 50 total)
+
+  // Monthly Meetings — 10 each, 50 total
   monthly: {
-    oct:  { type: Number, default: null, min: 0, max: 10 },
-    nov:  { type: Number, default: null, min: 0, max: 10 },
-    dec:  { type: Number, default: null, min: 0, max: 10 },
-    feb:  { type: Number, default: null, min: 0, max: 10 },
-    mar:  { type: Number, default: null, min: 0, max: 10 },
+    oct: { type: Number, default: null, min: 0, max: 10 },
+    nov: { type: Number, default: null, min: 0, max: 10 },
+    dec: { type: Number, default: null, min: 0, max: 10 },
+    feb: { type: Number, default: null, min: 0, max: 10 },
+    mar: { type: Number, default: null, min: 0, max: 10 },
   },
+
+  // Submissions — Proposal + Progress + Code + Similarity checks
   submissions: {
-    proposal: { type: Number, default: null, min: 0, max: 10 },
-    progress:  { type: Number, default: null, min: 0, max: 20 },
+    proposal:   { type: Number, default: null, min: 0, max: 10 },
+    progress:   { type: Number, default: null, min: 0, max: 20 },
+    code:       { type: Number, default: null, min: 0, max: 10 },
+    prog_sim:   { type: Number, default: null, min: 0, max: 5  },
+    thesis_sim: { type: Number, default: null, min: 0, max: 5  },
   },
+
+  // Viva — Internal 1, Internal 2, External
   viva: {
     internal1: { type: Number, default: null, min: 0, max: 25 },
     internal2: { type: Number, default: null, min: 0, max: 25 },
-    external:  { type: Number, default: null, min: 0, max: 50 },
+    external:  { type: Number, default: null, min: 0, max: 30 },
   },
+
+  // Documentation — Final thesis/report
   documentation: {
     final: { type: Number, default: null, min: 0, max: 20 },
   },
+
   total: {
     type: Number,
     default: 0,
@@ -49,21 +60,25 @@ const marksSchema = new mongoose.Schema({
 // Auto-calculate total before save
 marksSchema.pre("save", function (next) {
   let total = 0;
-  const m = this.monthly;
-  const s = this.submissions;
-  const v = this.viva;
-  const d = this.documentation;
-  if (m.oct  != null) total += m.oct;
-  if (m.nov  != null) total += m.nov;
-  if (m.dec  != null) total += m.dec;
-  if (m.feb  != null) total += m.feb;
-  if (m.mar  != null) total += m.mar;
-  if (s.proposal != null) total += s.proposal;
-  if (s.progress  != null) total += s.progress;
-  if (v.internal1 != null) total += v.internal1;
-  if (v.internal2 != null) total += v.internal2;
-  if (v.external  != null) total += v.external;
-  if (d.final     != null) total += d.final;
+
+  const m = this.monthly || {};
+  ["oct", "nov", "dec", "feb", "mar"].forEach(k => {
+    if (m[k] != null) total += m[k];
+  });
+
+  const s = this.submissions || {};
+  ["proposal", "progress", "code", "prog_sim", "thesis_sim"].forEach(k => {
+    if (s[k] != null) total += s[k];
+  });
+
+  const v = this.viva || {};
+  ["internal1", "internal2", "external"].forEach(k => {
+    if (v[k] != null) total += v[k];
+  });
+
+  const d = this.documentation || {};
+  if (d.final != null) total += d.final;
+
   this.total = total;
   this.updatedAt = new Date();
   next();

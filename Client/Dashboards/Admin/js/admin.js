@@ -257,9 +257,66 @@ async function openSupDetail(supId) {
 
     const sup    = data.supervisor;
     const groups = data.groups || [];
-    const totalStudents = groups.reduce((sum, g) => {
-      return sum + (g.members?.length || 0) + (g.leader ? 1 : 0);
-    }, 0);
+
+    // ─── NEW: fetch marks for every group ───
+    for (const group of groups) {
+      try {
+          const mRes = await fetch(`http://127.0.0.1:5001/api/admin/marks/group/${group._id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${admin.token}`
+          }
+        });
+        if (!mRes.ok) continue;
+
+        const marksData = await mRes.json();
+        const marksList = Array.isArray(marksData) ? marksData
+                       : (Array.isArray(marksData?.marks) ? marksData.marks : []);
+
+        // Attach marks to each student in the group
+        const allStudents = [
+          group.leader,
+          ...(group.members || [])
+        ].filter(Boolean);
+
+        allStudents.forEach(student => {
+          const studentRefId = student._id;
+          const markRecord = marksList.find(m => {
+            const ref = (typeof m.student === "string") ? m.student : m.student?._id;
+            return ref === studentRefId;
+          });
+
+          if (markRecord) {
+            student.marks = {
+              oct: markRecord.monthly?.oct ?? null,
+              nov: markRecord.monthly?.nov ?? null,
+              dec: markRecord.monthly?.dec ?? null,
+              feb: markRecord.monthly?.feb ?? null,
+              mar: markRecord.monthly?.mar ?? null,
+              proposal:        markRecord.submissions?.proposal ?? null,
+              progress_report: markRecord.submissions?.progress ?? null,
+              thesis:          markRecord.documentation?.final ?? null,
+              code:            markRecord.submissions?.code ?? null,
+              prog_sim:        markRecord.submissions?.prog_sim ?? null,
+              thesis_sim:      markRecord.submissions?.thesis_sim ?? null,
+              iv1: markRecord.viva?.internal1 ?? null,
+              iv2: markRecord.viva?.internal2 ?? null,
+              ext: markRecord.viva?.external ?? null,
+            };
+            student.total_marks = markRecord.total ?? 0;
+          } else {
+            student.marks = {};
+            student.total_marks = 0;
+          }
+        });
+      } catch (err) {
+        console.warn(`Could not load marks for ${group.group_code}:`, err);
+      }
+    }
+    // ─── END NEW ───
+
+    const totalStudents = groups.reduce((sum, g) =>
+      sum + (g.members?.length || 0) + (g.leader ? 1 : 0), 0);
 
     let html = `
       <div class="sup-detail-header">
@@ -348,21 +405,25 @@ function renderTeamBlockFromDB(group) {
       </th>`)
   ).join("");
 
-  // Mark inputs — always editable for admin
+  // ✅ FIX: Move cells INSIDE the rows loop
   const rows = allStudents.map(s => {
     const cells = MARKS_SCHEMA.flatMap(sec =>
-      sec.items.map(it => `
-        <td class="mark-input-cell">
-          <input type="number" min="0" max="${it.max}"
-            class="mark-input"
-            data-student="${s._id}"
-            data-key="${it.key}"
-            data-max="${it.max}"
-            data-group="${group._id}"
-            value=""
-            placeholder="—"
-            oninput="onMarkChange(this)">
-        </td>`)
+      sec.items.map(it => {
+        const savedValue = s.marks?.[it.key];
+        const displayValue = (savedValue !== null && savedValue !== undefined) ? savedValue : "";
+        return `
+          <td class="mark-input-cell">
+            <input type="number" min="0" max="${it.max}"
+              class="mark-input"
+              data-student="${s._id}"
+              data-key="${it.key}"
+              data-max="${it.max}"
+              data-group="${group._id}"
+              value="${displayValue}"
+              placeholder="—"
+              oninput="onMarkChange(this)">
+          </td>`;
+      })
     ).join("");
 
     return `
@@ -380,7 +441,7 @@ function renderTeamBlockFromDB(group) {
         <td><span class="id-pill">${s.student_code || s._id}</span></td>
         <td><span class="id-pill" style="background:rgba(191,161,74,.1);color:#9a7e2a">${s.role}</span></td>
         ${cells}
-        <td><span class="mark-total-display" id="total-${s._id}">0<span class="out">/${MAX_TOTAL}</span></span></td>
+        <td><span class="mark-total-display" id="total-${s._id}">${s.total_marks || 0}<span class="out">/${MAX_TOTAL}</span></span></td>
       </tr>`;
   }).join("");
 

@@ -323,23 +323,40 @@ export const getGroupById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-// ── REASSIGN SUPERVISOR (Admin only) ──────────────────────────
+// ── REASSIGN SUPERVISOR Admin only ──────────────────────────
+
+
 export const reassignSupervisor = async (req, res) => {
   const { supervisor_id } = req.body;
 
+  if (!supervisor_id) {
+    return res.status(400).json({ message: "supervisor_id is required" });
+  }
+
   try {
+    // 1. Update the group's supervisor reference
     const group = await Group.findByIdAndUpdate(
       req.params.id,
       { supervisor: supervisor_id },
       { new: true }
     ).populate("supervisor", "name sup_code");
 
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+    const result = await Marks.updateMany(
+      { group: req.params.id },
+      { $set: { supervisor: supervisor_id } }
+    );
+
     res.json({
       message: "Supervisor reassigned successfully",
-      group
+      group,
+      marks_updated: result.modifiedCount,
     });
 
   } catch (error) {
+    console.error("Reassign error:", error);
     res.status(500).json({ message: error.message });
   }
 };
