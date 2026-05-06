@@ -80,7 +80,33 @@ export const getDashboardStats = async (req, res) => {
     });
   }
 };
+// GET MARKS OF GROUP
+export const getGroupMarks = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const group = await Group.findById(groupId)
+      .populate("leader")
+      .populate("members")
+      .populate("supervisor");
 
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    const studentIds = [
+      group.leader?._id,
+      ...(group.members || []).map(m => m._id)
+    ].filter(Boolean);
+
+    const marks = await Marks.find({
+      student: { $in: studentIds }
+    }).populate("student", "name email");
+
+    res.json({ group, marks });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 // ── GET ALL STUDENTS ───────────────────────────────────────────
 export const getAllStudents = async (req, res) => {
   try {
@@ -184,6 +210,33 @@ export const cleanupOrphanedTeams = async (req, res) => {
   }
 };
 
+export const getAllStudentsForAdmin = async (req, res) => {
+  try {
+    const students = await Student.find()
+      .select("name email student_code whatsapp cv_url group")
+      .populate({
+        path: "group",
+        select: "group_code project_title proposal_url proposal_status supervisor",
+        populate: { path: "supervisor", select: "name sup_code" }
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const studentIds = students.map(s => s._id);
+    const allMarks = await Marks.find({ student: { $in: studentIds } }).lean();
+
+    const totalByStudent = {};
+    allMarks.forEach(m => { totalByStudent[m.student.toString()] = m.total || 0; });
+
+    students.forEach(s => {
+      s.total_marks = totalByStudent[s._id.toString()] || 0;
+    });
+
+    res.json(students);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 // ── DELETE STUDENT
 export const deleteStudent = async (req, res) => {
   try {

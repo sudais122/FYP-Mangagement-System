@@ -1536,7 +1536,7 @@ textarea {
 }
 
 .dash-subpage.active {
-    display: block
+    display: block;
 }
 
 /* ══ STATUS BADGES ══ */

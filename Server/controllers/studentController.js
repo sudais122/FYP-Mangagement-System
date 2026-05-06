@@ -143,22 +143,20 @@ export const getMyMarks = async (req, res) => {
 };
 
 // ── GET ALL TEAM MEMBERS' MARKS ────────────────────────────────
+
 export const getTeamMarks = async (req, res) => {
-  const { id } = req.user;
-
   try {
-    const student = await Student.findById(id);
-
+    const student = await Student.findById(req.user.id);
     if (!student || !student.group) {
-      return res.status(404).json({ message: "No group found" });
+      return res.status(404).json({ message: "You are not in a team" });
     }
 
     const marks = await Marks.find({ group: student.group })
-      .populate("student", "name student_code team_role");
+      .populate("student", "name student_code");
 
-    res.json(marks);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json(marks);  // returns an ARRAY
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 

@@ -16,14 +16,21 @@ const generateStudentId = async () => {
 };
 
 // ── EMAIL TRANSPORTER ──────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
+const getTransporter = () => {
+  console.log("Creating transporter with:", process.env.EMAIL_USER, !!process.env.EMAIL_PASS);
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+};
 
 // ── LOGIN (works for all 3 roles) ─────────────────────────────
 export const login = async (req, res) => {
@@ -135,6 +142,11 @@ export const registerStudent = async (req, res) => {
 
 // ── FORGOT PASSWORD — sends reset link via email ───────────────
 export const forgotPassword = async (req, res) => {
+  console.log("=== forgotPassword HIT ===");
+  console.log("Body:", req.body);
+  console.log("EMAIL_USER:", process.env.EMAIL_USER);
+  console.log("EMAIL_PASS exists:", !!process.env.EMAIL_PASS);
+
   try {
     console.log("EMAIL_PASS LENGTH:", process.env.EMAIL_PASS?.length);
 console.log("EMAIL_PASS VALUE:", process.env.EMAIL_PASS);
@@ -153,26 +165,13 @@ console.log("EMAIL_PASS VALUE:", process.env.EMAIL_PASS);
       // Security best practice: don't reveal whether email exists
       return res.json({ message: "If this email is registered, a reset link has been sent." });
     }
-
-    // 1. Generate plain token (sent in URL)
-    const resetToken = crypto.randomBytes(32).toString("hex");
-
-    // 2. Hash token before saving in DB
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(resetToken)
-      .digest("hex");
-
-    // 3. Save hashed token + expiry in DB (15 min)
-    user.resetPasswordToken  = hashedToken;
+    // With this:
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetPasswordToken  = otp;
     user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
-    // 4. Build reset URL pointing to reset-password.html
-    //    IMPORTANT: update the domain/path to match your actual frontend URL
-    const resetUrl = `http://localhost:3000/Auth/reset-password.html?token=${resetToken}&email=${encodeURIComponent(email)}`;
 
-    // 5. Send email
     await transporter.sendMail({
       from:    `"FYP Management System" <${process.env.EMAIL_USER}>`,
       to:      email,
@@ -222,61 +221,28 @@ console.log("EMAIL_PASS VALUE:", process.env.EMAIL_PASS);
 // ── RESET PASSWORD — validates token, sets new password ────────
 export const resetPassword = async (req, res) => {
   try {
-    // Frontend sends: { token, email, newPassword }
-    const { token, email, newPassword } = req.body;
+    const { email, password } = req.body;
 
-    if (!token || !email || !newPassword) {
+    if (!email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-
-    if (newPassword.length < 8) {
+    if (password.length < 8) {
       return res.status(400).json({ message: "Password must be at least 8 characters" });
     }
 
-    // Hash the incoming plain token to compare with DB
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
-
-    // Search all three collections for matching token + email + not expired
-    let user = await Student.findOne({
-      email,
-      resetPasswordToken:  hashedToken,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
+    let user = await Student.findOne({ email });
+    if (!user) user = await Supervisor.findOne({ email });
+    if (!user) user = await Admin.findOne({ email });
 
     if (!user) {
-      user = await Supervisor.findOne({
-        email,
-        resetPasswordToken:  hashedToken,
-        resetPasswordExpire: { $gt: Date.now() },
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    if (!user) {
-      user = await Admin.findOne({
-        email,
-        resetPasswordToken:  hashedToken,
-        resetPasswordExpire: { $gt: Date.now() },
-      });
-    }
-
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired reset link. Please request a new one." });
-    }
-
-    // Set new password (your model should hash it, but we hash here too to be safe)
-    user.password            = await bcrypt.hash(newPassword, 10);
-    user.resetPasswordToken  = undefined;
-    user.resetPasswordExpire = undefined;
-
+    user.password = await bcrypt.hash(password, 10);
     await user.save();
 
     res.json({ message: "Password reset successful" });
-
   } catch (err) {
-    console.error("resetPassword error:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -297,5 +263,28 @@ export const getProfile = async (req, res) => {
     res.json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+export const verifyOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    let user = await Student.findOne({ email });
+    if (!user) user = await Supervisor.findOne({ email });
+    if (!user) user = await Admin.findOne({ email });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (user.resetPasswordToken !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+    if (user.resetPasswordExpire < Date.now()) {
+      return res.status(400).json({ message: "OTP has expired" });
+    }
+
+    res.json({ message: "OTP verified" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

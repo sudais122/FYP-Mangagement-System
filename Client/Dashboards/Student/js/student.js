@@ -45,16 +45,20 @@ const STATE = {
    MARKS DATA TEMPLATE
 ══════════════════════════════════ */
 const MARKS_TEMPLATE = [
-  { section: "Monthly Meetings", component: "October", max: 10 },
+  { section: "Monthly Meetings", component: "October",  max: 10 },
   { section: "Monthly Meetings", component: "November", max: 10 },
   { section: "Monthly Meetings", component: "December", max: 10 },
   { section: "Monthly Meetings", component: "February", max: 10 },
-  { section: "Monthly Meetings", component: "March", max: 10 },
-  { section: "Submissions", component: "Proposal Submission", max: 10 },
-  { section: "Submissions", component: "Progress Report", max: 20 },
+  { section: "Monthly Meetings", component: "March",    max: 10 },
+  { section: "Submissions", component: "Proposal Submission",      max: 10 },
+  { section: "Submissions", component: "Progress Report",          max: 20 },
+  { section: "Submissions", component: "Progress Similarity Check", max: 5  },
+  { section: "Documentation", component: "Thesis / Final Report",   max: 20 },
+  { section: "Documentation", component: "Thesis Similarity Check", max: 5  },
+  { section: "Practical", component: "Code / Practical Work", max: 10 },
   { section: "Viva", component: "Internal Viva 1", max: 25 },
   { section: "Viva", component: "Internal Viva 2", max: 25 },
-  { section: "Viva", component: "External Viva", max: 50 },
+  { section: "Viva", component: "External Viva",   max: 30 },
 ];
 
 function generateMarks(seed) {
@@ -81,32 +85,28 @@ function generateMarks(seed) {
 let STUDENT_MARKS = {};
 
 function getAllStudents() {
-  const students = [
+  return [
     {
-      id: STATE.studentId,
+      id: STATE.studentId,                    
       name: STATE.studentName,
       initials: initials(STATE.studentName),
     },
     ...STATE.members.map((m) => ({
-      id: m.student_code,
+      id: m.student_code,                     
       name: m.name,
       initials: initials(m.name),
     })),
   ];
-  return students;
 }
 
 function ensureMarksExist() {
   const students = getAllStudents();
-  students.forEach((s, i) => {
+  students.forEach((s) => {
     if (!STUDENT_MARKS[s.id]) {
-      STUDENT_MARKS[s.id] = generateMarks(
-        s.id.split("").reduce((a, c) => a + c.charCodeAt(0), 0) + i * 1000,
-      );
+      STUDENT_MARKS[s.id] = MARKS_TEMPLATE.map(item => ({ ...item, marks: null }));
     }
   });
 }
-
 /* ══════════════════════════════════
    API CALLS
 ══════════════════════════════════ */
@@ -284,30 +284,67 @@ async function loadTeamMarks() {
       method: "GET",
       headers: API_HEADERS,
     });
+    
+    if (!response.ok) {
+      const errText = await response.text();
+      console.warn(`team-marks endpoint returned ${response.status}:`, errText);
+      throw new Error(`HTTP ${response.status}`);
+    }
+    
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message);
 
-    // Process each student's marks
-    data.forEach(markRecord => {
-      const studentCode = markRecord.student?.student_code;
-      if (studentCode) {
-        STUDENT_MARKS[studentCode] = convertBackendMarks(markRecord);
-      }
-    });
+    // Reset and rebuild from backend response
+    STUDENT_MARKS = {};
 
-    renderEvaluation();
-
+    if (Array.isArray(data)) {
+      data.forEach(markRecord => {
+        const studentCode = markRecord.student?.student_code;
+        if (studentCode) {
+          STUDENT_MARKS[studentCode] = convertBackendMarks(markRecord);
+        }
+      });
+    } else {
+      console.warn("team-marks response is not an array:", data);
+    }
   } catch (error) {
     console.error("Marks load error:", error);
-    ensureMarksExist();
+    // Don't break — just leave STUDENT_MARKS empty and let renderEvaluation handle it
+    STUDENT_MARKS = {};
+  } finally {
+    // ALWAYS render, even on failure
+    renderEvaluation();
   }
 }
-
 // Convert backend marks format to frontend format
 function convertBackendMarks(markRecord) {
-  // This function should map your backend marks structure to the frontend MARKS_TEMPLATE
-  // For now, using generated marks as placeholder
-  return generateMarks(Math.random() * 10000);
+  const m             = markRecord || {};
+  const monthly       = m.monthly       || {};
+  const submissions   = m.submissions   || {};
+  const viva          = m.viva          || {};
+  const documentation = m.documentation || {};
+  const practical     = m.practical     || {};
+
+  const valueFor = (component) => {
+    switch (component) {
+      case "October":                  return monthly.oct                ?? null;
+      case "November":                 return monthly.nov                ?? null;
+      case "December":                 return monthly.dec                ?? null;
+      case "February":                 return monthly.feb                ?? null;
+      case "March":                    return monthly.mar                ?? null;
+      case "Proposal Submission":      return submissions.proposal       ?? null;
+      case "Progress Report":          return submissions.progress       ?? null;
+      case "Progress Similarity Check":return submissions.similarity     ?? null;
+      case "Thesis / Final Report":    return documentation.thesis       ?? null;
+      case "Thesis Similarity Check":  return documentation.similarity   ?? null;
+      case "Code / Practical Work":    return practical.code             ?? null;
+      case "Internal Viva 1":          return viva.internal1             ?? null;
+      case "Internal Viva 2":          return viva.internal2             ?? null;
+      case "External Viva":            return viva.external              ?? null;
+      default:                         return null;
+    }
+  };
+
+  return MARKS_TEMPLATE.map(item => ({ ...item, marks: valueFor(item.component) }));
 }
 
 /* ══════════════════════════════════
@@ -329,23 +366,34 @@ const SUBS = {
 };
 
 function switchTab(tab, el) {
-  document
-    .querySelectorAll(".dash-subpage")
-    .forEach((p) => p.classList.remove("active"));
+  // 1. Hide all subpages, show the selected one
+  document.querySelectorAll(".dash-subpage").forEach((p) => p.classList.remove("active"));
   const t = document.getElementById("tab-" + tab);
   if (t) t.classList.add("active");
-  document
-    .querySelectorAll(".sb-item")
-    .forEach((i) => i.classList.remove("active"));
+
+  // 2. Update sidebar active state
+  document.querySelectorAll(".sb-item").forEach((i) => i.classList.remove("active"));
   if (el) el.classList.add("active");
+
+  // 3. Update topbar title/subtitle
   document.getElementById("page-title").textContent = TITLES[tab] || tab;
   document.getElementById("page-sub").textContent = SUBS[tab] || "";
+
+  // 4. Tab-specific logic — defer so DOM is painted first
   if (tab === "team") renderTeamTab();
   if (tab === "progress") {
-    loadTeamMarks().then(() => renderEvaluation());
+    setTimeout(() => {
+      if (STATE.teamCreated) {
+        loadTeamMarks();
+      } else {
+        ensureMarksExist();
+        renderEvaluation();
+      }
+    }, 150); 
   }
   if (tab === "project") setProposalState(STATE.proposalState);
   if (tab === "supervisor") renderSupervisorTab();
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -496,8 +544,46 @@ let marksChart = null;
 
 function renderEvaluation() {
   ensureMarksExist();
+  console.log("renderEvaluation called, students:", getAllStudents());
+  console.log("STUDENT_MARKS:", STUDENT_MARKS);
+  
+  const students = getAllStudents();
   renderStudentTabs();
   renderMarksForStudent(STATE.selectedEvalStudent);
+}
+
+function renderMarksForStudent(idx) {
+  const students = getAllStudents();
+  const student = students[idx];
+  if (!student) return;
+
+  const marks = STUDENT_MARKS[student.id];
+  if (!marks) return;
+
+  let totalObtained = 0;
+  let totalMax = 0;
+  marks.forEach((m) => {
+    totalMax += m.max;
+    if (m.marks !== null) totalObtained += m.marks;
+  });
+  const pct = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
+
+  const evalTotalVal     = document.getElementById("eval-total-val");
+  const evalPctRing      = document.getElementById("eval-pct-ring");
+  const evalStudentLabel = document.getElementById("eval-student-name-label");
+
+  if (evalTotalVal)     evalTotalVal.textContent = totalObtained;
+  if (evalPctRing)      evalPctRing.innerHTML    = pct + "<small>%</small>";
+  if (evalStudentLabel) evalStudentLabel.textContent = student.name;
+
+  const progBarPct   = document.getElementById("prog-bar-pct");
+  const evalProgFill = document.getElementById("eval-prog-fill");
+  if (progBarPct)    progBarPct.textContent  = pct + "%";
+  if (evalProgFill)  evalProgFill.style.width = pct + "%";
+
+  renderMarksTable(marks, totalObtained, totalMax);
+  renderPieChart(marks);
+  renderBreakdown(marks, totalObtained, totalMax);
 }
 
 function renderStudentTabs() {
@@ -522,38 +608,6 @@ function selectEvalStudent(idx) {
   renderMarksForStudent(idx);
 }
 
-function renderMarksForStudent(idx) {
-  const students = getAllStudents();
-  const student = students[idx];
-  if (!student) return;
-  const marks = STUDENT_MARKS[student.id];
-  if (!marks) return;
-
-  let totalObtained = 0;
-  let totalMax = 0;
-  marks.forEach((m) => {
-    totalMax += m.max;
-    if (m.marks !== null) totalObtained += m.marks;
-  });
-  const pct = totalMax > 0 ? Math.round((totalObtained / totalMax) * 100) : 0;
-
-  const evalTotalVal = document.getElementById("eval-total-val");
-  const evalPctRing = document.getElementById("eval-pct-ring");
-  const evalStudentLabel = document.getElementById("eval-student-name-label");
-
-  if (evalTotalVal) evalTotalVal.textContent = totalObtained;
-  if (evalPctRing) evalPctRing.innerHTML = pct + "<small>%</small>";
-  if (evalStudentLabel) evalStudentLabel.textContent = student.name;
-
-  const progBarPct = document.getElementById("prog-bar-pct");
-  const evalProgFill = document.getElementById("eval-prog-fill");
-  if (progBarPct) progBarPct.textContent = pct + "%";
-  if (evalProgFill) evalProgFill.style.width = pct + "%";
-
-  renderMarksTable(marks, totalObtained, totalMax);
-  renderPieChart(marks);
-  renderBreakdown(marks, totalObtained, totalMax);
-}
 
 function getMarkColor(marks, max) {
   if (marks === null) return "mark-pending";
@@ -565,8 +619,11 @@ function getMarkColor(marks, max) {
 
 function renderMarksTable(marks, totalObtained, totalMax) {
   const tbody = document.getElementById("marks-comp-tbody");
-  if (!tbody) return;
-
+  if (!tbody){
+    console.error("marks-comp-tbody not found in DOM");
+    return;
+  }
+  console.log("Rendering marks table with", marks.length, "items");
   let html = "";
   let currentSection = "";
 
@@ -624,50 +681,55 @@ function renderPieChart(marks) {
   const sections = {};
   marks.forEach((m) => {
     if (!sections[m.section]) sections[m.section] = { obtained: 0, max: 0 };
-    sections[m.section].max += m.max;
+    sections[m.section].max     += m.max;
     if (m.marks !== null) sections[m.section].obtained += m.marks;
   });
 
   const labels = Object.keys(sections);
-  const data = labels.map((l) => sections[l].obtained);
-  const colors = ["#004b2d", "#1f7a5c", "#bfa14a", "#2a9670", "#d4b96b"];
+  const data   = labels.map((l) => sections[l].obtained || 0);
+
+  const COLOR_MAP = {
+    "Monthly Meetings": "#004b2d",
+    "Submissions":      "#1f7a5c",
+    "Documentation":    "#bfa14a",
+    "Practical":        "#2a9670",
+    "Viva":             "#7c3aed",
+  };
+  const colors = labels.map(l => COLOR_MAP[l] || "#888");
 
   if (marksChart) marksChart.destroy();
 
   marksChart = new Chart(canvas, {
     type: "doughnut",
     data: {
-      labels: labels,
-      datasets: [
-        {
-          data: data,
-          backgroundColor: colors.slice(0, labels.length),
-          borderWidth: 2,
-          borderColor: "#fff",
-          hoverOffset: 6,
-        },
-      ],
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderWidth: 2,
+        borderColor: "#fff",
+        hoverOffset: 8,
+      }],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "55%",
+      cutout: "60%",
       plugins: {
         legend: { display: false },
         tooltip: {
           backgroundColor: "#003520",
-          titleFont: {
-            family: "'DM Sans', sans-serif",
-            size: 12,
-            weight: "700",
-          },
-          bodyFont: { family: "'DM Sans', sans-serif", size: 11 },
+          titleFont: { family: "'DM Sans', sans-serif", size: 12, weight: "700" },
+          bodyFont:  { family: "'DM Sans', sans-serif", size: 11 },
           padding: 10,
           cornerRadius: 8,
           callbacks: {
-            label: function (ctx) {
+            label: (ctx) => {
               const section = labels[ctx.dataIndex];
-              return ` ${section}: ${ctx.parsed} / ${sections[section].max}`;
+              const pct = sections[section].max > 0
+                ? Math.round((ctx.parsed / sections[section].max) * 100)
+                : 0;
+              return ` ${ctx.parsed} / ${sections[section].max} marks  (${pct}%)`;
             },
           },
         },
@@ -675,20 +737,22 @@ function renderPieChart(marks) {
     },
   });
 
+  // Legend
   const legend = document.getElementById("chart-legend");
   if (legend) {
-    legend.innerHTML = labels
-      .map(
-        (l, i) => `
-      <div class="cl-item">
-        <div class="cl-dot" style="background:${colors[i]}"></div>
-        ${l}: <strong>${data[i]}</strong> / ${sections[l].max}
-      </div>`,
-      )
-      .join("");
+    legend.innerHTML = labels.map((l, i) => {
+      const pct = sections[l].max > 0
+        ? Math.round((data[i] / sections[l].max) * 100) : 0;
+      return `
+        <div class="cl-item">
+          <div class="cl-dot" style="background:${colors[i]}"></div>
+          <span style="flex:1">${l}</span>
+          <strong style="color:${colors[i]}">${data[i]} / ${sections[l].max}</strong>
+          <span style="color:var(--text-mute);font-size:.7rem;margin-left:4px">(${pct}%)</span>
+        </div>`;
+    }).join("");
   }
 }
-
 function renderBreakdown(marks, totalObtained, totalMax) {
   const list = document.getElementById("breakdown-list");
   if (!list) return;
@@ -700,28 +764,31 @@ function renderBreakdown(marks, totalObtained, totalMax) {
     if (m.marks !== null) sections[m.section].obtained += m.marks;
   });
 
-  const colors = {
+  const COLOR_MAP = {
     "Monthly Meetings": "#004b2d",
-    Submissions: "#1f7a5c",
-    Viva: "#bfa14a",
+    "Submissions":      "#1f7a5c",
+    "Documentation":    "#bfa14a",
+    "Practical":        "#2a9670",
+    "Viva":             "#7c3aed",
   };
 
-  list.innerHTML = Object.entries(sections)
-    .map(([name, s]) => {
-      const pct = s.max > 0 ? Math.round((s.obtained / s.max) * 100) : 0;
-      const color = colors[name] || "#004b2d";
-      return `
-      <div style="margin-bottom:4px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <span style="font-size:.78rem;font-weight:600;color:var(--text-soft)">${name}</span>
-          <span style="font-size:.78rem;font-weight:800;color:${color}">${s.obtained} / ${s.max}</span>
+  list.innerHTML = Object.entries(sections).map(([name, s]) => {
+    const pct   = s.max > 0 ? Math.round((s.obtained / s.max) * 100) : 0;
+    const color = COLOR_MAP[name] || "#004b2d";
+    return `
+      <div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:.78rem;font-weight:700;color:var(--text-soft)">${name}</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <strong style="font-size:.78rem;color:${color}">${s.obtained} / ${s.max}</strong>
+            <span style="font-size:.68rem;color:var(--text-mute)">(${pct}%)</span>
+          </div>
         </div>
         <div style="height:8px;background:var(--border-soft);border-radius:4px;overflow:hidden">
-          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width .8s ease"></div>
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width .8s cubic-bezier(.34,1.56,.64,1)"></div>
         </div>
       </div>`;
-    })
-    .join("");
+  }).join("");
 }
 
 /* ══════════════════════════════════

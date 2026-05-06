@@ -1,9 +1,22 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "./.env" });
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, ".env") });
+
+// ✅ Debug — remove after fixing
+console.log("MONGO:", process.env.MONGO_URI);
+console.log("EMAIL:", process.env.EMAIL_USER);
+console.log("EMAIL_PASS exists:", !!process.env.EMAIL_PASS);
+
+console.log("EMAIL_PASS VALUE:", JSON.stringify(process.env.EMAIL_PASS));
+console.log("EMAIL_PASS LENGTH:", process.env.EMAIL_PASS?.length);
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
-console.log("MONGO:", process.env.MONGO_URI);
 
 import authRoutes       from "./Routes/authRoutes.js";
 import studentRoutes    from "./Routes/studentRoutes.js";
@@ -37,9 +50,7 @@ app.use("/api/proposals",   proposalRoutes);
 app.use("/api/files",       fileRoutes);
 app.use("/api/supervisors", supervisorRoutes);
 app.use("/api/admin",       adminRoutes);
-app.use("/api/supervisor", supervisorRoutes);
-
-
+app.use("/api/supervisor",  supervisorRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "FYP Management System API is running" });
