@@ -23,7 +23,7 @@ export const protect = async (req, res, next) => {
   }
 };
 
-// Role-based access
+// ── Role-based access ──────────────────────────────────────
 export const adminOnly = (req, res, next) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "Admin access only" });
@@ -31,8 +31,9 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
+// ✅ Allow both supervisors AND chairmen
 export const supervisorOnly = (req, res, next) => {
-  if (req.user.role !== "supervisor") {
+  if (req.user.role !== "supervisor" && req.user.role !== "chairman") {
     return res.status(403).json({ message: "Supervisor access only" });
   }
   next();
@@ -46,8 +47,19 @@ export const studentOnly = (req, res, next) => {
 };
 
 export const adminOrSupervisor = (req, res, next) => {
-  if (req.user.role !== "admin" && req.user.role !== "supervisor") {
+  if (
+    req.user.role !== "admin" &&
+    req.user.role !== "supervisor" &&
+    req.user.role !== "chairman"
+  ) {
     return res.status(403).json({ message: "Access denied" });
+  }
+  next();
+};
+
+export const chairmanOnly = (req, res, next) => {
+  if (req.user.role !== "chairman") {
+    return res.status(403).json({ message: "Chairman access only" });
   }
   next();
 };

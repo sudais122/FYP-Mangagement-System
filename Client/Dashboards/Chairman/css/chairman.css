@@ -1,0 +1,25 @@
+/* Chairman tag styling for proposal statuses */
+.prop-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.prop-status.approved      { background: rgba(34,197,94,.12); color: #15803d; }
+.prop-status.pending       { background: rgba(234,179,8,.12); color: #a16207; }
+.prop-status.rejected      { background: rgba(220,38,38,.12); color: #dc2626; }
+.prop-status.not-submitted { background: rgba(148,163,184,.15); color: #475569; }
+
+/* Read-only banner badge inside info-block */
+.info-block .sup-id-tag {
+  background: linear-gradient(135deg, rgba(191,161,74,.3), rgba(191,161,74,.15));
+  border: 1px solid rgba(191,161,74,.4);
+}
+
+/* Slight chairman accent on nav tag */
+.nav-tag {
+  color: var(--gold);
+}

@@ -321,19 +321,24 @@ function showTab(tab) {
   document.querySelectorAll(".sb-btn:not(.logout)").forEach((b) => b.classList.remove("active"));
   document.getElementById("sb-" + tab)?.classList.add("active");
 
-  if (tab === "dashboard") {
-    document.getElementById("page-title").textContent = "Dashboard";
-    document.getElementById("page-sub").textContent = "Overview of your assigned groups and students";
-    renderDashboard();
-  } else if (tab === "groups") {
-    document.getElementById("page-title").textContent = "My Groups";
-    document.getElementById("page-sub").textContent = "View groups, students, and assign marks";
-    showGroupsList();
-  } else if (tab === "overview") {
-    document.getElementById("page-title").textContent = "Department Overview";
-    document.getElementById("page-sub").textContent = "Department-wide statistics — Chairman view";
-    loadDepartmentOverview();
-  }
+  const titles = {
+    "dashboard":     ["Dashboard",            "Overview of your assigned groups and students"],
+    "groups":        ["My Groups",            "View groups, students, and assign marks"],
+    "overview":      ["Department Overview",  "Department-wide statistics — Chairman view"],
+    "workload":      ["Supervisor Workload",  "Teams & students assigned to each supervisor"],
+    "all-teams":     ["All Teams",            "Read-only view of every team in the department"],
+    "all-students":  ["All Students",         "Read-only view of every student in the department"],
+  };
+  const t = titles[tab] || [tab, ""];
+  document.getElementById("page-title").textContent = t[0];
+  document.getElementById("page-sub").textContent   = t[1];
+
+  if (tab === "dashboard")    renderDashboard();
+  if (tab === "groups")       showGroupsList();
+  if (tab === "overview")     loadDepartmentOverview();
+  if (tab === "workload")     loadWorkload();
+  if (tab === "all-teams")    loadAllTeams();
+  if (tab === "all-students") loadAllStudents();
 }
 
 /* ═══════════════════════════════════
@@ -500,6 +505,8 @@ async function openGroupDetail(teamMongoId) {
   showTab("groups");
   const t = TEAMS.find((x) => x._id === teamMongoId);
   if (!t) return;
+  const isMyGroup = !IS_CHAIRMAN || (t.students && SUPERVISOR && (t.supervisorId === sup._id || t.supervisorId === sup.id));
+  window.__readOnlyMode = IS_CHAIRMAN && !isMyGroup;
 
   document.getElementById("groups-list-view").style.display = "none";
   const d = document.getElementById("group-detail-view");
@@ -607,6 +614,21 @@ async function openGroupDetail(teamMongoId) {
 
   // ✅ Apply admin locks AFTER HTML is rendered
   await refreshMarkLocks();
+          // Apply chairman read-only lock
+if (window.__readOnlyMode) {
+  document.querySelectorAll(".mk-input").forEach(i => {
+    i.disabled = true;
+    i.style.opacity = "0.5";
+    i.style.cursor = "not-allowed";
+    i.title = "🔒 Chairman view — read only";
+  });
+  document.querySelectorAll(".btn-save").forEach(b => {
+    b.disabled = true;
+    b.style.opacity = "0.4";
+    b.style.cursor = "not-allowed";
+    b.innerHTML = "🔒 Read-only (Chairman view)";
+  });
+}
 }
 
 function renderStudentCard(team, student) {
@@ -959,6 +981,125 @@ async function loadDepartmentOverview() {
     if (loadingEl) {
       loadingEl.innerHTML = `<div style="color:#dc2626">Failed to load: ${err.message}</div>`;
     }
+  }
+}
+/* ═══════════════════════════════════
+   CHAIRMAN — WORKLOAD PER SUPERVISOR
+═══════════════════════════════════ */
+async function loadWorkload() {
+  if (!IS_CHAIRMAN) return;
+  const tbody = document.getElementById("workload-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/supervisors/chairman/workload`, {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    if (!data.workload || data.workload.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-mute)">No supervisors found</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.workload.map(w => `
+      <tr>
+        <td>
+          <div style="font-weight:600">${w.name}${w.is_chairman ? '<span class="chairman-tag">Chairman</span>' : ''}</div>
+          <small style="color:var(--text-mute);font-size:.66rem">${w.designation}</small>
+        </td>
+        <td><span class="tid">${w.sup_code}</span></td>
+        <td><span class="g-count">${w.teamCount}</span></td>
+        <td><span class="g-count">${w.studentCount}</span></td>
+      </tr>
+    `).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
+  }
+}
+
+/* ═══════════════════════════════════
+   CHAIRMAN — ALL TEAMS (read-only)
+═══════════════════════════════════ */
+async function loadAllTeams() {
+  if (!IS_CHAIRMAN) return;
+  const tbody = document.getElementById("all-teams-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/supervisors/chairman/teams`, {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    if (!data.teams || data.teams.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-mute)">No teams yet</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.teams.map(t => {
+      const studentCount = 1 + (t.members?.length || 0);
+      const supName = t.supervisor?.name || "—";
+      const supCode = t.supervisor?.sup_code || "";
+      return `
+        <tr>
+          <td><span class="tid">${t.team_code}</span></td>
+          <td><span class="g-proj">${t.project_title}</span></td>
+          <td>
+            <div style="font-weight:600">${supName}</div>
+            <small style="color:var(--text-mute);font-size:.66rem">${supCode}</small>
+          </td>
+          <td><span class="g-count">${studentCount}</span></td>
+        </tr>`;
+    }).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
+  }
+}
+
+/* ═══════════════════════════════════
+   CHAIRMAN — ALL STUDENTS (read-only)
+═══════════════════════════════════ */
+async function loadAllStudents() {
+  if (!IS_CHAIRMAN) return;
+  const tbody = document.getElementById("all-students-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/supervisors/chairman/students`, {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    if (!data.students || data.students.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-mute)">No students yet</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.students.map(s => {
+      const teamCode = s.group?.team_code || "—";
+      const supName = s.group?.supervisor?.name || "Unassigned";
+      return `
+        <tr>
+          <td><span class="s-id">${s.student_code}</span></td>
+          <td>
+            <div>${s.name}</div>
+            <small style="color:var(--text-mute);font-size:.66rem">${s.email || ""}</small>
+          </td>
+          <td><span class="tid">${teamCode}</span></td>
+          <td>${supName}</td>
+          <td><span class="s-role ${(s.team_role||'member').toLowerCase()}">${s.team_role || '—'}</span></td>
+          <td style="text-align:right"><span class="s-marks">${s.total_marks} <span class="den">/ ${TOTAL_MARKS}</span></span></td>
+        </tr>`;
+    }).join("");
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
   }
 }
 /* ═══════════════════════════════════

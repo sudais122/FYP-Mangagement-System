@@ -5,6 +5,7 @@ const supervisorSchema = new mongoose.Schema({
   sup_code: {
     type: String,
     unique: true,
+    required: true,  
   },
 
   name: {
@@ -62,17 +63,9 @@ const supervisorSchema = new mongoose.Schema({
 
 // 🔐 HASH PASSWORD + GENERATE CODE
 supervisorSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
+  if (this.isModified("password") && !this.password.startsWith("$2")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
-
-  if (!this.sup_code) {
-    const year = new Date().getFullYear();
-    const count = await mongoose.model("Supervisor").countDocuments();
-    const seq = String(count + 1).padStart(4, "0");
-    this.sup_code = `SUP-${year}${seq}`;
-  }
-
   next();
 });
 

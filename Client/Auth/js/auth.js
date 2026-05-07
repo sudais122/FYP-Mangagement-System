@@ -416,34 +416,27 @@ async function handleLogin(e) {
       data.role === "chairman"
     ) {
 
-      localStorage.setItem("supervisor", JSON.stringify({
-        id: data._id,
-        name: data.name,
-        email: data.email,
-        sup_code: data.sup_code,
-        department: data.department,
-        role: data.role,
-        is_chairman: data.is_chairman,
-        token: data.token,
-        force_password_change:
-          data.force_password_change,
-      }));
+        localStorage.setItem("supervisor", JSON.stringify({
+    id: data._id,
+    name: data.name,
+    email: data.email,
+    sup_code: data.sup_code,
+    department: data.department,
+    role: data.role,
+    is_chairman: data.is_chairman,
+    token: data.token,
+    force_password_change: data.force_password_change,
+  }));
 
-      setTimeout(() => {
-
-        if (data.force_password_change) {
-
-          window.location.href =
-            "../Dashboards/Supervisor/change-password.html";
-
-        } else {
-
-          window.location.href =
-            "../Dashboards/Supervisor/index.html";
-
-        }
-
-      }, 1000);
+  setTimeout(() => {
+    if (data.force_password_change) {
+      window.location.href = "../Dashboards/Supervisor/change-password.html";
+    } else if (data.is_chairman) {
+      window.location.href = "../../Dashboards/Chairman/index.html";   // ← chairman
+    } else {
+      window.location.href = "../../Dashboards/Chairman/index.html"; // ← supervisor
+    }
+  }, 1000);
     }
 
     /* ═══════════════════════════════

@@ -6,6 +6,16 @@ import Settings from "../Models/Settings.js";
  * 📌 Save / Update Marks
  */
 export const saveMarks = async (req, res) => {
+
+  const Supervisor = (await import("../Models/supervisor.js")).default;
+    const caller = await Supervisor.findById(req.user.id);
+
+    if (caller && caller.is_chairman) {
+      return res.status(403).json({ 
+        message: "Chairman has read-only access. Only the assigned supervisor can save marks." 
+      });
+    }
+
   const { student_id, monthly, submissions, viva, documentation } = req.body;
 
   try {

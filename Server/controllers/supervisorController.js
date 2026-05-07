@@ -184,13 +184,19 @@ const getGroupsBySupervisor = async (req, res) => {
 export const getMyStudents = async (req, res) => {
   try {
     const groups = await Group.find({ supervisor: req.user.id })
-      .populate("leader",  "name student_code email")
-      .populate("members", "name student_code email");
+      .populate("leader",  "name student_code email whatsapp")
+      .populate("members", "name student_code email whatsapp");
 
+    const seen = new Set();
     const students = [];
+
     for (const group of groups) {
       const allMembers = [group.leader, ...group.members].filter(Boolean);
       for (const member of allMembers) {
+        const key = member._id.toString();
+        if (seen.has(key)) continue;
+        seen.add(key);
+
         const marks = await Marks.findOne({ student: member._id, group: group._id });
         students.push({
           ...member.toObject(),
@@ -261,6 +267,106 @@ export const getDepartmentOverview = async (req, res) => {
     });
   } catch (err) {
     console.error("Department overview error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// ── CHAIRMAN: Workload per supervisor ─────────────────────
+// ════════════════════════════════════════════════════════════
+export const getWorkloadPerSupervisor = async (req, res) => {
+  try {
+    const caller = await Supervisor.findById(req.user.id);
+    if (!caller || !caller.is_chairman) {
+      return res.status(403).json({ message: "Chairman access required" });
+    }
+
+    const supervisors = await Supervisor.find()
+      .select("name sup_code email designation is_chairman")
+      .sort({ name: 1 })
+      .lean();
+
+    const workload = await Promise.all(
+      supervisors.map(async (sup) => {
+        const groups = await Group.find({ supervisor: sup._id })
+          .select("team_code project_title leader members")
+          .lean();
+
+        const teamCount = groups.length;
+        const studentCount = groups.reduce(
+          (sum, g) => sum + 1 + (g.members?.length || 0),
+          0
+        );
+
+        return {
+          _id:          sup._id,
+          sup_code:     sup.sup_code,
+          name:         sup.name,
+          email:        sup.email,
+          designation:  sup.designation || "Faculty Member",
+          is_chairman:  sup.is_chairman,
+          teamCount,
+          studentCount,
+        };
+      })
+    );
+
+    res.json({ workload });
+  } catch (err) {
+    console.error("Workload fetch error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ── CHAIRMAN: All students 
+export const getAllStudentsForChairman = async (req, res) => {
+  try {
+    const caller = await Supervisor.findById(req.user.id);
+    if (!caller || !caller.is_chairman) {
+      return res.status(403).json({ message: "Chairman access required" });
+    }
+
+    const students = await Student.find()
+      .select("name email student_code whatsapp team_role group")
+      .populate({
+        path: "group",
+        select: "team_code project_title supervisor",
+        populate: { path: "supervisor", select: "name sup_code" }
+      })
+      .lean();
+
+    // Attach total marks
+    const studentIds = students.map(s => s._id);
+    const allMarks = await Marks.find({ student: { $in: studentIds } }).lean();
+    const totalMap = {};
+    allMarks.forEach(m => { totalMap[m.student.toString()] = m.total || 0; });
+
+    students.forEach(s => {
+      s.total_marks = totalMap[s._id.toString()] || 0;
+    });
+
+    res.json({ students });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ── CHAIRMAN: All teams 
+export const getAllTeamsForChairman = async (req, res) => {
+  try {
+    const caller = await Supervisor.findById(req.user.id);
+    if (!caller || !caller.is_chairman) {
+      return res.status(403).json({ message: "Chairman access required" });
+    }
+
+    const teams = await Group.find()
+      .populate("leader",     "name student_code email whatsapp")
+      .populate("members",    "name student_code email whatsapp")
+      .populate("supervisor", "name sup_code email")
+      .lean();
+
+    res.json({ teams });
+  } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
