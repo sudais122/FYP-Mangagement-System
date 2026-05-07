@@ -1,6 +1,5 @@
 import File     from "../Models/file.js";
 import Student  from "../Models/student.js";
-import cloudinary from "../config/cloudinary.js";
 
 // ── UPLOAD FILE (Student) ──────────────────────────────────────
 export const uploadFile = async (req, res) => {

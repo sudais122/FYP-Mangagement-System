@@ -52,25 +52,23 @@ async function doReg() {
   const btn = document.getElementById("rbtn");
   btn.disabled = true;
   btn.innerHTML = "Creating account...";
-
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/register`, {
+try {
+    const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: "POST",
-      // ⚠️ DO NOT set Content-Type — browser sets multipart boundary automatically
       body: formData,
     });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Registration failed");
 
-    // Success → show success panel
     document.getElementById("form-area").style.display = "none";
     document.getElementById("success-area").style.display = "block";
 
   } catch (err) {
+    console.error("Register error:", err);
     Swal.fire({ icon: "error", title: "Registration failed", text: err.message });
     btn.disabled = false;
-    btn.innerHTML = `<svg ...>...</svg> Register`;
+    btn.innerHTML = "Register";
   }
 }
 

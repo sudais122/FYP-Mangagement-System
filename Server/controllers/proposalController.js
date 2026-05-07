@@ -1,6 +1,5 @@
 import Proposal from "../Models/proposal.js";
 import Student  from "../Models/student.js";
-import cloudinary from "../config/cloudinary.js";
 
 // ── SUBMIT PROPOSAL (Student) ──────────────────────────────────
 export const submitProposal = async (req, res) => {

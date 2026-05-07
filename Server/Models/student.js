@@ -6,6 +6,7 @@ const studentSchema = new mongoose.Schema(
     student_code: {
       type: String,
       unique: true,
+      required: true,   // ← now required, must come from generateStudentId
     },
     name: {
       type: String,
@@ -59,31 +60,22 @@ const studentSchema = new mongoose.Schema(
       default: null,
     },
     cv_public_id: {
-      type: String, 
+      type: String,
       default: null,
-    },
-
-    createdAt: {
-      type: Date,
-      default: Date.now,
     },
   },
   {
-    timestamps: true, 
+    timestamps: true,
   }
 );
 
+// ── PASSWORD HASHING (only if not already hashed) ─────────────
 studentSchema.pre("save", async function (next) {
-  if (this.isModified("password")) {
+  // Only hash if password was modified AND it's not already hashed
+  // bcrypt hashes start with $2a$, $2b$, or $2y$ and are 60 chars long
+  if (this.isModified("password") && !this.password.startsWith("$2")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
-
-  if (!this.student_code) {
-    const year = new Date().getFullYear();
-    const rand = Math.floor(1000 + Math.random() * 9000);
-    this.student_code = `STD-${year}${rand}`;
-  }
-
   next();
 });
 

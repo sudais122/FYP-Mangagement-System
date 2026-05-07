@@ -1,54 +1,90 @@
-import Admin      from "../Models/admin.js";
+import Admin from "../Models/admin.js";
 import Supervisor from "../Models/supervisor.js";
-import Student    from "../Models/student.js";
-import Group      from "../Models/group.js";
-import Marks      from "../Models/marks.js";
-import Settings from '../Models/Settings.js';
+import Student from "../Models/student.js";
+import Group from "../Models/group.js";
+import Marks from "../Models/marks.js";
+import Settings from "../Models/Settings.js";
 import generatePassword from "../utils/generatePassword.js";
+import { generateSupCode } from "../utils/generateSupCode.js"; 
+import bcrypt from "bcryptjs"; 
+
 
 // ── ADD SUPERVISOR ─────────────────────────────────────────────
 export const addSupervisor = async (req, res) => {
-    const { name, email, password, designation, office, whatsapp, is_chairman } = req.body;
-
-  try {
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email and password are required" });
-    }
-
-    const exists = await Supervisor.findOne({ email });
-    if (exists) {
-      return res.status(400).json({ message: "Supervisor with this email already exists" });
-    }
-
-  const supervisor = await Supervisor.create({
+  const {
     name,
     email,
     password,
-    designation: designation || "Lecturer",
-    office: office || "",
-    whatsapp: whatsapp || "",
-    is_chairman: is_chairman === true,
-    role: is_chairman === true ? "chairman" : "supervisor",
-  });
+    designation,
+    office,
+    whatsapp,
+    is_chairman
+  } = req.body;
 
+  try {
+    // 1. Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        message: "Name, email and password are required"
+      });
+    }
+
+    // 2. Check duplicate email
+    const exists = await Supervisor.findOne({ email });
+    if (exists) {
+      return res.status(400).json({
+        message: "Supervisor with this email already exists"
+      });
+    }
+
+    // 3. Generate unique supervisor code
+    const sup_code = await generateSupCode();
+
+    // 4. Hash password (IMPORTANT SECURITY FIX)
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 5. Create supervisor
+    const supervisor = await Supervisor.create({
+      name,
+      email,
+      password: hashedPassword,
+      designation: designation || "Lecturer",
+      office: office || "",
+      whatsapp: whatsapp || "",
+      is_chairman: is_chairman === true,
+      role: is_chairman === true ? "chairman" : "supervisor",
+      sup_code
+    });
+
+    // 6. Response
     res.status(201).json({
       message: "Supervisor created successfully",
       supervisor: {
-        _id:         supervisor._id,
-        name:        supervisor.name,
-        email:       supervisor.email,
-        sup_code:    supervisor.sup_code,
+        _id: supervisor._id,
+        name: supervisor.name,
+        email: supervisor.email,
+        sup_code: supervisor.sup_code,
         designation: supervisor.designation,
-        whatsapp:    supervisor.whatsapp,
-        isChairman:  supervisor.isChairman,
+        whatsapp: supervisor.whatsapp,
+        is_chairman: supervisor.is_chairman 
       }
     });
 
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-}
+    console.error("Add Supervisor Error:", error);
 
+    // Duplicate key handling
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Duplicate key error (email or sup_code already exists)"
+      });
+    }
+
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
 // ── GET DASHBOARD STATS ────────────────────────────────────────
 export const getDashboardStats = async (req, res) => {
   try {
@@ -88,6 +124,23 @@ export const getDashboardStats = async (req, res) => {
     });
   }
 };
+
+// In adminController.js
+export const updateSupervisor = async (req, res) => {
+  try {
+    const { name, email, whatsapp, is_chairman } = req.body;
+    const supervisor = await Supervisor.findByIdAndUpdate(
+      req.params.id,
+      { name, email, whatsapp, is_chairman },
+      { new: true }
+    );
+    if (!supervisor) return res.status(404).json({ message: "Supervisor not found" });
+    res.json({ message: "Updated successfully", supervisor });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // GET MARKS OF GROUP
 export const getGroupMarks = async (req, res) => {
   try {

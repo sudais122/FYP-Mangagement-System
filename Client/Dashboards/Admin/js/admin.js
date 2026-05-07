@@ -171,7 +171,7 @@ async function renderSupervisors() {
 function renderSupervisorCards(list) {
   const grid = $("#supervisorCards");
 
-  if (!list.length) {
+  if (!list || !list.length) {
     grid.innerHTML = `
       <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">
         No supervisors found.
@@ -183,11 +183,9 @@ function renderSupervisorCards(list) {
     <div 
       class="entity-card"
       data-chairman="${sup.is_chairman === true}"
-      onclick="openSupDetail('${sup._id}')"
     >
       <div class="entity-card-head">
         <div class="entity-avatar">${initials(sup.name)}</div>
-
         <div class="entity-info">
           <strong>${sup.name}</strong>
           <p>${sup.email}</p>
@@ -196,22 +194,12 @@ function renderSupervisorCards(list) {
 
       <div style="margin-bottom:12px">
         <span class="id-pill">${sup.sup_code || "—"}</span>
-
-        <span 
-          class="id-pill"
-          style="
-            margin-left:6px;
-            background:${sup.is_chairman
-              ? 'rgba(191,161,74,.15)'
-              : 'rgba(99,102,241,.1)'};
-            color:${sup.is_chairman
-              ? '#9a7e2a'
-              : '#4f46e5'}
-          "
-        >
-          ${sup.is_chairman
-            ? "Chairman / HOD"
-            : sup.designation || "Supervisor"}
+        <span class="id-pill" style="
+          margin-left:6px;
+          background:${sup.is_chairman ? 'rgba(191,161,74,.15)' : 'rgba(99,102,241,.1)'};
+          color:${sup.is_chairman ? '#9a7e2a' : '#4f46e5'}
+        ">
+          ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
         </span>
       </div>
 
@@ -223,23 +211,47 @@ function renderSupervisorCards(list) {
 
         <div class="entity-stat-cell">
           <strong style="display:inline-flex;align-items:center;gap:4px">
-            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="color:#15803d">
-              <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
-            </svg>
-
             ${sup.whatsapp || "—"}
           </strong>
-
           <span>WhatsApp</span>
         </div>
       </div>
 
-      <div style="text-align:center;font-size:.72rem;color:var(--secondary);font-weight:700;margin-top:10px">
-        Click to view teams →
+      <!-- ACTION BUTTONS -->
+      <div style="display:flex;gap:8px;margin-top:12px">
+
+        <button 
+          class="btn btn-ghost btn-sm"
+          style="flex:1"
+          onclick="openSupDetail('${sup._id}')">
+          View
+        </button>
+
+        <button 
+          class="btn btn-sm"
+          style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
+          onclick="openEditSupModal(
+            '${sup._id}',
+            '${(sup.name || "").replace(/'/g, "\\'")}',
+            '${(sup.email || "").replace(/'/g, "\\'")}',
+            '${(sup.whatsapp || "").replace(/'/g, "\\'")}',
+            '${sup.is_chairman ? "chairman" : "supervisor"}'
+          )">
+          Edit
+        </button>
+
+        <button 
+          class="btn btn-sm"
+          style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
+          onclick="event.stopPropagation(); openDeleteSupModal('${sup._id}', '${(sup.name || "").replace(/'/g, "\\'")}')">
+          Delete
+        </button>
+
       </div>
     </div>
   `).join("");
 }
+
 /* ════════════════════════════════════
    DISPLAY LOGGED-IN ADMIN INFO
 ══════════════════════════════════════ */
@@ -1236,8 +1248,6 @@ function filterSupervisors(query) {
     (hit ? matched : rest).push(sup);
   });
 
-  const matchSet = new Set(matched.map(s => s._id));
-
   const grid = $("#supervisorCards");
 
   if (!SUPERVISORS_DATA.length) {
@@ -1249,77 +1259,75 @@ function filterSupervisors(query) {
   }
 
   grid.innerHTML = [...matched, ...rest].map(sup => {
-
-    const isMatch = q && matchSet.has(sup._id);
+    const isMatch = q && matched.some(m => m._id === sup._id);
 
     return `
-      <div 
-        class="entity-card ${isMatch ? "search-match" : ""}"
-        data-chairman="${sup.is_chairman === true}"
-        onclick="openSupDetail('${sup._id}')"
-      >
+      <div class="entity-card ${isMatch ? "search-match" : ""}">
+      
         <div class="entity-card-head">
-
-          <div class="entity-avatar">
-            ${initials(sup.name)}
-          </div>
-
+          <div class="entity-avatar">${initials(sup.name)}</div>
           <div class="entity-info">
-            <strong>${highlightText(sup.name, q)}</strong>
-            <p>${highlightText(sup.email, q)}</p>
+            <strong>${highlightText(sup.name || "", q)}</strong>
+            <p>${highlightText(sup.email || "", q)}</p>
           </div>
         </div>
 
         <div style="margin-bottom:12px">
-
-          <span class="id-pill">
-            ${highlightText(sup.sup_code || "—", q)}
-          </span>
-
-          <span
-            class="id-pill"
-            style="
-              margin-left:6px;
-              background:${sup.is_chairman
-                ? 'rgba(191,161,74,.15)'
-                : 'rgba(99,102,241,.1)'};
-              color:${sup.is_chairman
-                ? '#9a7e2a'
-                : '#4f46e5'}
-            "
-          >
-            ${sup.is_chairman
-              ? "Chairman / HOD"
-              : sup.designation || "Supervisor"}
+          <span class="id-pill">${highlightText(sup.sup_code || "—", q)}</span>
+          <span class="id-pill" style="
+            margin-left:6px;
+            background:${sup.is_chairman ? 'rgba(191,161,74,.15)' : 'rgba(99,102,241,.1)'};
+            color:${sup.is_chairman ? '#9a7e2a' : '#4f46e5'}
+          ">
+            ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
           </span>
         </div>
 
         <div class="entity-stats">
-
           <div class="entity-stat-cell">
             <strong>${sup.teamCount || 0}</strong>
             <span>Teams</span>
           </div>
 
           <div class="entity-stat-cell">
-            <strong style="display:inline-flex;align-items:center;gap:4px">
-
-              <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="color:#15803d">
-                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
-              </svg>
-
-              ${highlightText(sup.whatsapp || "—", q)}
-            </strong>
-
+            <strong>${highlightText(sup.whatsapp || "—", q)}</strong>
             <span>WhatsApp</span>
           </div>
         </div>
 
-        <div style="text-align:center;font-size:.72rem;color:var(--secondary);font-weight:700;margin-top:10px">
-          Click to view teams →
+        <!-- ACTION BUTTONS -->
+        <div style="display:flex;gap:8px;margin-top:12px">
+
+          <button 
+            class="btn btn-ghost btn-sm"
+            style="flex:1"
+            onclick="openSupDetail('${sup._id}')">
+            View
+          </button>
+
+          <button 
+            class="btn btn-sm"
+            style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
+            onclick="openEditSupModal(
+              '${sup._id}',
+              '${(sup.name || "").replace(/'/g, "\\'")}',
+              '${(sup.email || "").replace(/'/g, "\\'")}',
+              '${(sup.whatsapp || "").replace(/'/g, "\\'")}',
+              '${sup.is_chairman ? "chairman" : "supervisor"}'
+            )">
+            Edit
+          </button>
+
+          <button 
+            class="btn btn-sm"
+            style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
+            onclick="event.stopPropagation(); openDeleteSupModal('${sup._id}', '${(sup.name || "").replace(/'/g, "\\'")}')">
+            Delete
+          </button>
+
         </div>
-      </div>
-    `;
+
+      </div>`;
   }).join("");
 }
 
@@ -1495,6 +1503,125 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("searchStudents")?.addEventListener("input", e => filterStudents(e.target.value));
 });
 
+
+// ── DELETE SUPERVISOR ──────────────────────────────────────
+ /* ════════════════════════════════════
+   MODAL CLICK-OUTSIDE-TO-CLOSE + ESC
+══════════════════════════════════════ */
+// Register ONCE only — delete the duplicate block above this too
+$$(".modal-overlay").forEach(overlay => {
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) overlay.classList.remove("open");
+  });
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") $$(".modal-overlay.open").forEach(m => m.classList.remove("open"));
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("searchSupervisors")?.addEventListener("input", e => filterSupervisors(e.target.value));
+  document.getElementById("searchTeams")?.addEventListener("input", e => filterTeams(e.target.value));
+  document.getElementById("searchStudents")?.addEventListener("input", e => filterStudents(e.target.value));
+});
+
+/* ════════════════════════════════════
+   DELETE SUPERVISOR
+══════════════════════════════════════ */
+let deleteSupId = null;
+
+function openDeleteSupModal(supId, supName) {
+  deleteSupId = supId;
+  document.getElementById("deleteSupName").textContent = supName;
+  // setTimeout prevents the triggering click from immediately closing the modal
+  setTimeout(() => {
+    document.getElementById("deleteSupModal").classList.add("open");
+  }, 10);
+}
+
+function closeDeleteSupModal() {
+  deleteSupId = null;
+  document.getElementById("deleteSupModal").classList.remove("open");
+}
+
+async function confirmDeleteSupervisor() {
+  if (!deleteSupId) return;
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const supName = document.getElementById("deleteSupName").textContent;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${deleteSupId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to delete");
+
+    closeDeleteSupModal();
+    await renderSupervisors();
+    await fetchDashboardStats();
+    toast("Supervisor deleted", `${supName} has been removed`, "success");
+
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
+/* ════════════════════════════════════
+   EDIT SUPERVISOR
+══════════════════════════════════════ */
+function openEditSupModal(id, name, email, whatsapp, role) {
+  document.getElementById("editSupId").value = id;
+  document.getElementById("editSupName").value = name;
+  document.getElementById("editSupEmail").value = email;
+  document.getElementById("editSupWhatsapp").value = whatsapp;
+  document.getElementById("editSupRole").value = role;
+  setTimeout(() => {
+    document.getElementById("editSupModal").classList.add("open");
+  }, 10);
+}
+
+function closeEditSupModal() {
+  document.getElementById("editSupModal").classList.remove("open");
+}
+
+async function submitEditSupervisor() {
+  const id       = document.getElementById("editSupId").value;
+  const name     = document.getElementById("editSupName").value.trim();
+  const email    = document.getElementById("editSupEmail").value.trim();
+  const whatsapp = document.getElementById("editSupWhatsapp").value.trim();
+  const role     = document.getElementById("editSupRole").value;
+
+  if (!name || !email) {
+    toast("Missing fields", "Name and email are required", "error");
+    return;
+  }
+
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      },
+      body: JSON.stringify({ name, email, whatsapp, is_chairman: role === "chairman" })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to update");
+
+    closeEditSupModal();
+    await renderSupervisors();
+    toast("Supervisor updated", `${name} has been updated`, "success");
+
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
 /* ════════════════════════════════════
    GLOBAL DATA + INIT
 ══════════════════════════════════════ */

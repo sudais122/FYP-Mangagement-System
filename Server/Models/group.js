@@ -4,7 +4,7 @@ const groupSchema = new mongoose.Schema({
   team_code: {
     type: String,
     unique: true,
-    // e.g. TEAM-20268372
+    required: true,    // ← now required, must come from generateTeamId
   },
   project_title: {
     type: String,
@@ -47,22 +47,16 @@ const groupSchema = new mongoose.Schema({
     default: "Active",
   },
   academic_year: {
-    type: String, // e.g. "2025-2026"
+    type: String,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-groupSchema.pre("save", async function (next) {
-  if (!this.team_code) {
-    const year = new Date().getFullYear();
-    const rand = Math.floor(1000 + Math.random() * 9000);
-    this.team_code = `TEAM-${year}${rand}`;
-  }
-  next();
-});
+  // proposal fields (kept for upload flow)
+  proposal_url:        { type: String },
+  proposal_public_id:  { type: String },
+  proposal_filename:   { type: String },
+  proposal_uploaded_by:{ type: mongoose.Schema.Types.ObjectId, ref: "Student" },
+  proposal_uploaded_at:{ type: Date },
+  proposal_status:     { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+}, { timestamps: true });
 
 const Group = mongoose.model("Group", groupSchema);
 export default Group;

@@ -1,5 +1,4 @@
 import express from "express";
-import { uploadCV } from "../config/cloudinary.js";
 
 import {
   uploadStudentCV,
@@ -18,7 +17,6 @@ router.post(
   "/upload-cv",
   protect,
   studentOnly,
-  uploadCV.single("cv"),
   uploadStudentCV
 );
 

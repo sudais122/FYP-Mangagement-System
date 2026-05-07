@@ -1,1 +1,1 @@
-connect
+import proposalRoutes   from "./Routes/proposalRoutes.js";

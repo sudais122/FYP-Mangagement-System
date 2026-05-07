@@ -1,7 +1,6 @@
 import Student from "../Models/student.js";
 import Group   from "../Models/group.js";
 import Marks   from "../Models/marks.js";
-import cloudinary from "../config/cloudinary.js";
 
 // ── SEARCH STUDENT BY CODE 
 export const searchStudent = async (req, res) => {

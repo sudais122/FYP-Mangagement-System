@@ -1270,9 +1270,7 @@ a {
 }
 
 .entity-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow);
-    border-color: rgba(0, 75, 45, .2);
+    border-color: rgb(0, 75, 45);
 }
 
 .entity-card-head {

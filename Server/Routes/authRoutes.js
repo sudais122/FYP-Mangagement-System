@@ -7,22 +7,20 @@ import {
   getProfile,
   verifyOtp
 } from "../controllers/authController.js";
-
 import { protect } from "../middleware/auth.js";
-import { uploadCV } from "../config/cloudinary.js";
+import { uploadCVLocal } from "../middleware/localUpload.js";   // ← changed
 
 const router = express.Router();
 
 /* ================= AUTH ================= */
 router.post("/login", login);
-router.post("/register", uploadCV.single("cv"), registerStudent);
+router.post("/register", uploadCVLocal.single("cv"), registerStudent);   // ← changed
 
 /* ================= PASSWORD RESET ================= */
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/auth/verify-otp", verifyOtp);
 router.post("/auth/forgot-password", forgotPassword);
-
 
 /* ================= PROFILE ================= */
 router.get("/profile", protect, getProfile);

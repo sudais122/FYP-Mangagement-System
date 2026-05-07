@@ -5,14 +5,7 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import generateToken from "../utils/generateToken.js";
-
-// ── STUDENT ID GENERATOR ─────────────────────────────
-const generateStudentId = async () => {
-  const studentCount = await Student.countDocuments();
-  const sequentialNumber = (studentCount + 1).toString().padStart(4, "0");
-  const year = new Date().getFullYear();
-  return `STD-${year}${sequentialNumber}`;
-};
+import { generateStudentId } from "../utils/generateStudentId.js";
 
 // ── EMAIL TRANSPORTER ────────────────────────────────
 const getTransporter = () => {
@@ -110,15 +103,15 @@ export const registerStudent = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const student_code = await generateStudentId();
 
-    const student = await Student.create({
-      name,
-      email,
-      whatsapp,
-      password: hashedPassword,
-      student_code,
-      cv_url: req.file.path,
-      cv_public_id: req.file.filename,
-    });
+const student = await Student.create({
+  name,
+  email,
+  whatsapp,
+  password: hashedPassword,
+  student_code,
+  cv_url: `/uploads/cvs/${req.file.filename}`,  // local path
+  cv_public_id: req.file.filename,
+});
 
     res.status(201).json({
       message: "Student registered successfully",
@@ -131,6 +124,7 @@ export const registerStudent = async (req, res) => {
     });
 
   } catch (error) {
+      console.error("❌ REGISTER STUDENT ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
