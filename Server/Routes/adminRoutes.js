@@ -25,7 +25,7 @@ router.get("/stats", protect, adminOnly, getDashboardStats);
 router.post("/supervisors", protect, adminOnly, addSupervisor);
 router.get("/supervisors", protect, adminOnly, getAllSupervisors);
 router.delete("/supervisors/:id", protect, adminOnly, deleteSupervisor, cleanupOrphanedTeams);
-
+router.post("/supervisor",  protect, adminOnly, addSupervisor); 
 // Students
 router.get("/students", protect, adminOnly, getAllStudentsForAdmin);
 router.get("/marks/group/:groupId", protect, adminOnly, getGroupMarks); 

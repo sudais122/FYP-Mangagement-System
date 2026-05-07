@@ -8,7 +8,7 @@ import generatePassword from "../utils/generatePassword.js";
 
 // ── ADD SUPERVISOR ─────────────────────────────────────────────
 export const addSupervisor = async (req, res) => {
-  const { name, email, password } = req.body;
+    const { name, email, password, designation, office, whatsapp, is_chairman } = req.body;
 
   try {
     if (!name || !email || !password) {
@@ -20,27 +20,35 @@ export const addSupervisor = async (req, res) => {
       return res.status(400).json({ message: "Supervisor with this email already exists" });
     }
 
-    const supervisor = await Supervisor.create({
-      name,
-      email,
-      password,
-      force_password_change: true,
-    });
+  const supervisor = await Supervisor.create({
+    name,
+    email,
+    password,
+    designation: designation || "Lecturer",
+    office: office || "",
+    whatsapp: whatsapp || "",
+    is_chairman: is_chairman === true,
+    role: is_chairman === true ? "chairman" : "supervisor",
+  });
 
     res.status(201).json({
       message: "Supervisor created successfully",
       supervisor: {
-        _id: supervisor._id,
-        name: supervisor.name,
-        email: supervisor.email,
-        sup_code: supervisor.sup_code,
+        _id:         supervisor._id,
+        name:        supervisor.name,
+        email:       supervisor.email,
+        sup_code:    supervisor.sup_code,
+        designation: supervisor.designation,
+        whatsapp:    supervisor.whatsapp,
+        isChairman:  supervisor.isChairman,
       }
     });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
-};
+}
+
 // ── GET DASHBOARD STATS ────────────────────────────────────────
 export const getDashboardStats = async (req, res) => {
   try {

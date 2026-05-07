@@ -5,7 +5,8 @@ import {
   getSupervisorDetail,
   getMyStudents,
   changePassword,
-  getMarkTogglesForSupervisor
+  getMarkTogglesForSupervisor,
+  getDepartmentOverview
 } from "../controllers/supervisorController.js";
 import {
   protect,
@@ -29,4 +30,6 @@ router.get('/mark-toggles', protect, getMarkTogglesForSupervisor);
 router.get("/",          protect, adminOnly, getAllSupervisors);
 router.get("/:id",       protect, adminOnly, getSupervisorDetail);
 
+// Chairman-only routes
+router.get("/chairman/overview", protect, getDepartmentOverview);
 export default router;

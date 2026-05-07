@@ -86,12 +86,39 @@ export const getStudentMarks = async (req, res) => {
  * 📌 Get Marks for GROUP
  */
 export const getGroupMarks = async (req, res) => {
+
   try {
-    const marks = await Marks.find({ group: req.params.groupId })
-      .populate("student", "name student_code team_role");
+
+    const group = await Group.findById(req.params.groupId)
+      .populate("leader")
+      .populate("members");
+
+    if (!group) {
+      return res.status(404).json({
+        message: "Group not found"
+      });
+    }
+
+    const studentIds = [
+      group.leader?._id,
+      ...group.members.map(m => m._id)
+    ];
+
+    const marks = await Marks.find({
+      student: { $in: studentIds }
+    }).populate(
+      "student",
+      "name student_code team_role"
+    );
+
     res.json(marks);
+
   } catch (error) {
-    res.status(500).json({ message: error.message });
+
+    res.status(500).json({
+      message: error.message
+    });
+
   }
 };
 

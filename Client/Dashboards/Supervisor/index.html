@@ -8,14 +8,15 @@
     <link rel="stylesheet" href="./css/supervisor.css" />
   </head>
   <body>
-      <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
     <nav class="navbar">
       <div class="nav-inner">
-            <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
+        <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <div class="nav-logo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
@@ -30,7 +31,7 @@
           <div class="nav-user">
             <strong id="nav-sup-name">—</strong><small id="nav-sup-code">—</small>
           </div>
-            <button class="nav-logout" onclick="logout()">
+          <button class="nav-logout" onclick="logout()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
               <polyline points="16 17 21 12 16 7" />
@@ -59,8 +60,27 @@
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>My Groups
         </button>
+
+        <!-- ══════════════ CHAIRMAN-ONLY NAV ══════════════ -->
+        <div id="chairman-nav-items" style="display:none">
+          <div class="sb-section-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+              <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>
+            </svg>
+            Chairman View
+          </div>
+          <button class="sb-btn" id="sb-overview" onclick="showTab('overview')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="9"/>
+              <rect x="14" y="3" width="7" height="5"/>
+              <rect x="14" y="12" width="7" height="9"/>
+              <rect x="3" y="16" width="7" height="5"/>
+            </svg>Department Overview
+          </button>
+        </div>
+
         <div class="sb-spacer"></div>
-        <button class="sb-btn logout" onclick="window.location.href = 'index.html'">
+        <button class="sb-btn logout" onclick="logout()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
             <polyline points="16 17 21 12 16 7" />
@@ -75,14 +95,13 @@
           <p id="page-sub">Overview of your assigned groups and students</p>
         </div>
 
-        <!-- DASHBOARD -->
+        <!-- ══════════════ DASHBOARD TAB ══════════════ -->
         <div class="tab active" id="tab-dashboard">
           <div class="top-strip">
             <div class="info-block">
               <h2 id="welcome-name">Welcome back 👋</h2>
               <p id="welcome-designation">CS Department</p>
               <div class="sup-id-tag" id="welcome-sup-id">—</div>
-              <!-- ID REMINDER NOTICE -->
               <div class="sup-id-notice">
                 <div class="sup-id-notice-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -154,7 +173,7 @@
             <div class="card-head">
               <h3>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <path d="M16 21v-2a4 4 0 0 4-4-4H6a4 4 0 0 0-4 4v2" />
                   <circle cx="9" cy="7" r="4" />
                 </svg>All Students
               </h3>
@@ -184,7 +203,7 @@
           </div>
         </div>
 
-        <!-- GROUPS -->
+        <!-- ══════════════ GROUPS TAB ══════════════ -->
         <div class="tab" id="tab-groups">
           <div id="groups-list-view">
             <div class="card">
@@ -220,6 +239,59 @@
             </div>
           </div>
           <div id="group-detail-view" style="display: none"></div>
+        </div>
+
+        <!-- ══════════════ DEPARTMENT OVERVIEW (Chairman only) ══════════════ -->
+        <div class="tab" id="tab-overview">
+          <div id="overview-loading" style="text-align:center;padding:60px 20px;color:var(--text-mute)">
+            Loading department overview…
+          </div>
+
+          <div id="overview-content" style="display:none">
+            <!-- Stat cards -->
+            <div class="stats-block" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px">
+              <div class="st-card" style="--accent: var(--primary)">
+                <div class="st-label">Total Students</div>
+                <div class="st-val" id="ov-total-students">—</div>
+                <div class="st-sub">Enrolled this semester</div>
+              </div>
+              <div class="st-card" style="--accent: var(--secondary)">
+                <div class="st-label">Total Supervisors</div>
+                <div class="st-val" id="ov-total-sups">—</div>
+                <div class="st-sub">Faculty members</div>
+              </div>
+              <div class="st-card" style="--accent: var(--gold)">
+                <div class="st-label">Total Teams</div>
+                <div class="st-val" id="ov-total-teams">—</div>
+                <div class="st-sub">FYP groups</div>
+              </div>
+              <div class="st-card" style="--accent: #7c3aed">
+                <div class="st-label">Average Score</div>
+                <div class="st-val">
+                  <span id="ov-avg-score">—</span>
+                  <small style="font-size:.7rem;color:var(--text-mute);font-weight:600">/200</small>
+                </div>
+                <div class="st-sub">Across all students</div>
+              </div>
+            </div>
+
+            <!-- Proposal status breakdown -->
+            <div class="card">
+              <div class="card-head">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <polyline points="9 13 12 16 16 12"/>
+                  </svg>
+                  Proposal Status — Department-wide
+                </h3>
+              </div>
+              <div class="card-body">
+                <div id="ov-proposal-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>

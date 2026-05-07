@@ -1439,3 +1439,51 @@ button {
   color: #999;
   cursor: not-allowed !important;
 }
+/* ════════════════════════════════════
+   CHAIRMAN UI STYLING
+══════════════════════════════════════ */
+.sb-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 18px 6px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  border-top: 1px dashed var(--border-soft);
+  margin-top: 12px;
+}
+
+.chairman-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  margin-left: 12px;
+  background: linear-gradient(135deg, #bfa14a 0%, #d4b96b 100%);
+  color: #fff;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  box-shadow: 0 3px 10px rgba(191, 161, 74, 0.35);
+  animation: chairmanPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes chairmanPulse {
+  0%, 100% { box-shadow: 0 3px 10px rgba(191, 161, 74, 0.35); }
+  50%      { box-shadow: 0 3px 16px rgba(191, 161, 74, 0.55); }
+}
+
+.chairman-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(191, 161, 74, 0.15);
+  color: #9a7e2a;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-left: 6px;
+}

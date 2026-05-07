@@ -7,17 +7,22 @@ import Marks      from "../Models/marks.js";
 // ── GET ALL SUPERVISORS (Admin) ────────────────────────────────
 export const getAllSupervisors = async (req, res) => {
   try {
-    const supervisors = await Supervisor.find().select("-password");
-    // Add team count to each
+    const supervisors = await Supervisor.find()
+      .select("name email sup_code designation whatsapp office is_chairman role")  // ← include is_chairman
+      .lean();
+
+    // Add team count for each supervisor
+    const Group = (await import("../Models/group.js")).default;
     const result = await Promise.all(
-      supervisors.map(async (sup) => {
-        const teamCount = await Group.countDocuments({ supervisor: sup._id });
-        return { ...sup.toObject(), teamCount };
+      supervisors.map(async (s) => {
+        const teamCount = await Group.countDocuments({ supervisor: s._id });
+        return { ...s, teamCount };
       })
     );
+
     res.json(result);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -211,6 +216,51 @@ export const getMarkTogglesForSupervisor = async (req, res) => {
 
     res.json({ toggles });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ── DEPARTMENT OVERVIEW (Chairman only) ─────────────
+export const getDepartmentOverview = async (req, res) => {
+  try {
+    // Verify caller is chairman
+    const callerSupervisor = await Supervisor.findById(req.user.id);
+    if (!callerSupervisor || !callerSupervisor.is_chairman) {
+      return res.status(403).json({ message: "Chairman access required" });
+    }
+
+    // Run all counts in parallel for speed
+    const [totalStudents, totalSupervisors, totalTeams, allMarks, groups] = await Promise.all([
+      Student.countDocuments(),
+      Supervisor.countDocuments(),
+      Group.countDocuments(),
+      Marks.find().lean(),
+      Group.find().select("proposal_url proposal_status").lean(),
+    ]);
+
+    // Average score across all students
+    const totalScore = allMarks.reduce((sum, m) => sum + (m.total || 0), 0);
+    const avgScore = allMarks.length ? Math.round(totalScore / allMarks.length) : 0;
+
+    // Proposal status breakdown
+    const proposalStats = {
+      total:         groups.length,
+      submitted:     groups.filter(g => g.proposal_url).length,
+      approved:      groups.filter(g => g.proposal_status === "approved").length,
+      pending:       groups.filter(g => g.proposal_status === "pending").length,
+      rejected:      groups.filter(g => g.proposal_status === "rejected").length,
+      not_submitted: groups.filter(g => !g.proposal_url).length,
+    };
+
+    res.json({
+      totalStudents,
+      totalSupervisors,
+      totalTeams,
+      avgScore,
+      proposalStats,
+    });
+  } catch (err) {
+    console.error("Department overview error:", err);
     res.status(500).json({ message: err.message });
   }
 };

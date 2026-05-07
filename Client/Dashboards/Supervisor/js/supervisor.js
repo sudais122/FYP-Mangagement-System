@@ -1,7 +1,22 @@
 const sup = JSON.parse(localStorage.getItem("supervisor"));
-if (!sup) window.location.href = "login.html";
-if (sup.force_password_change) window.location.href = "change-password.html";
 
+if (!sup) {
+  window.location.href = "login.html";
+}
+
+if (sup.force_password_change) {
+  window.location.href = "change-password.html";
+}
+
+const IS_CHAIRMAN = sup?.is_chairman === true;
+
+if (IS_CHAIRMAN) {
+  const chairmanNav = document.getElementById("chairman-nav-items");
+
+  if (chairmanNav) {
+    chairmanNav.style.display = "";
+  }
+}
 const SUPERVISOR = { id: sup.sup_code, name: sup.name };
 const API_BASE = "http://127.0.0.1:5001/api";
 
@@ -302,17 +317,22 @@ function emptyState(message) {
 ═══════════════════════════════════ */
 function showTab(tab) {
   document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-  document.getElementById("tab-" + tab).classList.add("active");
+  document.getElementById("tab-" + tab)?.classList.add("active");
   document.querySelectorAll(".sb-btn:not(.logout)").forEach((b) => b.classList.remove("active"));
-  document.getElementById("sb-" + tab).classList.add("active");
+  document.getElementById("sb-" + tab)?.classList.add("active");
+
   if (tab === "dashboard") {
     document.getElementById("page-title").textContent = "Dashboard";
     document.getElementById("page-sub").textContent = "Overview of your assigned groups and students";
     renderDashboard();
-  } else {
+  } else if (tab === "groups") {
     document.getElementById("page-title").textContent = "My Groups";
     document.getElementById("page-sub").textContent = "View groups, students, and assign marks";
     showGroupsList();
+  } else if (tab === "overview") {
+    document.getElementById("page-title").textContent = "Department Overview";
+    document.getElementById("page-sub").textContent = "Department-wide statistics — Chairman view";
+    loadDepartmentOverview();
   }
 }
 
@@ -880,6 +900,67 @@ function logout() {
   window.location.href = "/Client/Auth/login.html";
 }
 
+/* ═══════════════════════════════════
+   CHAIRMAN — DEPARTMENT OVERVIEW
+═══════════════════════════════════ */
+async function loadDepartmentOverview() {
+  if (!IS_CHAIRMAN) return;
+
+  const loadingEl = document.getElementById("overview-loading");
+  const contentEl = document.getElementById("overview-content");
+
+  if (loadingEl) loadingEl.style.display = "";
+  if (contentEl) contentEl.style.display = "none";
+
+  try {
+    const res = await fetch(`${API_BASE}/supervisor/chairman/overview`, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${sup.token}`
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    // Update stat cards
+    document.getElementById("ov-total-students").textContent = data.totalStudents;
+    document.getElementById("ov-total-sups").textContent     = data.totalSupervisors;
+    document.getElementById("ov-total-teams").textContent    = data.totalTeams;
+    document.getElementById("ov-avg-score").textContent      = data.avgScore;
+
+    // Render proposal status pills
+    const ps = data.proposalStats;
+    const stats = [
+      { label: "Approved",      value: ps.approved,      color: "#15803d", bg: "rgba(34,197,94,.1)",  border: "#22c55e" },
+      { label: "Pending Review", value: ps.pending,      color: "#a16207", bg: "rgba(234,179,8,.1)",  border: "#eab308" },
+      { label: "Rejected",      value: ps.rejected,      color: "#dc2626", bg: "rgba(220,38,38,.1)",  border: "#dc2626" },
+      { label: "Not Submitted", value: ps.not_submitted, color: "#475569", bg: "rgba(148,163,184,.1)", border: "#94a3b8" },
+    ];
+
+    document.getElementById("ov-proposal-stats").innerHTML = stats.map(s => `
+      <div style="background:${s.bg};border-left:3px solid ${s.border};padding:16px 18px;border-radius:10px">
+        <div style="font-size:.7rem;color:var(--text-mute);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">
+          ${s.label}
+        </div>
+        <div style="font-size:1.8rem;font-weight:800;color:${s.color};line-height:1">
+          ${s.value}
+        </div>
+        <div style="font-size:.7rem;color:var(--text-mute);margin-top:4px">
+          ${ps.total > 0 ? Math.round((s.value / ps.total) * 100) : 0}% of teams
+        </div>
+      </div>
+    `).join("");
+
+    if (loadingEl) loadingEl.style.display = "none";
+    if (contentEl) contentEl.style.display = "";
+
+  } catch (err) {
+    console.error(err);
+    if (loadingEl) {
+      loadingEl.innerHTML = `<div style="color:#dc2626">Failed to load: ${err.message}</div>`;
+    }
+  }
+}
 /* ═══════════════════════════════════
    INIT — load real data
 ═══════════════════════════════════ */

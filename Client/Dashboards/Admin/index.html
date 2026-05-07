@@ -604,32 +604,34 @@
             </div>
 
             <!-- Password -->
-            <div class="form-group">
-              <label class="form-label"
-                >Temporary Password <span class="req">*</span></label
-              >
-              <div class="input-group">
-                <input
-                  type="text"
-                  class="form-input"
-                  id="supPassword"
-                  placeholder="Enter or generate a password"
-                  required
-                />
-                <button
-                  type="button"
-                  class="btn btn-ghost"
-                  onclick="generatePassword()"
-                  style="margin-top: 6px; font-size: 0.8rem"
-                >
-                  ⚡ Generate Password
-                </button>
-              </div>
-              <div class="form-help" id="pwdHelp">
-                Minimum 8 characters · Will be sent to supervisor via email
-              </div>
-            </div>
+            <!-- Role + WhatsApp row -->
+<div class="form-row">
+  <div class="form-group">
+    <label class="form-label">Role <span class="req">*</span></label>
+    <select class="form-select" id="supRole">
+      <option value="supervisor">Supervisor</option>
+      <option value="chairman">Chairman / HOD</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label class="form-label">WhatsApp Number</label>
+    <input type="text" class="form-input" id="supWhatsapp" placeholder="e.g. 03001234567" />
+  </div>
+</div>
 
+<!-- Password -->
+<div class="form-group">
+  <label class="form-label">Temporary Password <span class="req">*</span></label>
+  <div style="display:flex;gap:8px">
+    <input type="text" class="form-input" id="supPassword"
+           placeholder="Min. 8 characters" style="flex:1" />
+    <button type="button" class="btn btn-ghost" onclick="generatePassword()">
+      Generate
+    </button>
+  </div>
+  <span class="form-help" id="pwdHelp">
+    Minimum 8 characters · Will be sent to supervisor via email
+  </span>
             <!-- Force change -->
             <label class="checkbox-row" for="forceChange">
               <input type="checkbox" id="forceChange" checked />

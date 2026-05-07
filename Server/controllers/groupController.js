@@ -305,6 +305,7 @@ export const getAllGroups = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // ── GET SINGLE GROUP ───────────────────────────────────────────
 export const getGroupById = async (req, res) => {
   try {

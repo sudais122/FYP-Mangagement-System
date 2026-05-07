@@ -357,10 +357,12 @@ async function handleLogin(e) {
   if (!email || !password) {
     btn.style.background = "#DC2626";
     btn.innerHTML = "⚠ Please fill all fields";
+
     setTimeout(() => {
       btn.style.background = "";
       btn.innerHTML = "Sign In";
     }, 2000);
+
     return;
   }
 
@@ -368,10 +370,16 @@ async function handleLogin(e) {
   btn.innerHTML = "Signing in...";
 
   try {
+
     const res = await fetch(`${API_BASE_URL}/api/auth/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        email,
+        password
+      }),
     });
 
     const data = await res.json();
@@ -383,58 +391,109 @@ async function handleLogin(e) {
     btn.style.background = "#16A34A";
     btn.innerHTML = "Login Successful";
 
+    /* ═══════════════════════════════
+       STUDENT LOGIN
+    ═══════════════════════════════ */
     if (data.role === "student") {
+
       localStorage.setItem("user", JSON.stringify({
         id: data._id,
         name: data.name,
         student_code: data.student_code,
+        email: data.email,
         token: data.token,
       }));
-      setTimeout(() => {
-        window.location.href = "../Dashboards/Student/index.html";
-      }, 1000);
 
-    } else if (data.role === "supervisor") {
+      setTimeout(() => {
+        window.location.href =
+          "../Dashboards/Student/index.html";
+      }, 1000);
+    }
+
+    /* ═══════════════════════════════
+       SUPERVISOR / CHAIRMAN LOGIN
+    ═══════════════════════════════ */
+    else if (
+      data.role === "supervisor" ||
+      data.role === "chairman"
+    ) {
+
       localStorage.setItem("supervisor", JSON.stringify({
         id: data._id,
         name: data.name,
+        email: data.email,
         sup_code: data.sup_code,
+        department: data.department,
+        role: data.role,
+        is_chairman: data.is_chairman,
         token: data.token,
-        force_password_change: data.force_password_change,
+        force_password_change:
+          data.force_password_change,
       }));
-      setTimeout(() => {
-        if (data.force_password_change) {
-          window.location.href = "../Dashboards/Supervisor/change-password.html";
-        } else {
-          window.location.href = "../Dashboards/Supervisor/index.html";
-        }
-      }, 1000);
 
-    } else if (data.role === "admin") {
+      setTimeout(() => {
+
+        if (data.force_password_change) {
+
+          window.location.href =
+            "../Dashboards/Supervisor/change-password.html";
+
+        } else {
+
+          window.location.href =
+            "../Dashboards/Supervisor/index.html";
+
+        }
+
+      }, 1000);
+    }
+
+    /* ═══════════════════════════════
+       ADMIN LOGIN
+    ═══════════════════════════════ */
+    else if (data.role === "admin") {
+
       localStorage.setItem("admin", JSON.stringify({
         id: data._id,
         name: data.name,
         email: data.email,
+        role: data.role,
         token: data.token,
       }));
-      setTimeout(() => {
-        window.location.href = "../Dashboards/Admin/index.html";
-      }, 1000);
 
-    } else {
+      setTimeout(() => {
+        window.location.href =
+          "../Dashboards/Admin/index.html";
+      }, 1000);
+    }
+
+    /* ═══════════════════════════════
+       UNKNOWN ROLE
+    ═══════════════════════════════ */
+    else {
+
       btn.style.background = "#DC2626";
       btn.innerHTML = "⚠ Access denied";
       btn.disabled = false;
+
+      setTimeout(() => {
+        btn.style.background = "";
+        btn.innerHTML = "Sign In";
+      }, 2500);
     }
 
   } catch (err) {
-    console.log(err);
+
+    console.error(err);
+
     btn.style.background = "#DC2626";
     btn.innerHTML = "⚠ " + err.message;
+
     setTimeout(() => {
       btn.style.background = "";
       btn.innerHTML = "Sign In";
     }, 2500);
+
     btn.disabled = false;
   }
 }

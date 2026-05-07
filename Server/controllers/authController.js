@@ -1,23 +1,21 @@
-import Student    from "../Models/student.js";
+import Student from "../Models/student.js";
 import Supervisor from "../Models/supervisor.js";
-import Admin      from "../Models/admin.js";
-import crypto     from "crypto";
+import Admin from "../Models/admin.js";
+import crypto from "crypto";
 import nodemailer from "nodemailer";
-import bcrypt     from "bcrypt";
+import bcrypt from "bcrypt";
 import generateToken from "../utils/generateToken.js";
-
 
 // ── STUDENT ID GENERATOR ─────────────────────────────
 const generateStudentId = async () => {
   const studentCount = await Student.countDocuments();
-  const sequentialNumber = (studentCount + 1).toString().padStart(4, '0');
+  const sequentialNumber = (studentCount + 1).toString().padStart(4, "0");
   const year = new Date().getFullYear();
   return `STD-${year}${sequentialNumber}`;
 };
 
-// ── EMAIL TRANSPORTER ──────────────────────────────────────────
+// ── EMAIL TRANSPORTER ────────────────────────────────
 const getTransporter = () => {
-  console.log("Creating transporter with:", process.env.EMAIL_USER, !!process.env.EMAIL_PASS);
   return nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 465,
@@ -32,7 +30,7 @@ const getTransporter = () => {
   });
 };
 
-// ── LOGIN (works for all 3 roles) ─────────────────────────────
+// ── LOGIN ────────────────────────────────────────────
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -49,7 +47,7 @@ export const login = async (req, res) => {
 
     if (!user) {
       user = await Supervisor.findOne({ email });
-      if (user) role = "supervisor";
+      if (user) role = user.role || "supervisor";
     }
 
     if (!user) {
@@ -66,7 +64,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    const token = generateToken(user._id, role);
+    const token = generateToken(user);
 
     let userData = {
       _id: user._id,
@@ -78,12 +76,13 @@ export const login = async (req, res) => {
 
     if (role === "student") {
       userData.student_code = user.student_code;
-      userData.group        = user.group;
+      userData.group = user.group;
     }
 
     if (role === "supervisor") {
-      userData.sup_code              = user.sup_code;
+      userData.sup_code = user.sup_code;
       userData.force_password_change = user.force_password_change;
+      userData.is_chairman = user.is_chairman;
     }
 
     res.json(userData);
@@ -94,7 +93,7 @@ export const login = async (req, res) => {
   }
 };
 
-// ── STUDENT REGISTER ──────────────────────────────────────────
+// ── STUDENT REGISTER ─────────────────────────────────
 export const registerStudent = async (req, res) => {
   try {
     const { name, email, whatsapp, password } = req.body;
@@ -105,13 +104,11 @@ export const registerStudent = async (req, res) => {
 
     const existing = await Student.findOne({ email });
     if (existing) {
-      await cloudinary.uploader.destroy(req.file.filename, { resource_type: "raw" });
       return res.status(400).json({ message: "Email already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const student_code = await generateStudentCode();
+    const student_code = await generateStudentId();
 
     const student = await Student.create({
       name,
@@ -132,80 +129,60 @@ export const registerStudent = async (req, res) => {
         student_code: student.student_code,
       },
     });
+
   } catch (error) {
-    if (req.file?.filename) {
-      await cloudinary.uploader.destroy(req.file.filename, { resource_type: "raw" });
-    }
     res.status(500).json({ message: error.message });
   }
 };
 
-// ── FORGOT PASSWORD — sends reset link via email ───────────────
+// ── FORGOT PASSWORD ──────────────────────────────────
 export const forgotPassword = async (req, res) => {
-  console.log("=== forgotPassword HIT ===");
-  console.log("Body:", req.body);
-  console.log("EMAIL_USER:", process.env.EMAIL_USER);
-  console.log("EMAIL_PASS exists:", !!process.env.EMAIL_PASS);
-
   try {
-    console.log("EMAIL_PASS LENGTH:", process.env.EMAIL_PASS?.length);
-console.log("EMAIL_PASS VALUE:", process.env.EMAIL_PASS);
     const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // Search across all three collections
     let user = await Student.findOne({ email });
     if (!user) user = await Supervisor.findOne({ email });
     if (!user) user = await Admin.findOne({ email });
 
     if (!user) {
-      // Security best practice: don't reveal whether email exists
       return res.json({ message: "If this email is registered, a reset link has been sent." });
     }
-    // With this:
+
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    user.resetPasswordToken  = otp;
+
+    user.resetPasswordToken = otp;
     user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
+    const transporter = getTransporter();
+
+    const resetUrl = `http://localhost:3000/reset-password?email=${email}`;
 
     await transporter.sendMail({
-      from:    `"FYP Management System" <${process.env.EMAIL_USER}>`,
-      to:      email,
-      subject: "Reset Your Password — FYP Management AWKUM",
+      from: `"FYP Management System" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset Your Password — FYP Management",
       html: `
-        <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:32px 24px;border:1px solid #e2e8f0;border-radius:12px;">
-          <h2 style="color:#1e3a8a;margin-bottom:4px;">FYP Management System</h2>
-          <p style="color:#64748b;font-size:13px;margin-bottom:24px;">AWKUM · CS Department</p>
+        <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;padding:32px;border:1px solid #e2e8f0;border-radius:12px;">
+          <h2 style="color:#1e3a8a;">FYP Management System</h2>
 
-          <p style="color:#0f172a;font-size:15px;">Hi <strong>${user.name}</strong>,</p>
-          <p style="color:#334155;font-size:14px;    console.log("EMAIL_USER:", process.env.EMAIL_USER);
-              console.log("EMAIL_PASS exists:", !!process.env.EMAIL_PASS);line-height:1.6;">
-            We received a request to reset your password. Click the button below to set a new password.
-            This link is valid for <strong>15 minutes</strong>.
-          </p>
+          <p>Hi <strong>${user.name}</strong>,</p>
 
-          <div style="text-align:center;margin:28px 0;">
-            <a href="${resetUrl}"
-               style="display:inline-block;padding:12px 28px;background:#1e3a8a;color:#ffffff;
-                      text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">
-              Reset My Password
-            </a>
-          </div>
+          <p>Use this OTP to reset your password:</p>
 
-          <p style="color:#64748b;font-size:13px;line-height:1.6;">
-            If the button doesn't work, copy and paste this link into your browser:<br>
-            <a href="${resetUrl}" style="color:#1e3a8a;word-break:break-all;">${resetUrl}</a>
-          </p>
+          <h1 style="text-align:center;color:#1e3a8a;">${otp}</h1>
 
-          <hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0;">
-          <p style="color:#94a3b8;font-size:12px;">
-            If you didn't request a password reset, you can safely ignore this email.
-            Your password will not be changed.
-          </p>
+          <p>This OTP is valid for 15 minutes.</p>
+
+          <p>Or click below:</p>
+
+          <a href="${resetUrl}" style="display:inline-block;padding:10px 20px;background:#1e3a8a;color:#fff;border-radius:6px;text-decoration:none;">
+            Reset Password
+          </a>
         </div>
       `,
     });
@@ -213,59 +190,12 @@ console.log("EMAIL_PASS VALUE:", process.env.EMAIL_PASS);
     res.json({ message: "If this email is registered, a reset link has been sent." });
 
   } catch (err) {
-    console.error("forgotPassword error:", err);
-    res.status(500).json({ message: "Failed to send reset email. Please try again." });
+    console.error(err);
+    res.status(500).json({ message: "Failed to send email" });
   }
 };
 
-// ── RESET PASSWORD — validates token, sets new password ────────
-export const resetPassword = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
-    }
-    if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters" });
-    }
-
-    let user = await Student.findOne({ email });
-    if (!user) user = await Supervisor.findOne({ email });
-    if (!user) user = await Admin.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    user.password = await bcrypt.hash(password, 10);
-    await user.save();
-
-    res.json({ message: "Password reset successful" });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// ── GET CURRENT USER PROFILE ───────────────────────────────────
-export const getProfile = async (req, res) => {
-  const { id, role } = req.user;
-  try {
-    let user;
-    if (role === "student") {
-      user = await Student.findById(id).select("-password").populate("group");
-    } else if (role === "supervisor") {
-      user = await Supervisor.findById(id).select("-password");
-    } else if (role === "admin") {
-      user = await Admin.findById(id).select("-password");
-    }
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
+// ── VERIFY OTP ───────────────────────────────────────
 export const verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -279,12 +209,62 @@ export const verifyOtp = async (req, res) => {
     if (user.resetPasswordToken !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
+
     if (user.resetPasswordExpire < Date.now()) {
-      return res.status(400).json({ message: "OTP has expired" });
+      return res.status(400).json({ message: "OTP expired" });
     }
 
     res.json({ message: "OTP verified" });
+
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+// ── RESET PASSWORD ───────────────────────────────────
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    let user = await Student.findOne({ email });
+    if (!user) user = await Supervisor.findOne({ email });
+    if (!user) user = await Admin.findOne({ email });
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res.json({ message: "Password reset successful" });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ── GET PROFILE ──────────────────────────────────────
+export const getProfile = async (req, res) => {
+  const { id, role } = req.user;
+
+  try {
+    let user;
+
+    if (role === "student") {
+      user = await Student.findById(id).select("-password");
+    } else if (role === "supervisor") {
+      user = await Supervisor.findById(id).select("-password");
+    } else if (role === "admin") {
+      user = await Admin.findById(id).select("-password");
+    }
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

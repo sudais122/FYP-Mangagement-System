@@ -1472,11 +1472,10 @@ function renderSupervisorTab() {
       <span class="proj-val">${sup.office || "CS Department"}</span>
     </div>
     <div class="proj-row">
-      <span class="proj-key">Office Hours</span>
+      <span class="proj-key">Contact</span>
       <span class="proj-val">${sup.office_hours || "Contact supervisor directly"}</span>
     </div>
     <div class="proj-row">
-      <span class="proj-key">Research Areas</span>
       <span class="proj-val">${
         sup.research_areas && sup.research_areas.length
           ? sup.research_areas.join(", ")

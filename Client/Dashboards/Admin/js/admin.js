@@ -170,34 +170,75 @@ async function renderSupervisors() {
 
 function renderSupervisorCards(list) {
   const grid = $("#supervisorCards");
+
   if (!list.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">
+        No supervisors found.
+      </div>`;
     return;
   }
+
   grid.innerHTML = list.map(sup => `
-    <div class="entity-card" onclick="openSupDetail('${sup._id}')">
+    <div 
+      class="entity-card"
+      data-chairman="${sup.is_chairman === true}"
+      onclick="openSupDetail('${sup._id}')"
+    >
       <div class="entity-card-head">
         <div class="entity-avatar">${initials(sup.name)}</div>
+
         <div class="entity-info">
           <strong>${sup.name}</strong>
           <p>${sup.email}</p>
         </div>
       </div>
-      <div style="margin-bottom:12px"><span class="id-pill">${sup.sup_code || "—"}</span></div>
+
+      <div style="margin-bottom:12px">
+        <span class="id-pill">${sup.sup_code || "—"}</span>
+
+        <span 
+          class="id-pill"
+          style="
+            margin-left:6px;
+            background:${sup.is_chairman
+              ? 'rgba(191,161,74,.15)'
+              : 'rgba(99,102,241,.1)'};
+            color:${sup.is_chairman
+              ? '#9a7e2a'
+              : '#4f46e5'}
+          "
+        >
+          ${sup.is_chairman
+            ? "Chairman / HOD"
+            : sup.designation || "Supervisor"}
+        </span>
+      </div>
+
       <div class="entity-stats">
         <div class="entity-stat-cell">
           <strong>${sup.teamCount || 0}</strong>
           <span>Teams</span>
         </div>
+
         <div class="entity-stat-cell">
-          <strong>${sup.designation || "Lecturer"}</strong>
-          <span>Designation</span>
+          <strong style="display:inline-flex;align-items:center;gap:4px">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="color:#15803d">
+              <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+            </svg>
+
+            ${sup.whatsapp || "—"}
+          </strong>
+
+          <span>WhatsApp</span>
         </div>
       </div>
+
       <div style="text-align:center;font-size:.72rem;color:var(--secondary);font-weight:700;margin-top:10px">
         Click to view teams →
       </div>
-    </div>`).join("");
+    </div>
+  `).join("");
 }
 /* ════════════════════════════════════
    DISPLAY LOGGED-IN ADMIN INFO
@@ -893,10 +934,13 @@ function openSupervisorModal() {
   $("#generatedSupId").textContent = generateSupId();
   $("#supName").value = "";
   $("#supEmail").value = "";
-  $("#supPassword").value = "";
+  if ($("#supPassword")) $("#supPassword").value = "";          
   if ($("#forceChange")) $("#forceChange").checked = true;
-  $("#pwdHelp").textContent = "Minimum 8 characters · Will be sent to supervisor via email";
-  $("#pwdHelp").className = "form-help";
+  const pwdHelp = $("#pwdHelp");
+  if (pwdHelp) {
+    pwdHelp.textContent = "Minimum 8 characters · Will be sent to supervisor via email";
+    pwdHelp.className = "form-help";
+  }
   $("#supervisorModal").classList.add("open");
 }
 function closeSupervisorModal() {
@@ -904,57 +948,53 @@ function closeSupervisorModal() {
 }
 
 async function submitSupervisor() {
-  const name  = $("#supName").value.trim();
-  const email = $("#supEmail").value.trim();
-  const pwd   = $("#supPassword").value.trim();
-  const designation = $("#supDesignation")?.value.trim() || "";
-  const office      = $("#supOffice")?.value.trim() || "";
-
-  if (!name || !email || !pwd) {
-    toast("Missing fields", "Please fill in name, email and password", "error");
-    return;
-  }
-  if (pwd.length < 8) {
-    toast("Weak password", "Password must be at least 8 characters", "error");
-    return;
-  }
-
   const admin = JSON.parse(localStorage.getItem("admin"));
 
+  const name        = $("#supName").value.trim();
+  const email       = $("#supEmail").value.trim();
+  const pwd         = $("#supPassword").value.trim();
+  const designation = $("#supDesignation")?.value.trim() || "";
+  const office      = $("#supOffice")?.value.trim() || "";
+  const whatsapp    = $("#supWhatsapp")?.value.trim() || "";
+  const isChairman  = $("#supRole")?.value === "chairman";
+
+  console.log("isChairman:", isChairman);
+
+  // ✅ BASIC VALIDATION
+  if (!name || !email || !pwd) {
+    toast("Missing fields", "Name, email and password are required", "error");
+    return;
+  }
+
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/admin/supervisor", {
+    const res = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
+        "Authorization": `Bearer ${admin.token}` 
       },
-      body: JSON.stringify({ name, email, password: pwd, designation, office })
+      body: JSON.stringify({
+        name,
+        email,
+        password: pwd,
+        designation,
+        office,
+        whatsapp,
+        is_chairman: isChairman 
+      })
     });
 
     const data = await res.json();
 
-    if (!res.ok) {
-      toast("Error", data.message || "Failed to create supervisor", "error");
-      return;
-    }
+    if (!res.ok) throw new Error(data.message);
 
-    // Add to local array so UI updates instantly
-SUPERVISORS_DATA.unshift({
-  _id: data.supervisor._id,
-  sup_code: data.supervisor.sup_code,
-  name: data.supervisor.name,
-  email: data.supervisor.email,
-  designation: data.supervisor.designation || "Lecturer",
-  teamCount: 0,
-});
-
+    toast("Success", "Supervisor created successfully", "success");
     closeSupervisorModal();
     renderSupervisors();
-    toast("Supervisor created", `${name} · ${data.supervisor.sup_code}`, "success");
 
   } catch (err) {
     console.error(err);
-    toast("Network error", "Could not connect to server", "error");
+    toast("Error", err.message, "error");
   }
 }
 /* ════════════════════════════════════
@@ -1180,44 +1220,106 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
 ══════════════════════════════════════ */
 function filterSupervisors(query) {
   if (!Array.isArray(SUPERVISORS_DATA)) return;
+
   const q = (query || "").trim().toLowerCase();
 
-  const matched = [], rest = [];
+  const matched = [];
+  const rest = [];
+
   SUPERVISORS_DATA.forEach(sup => {
-    const hit = !q ||
+    const hit =
+      !q ||
       (sup.name || "").toLowerCase().includes(q) ||
       (sup.sup_code || "").toLowerCase().includes(q) ||
       (sup.email || "").toLowerCase().includes(q);
+
     (hit ? matched : rest).push(sup);
   });
 
   const matchSet = new Set(matched.map(s => s._id));
+
   const grid = $("#supervisorCards");
+
   if (!SUPERVISORS_DATA.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">
+        No supervisors found.
+      </div>`;
     return;
   }
 
   grid.innerHTML = [...matched, ...rest].map(sup => {
+
     const isMatch = q && matchSet.has(sup._id);
+
     return `
-      <div class="entity-card ${isMatch ? "search-match" : ""}" onclick="openSupDetail('${sup._id}')">
+      <div 
+        class="entity-card ${isMatch ? "search-match" : ""}"
+        data-chairman="${sup.is_chairman === true}"
+        onclick="openSupDetail('${sup._id}')"
+      >
         <div class="entity-card-head">
-          <div class="entity-avatar">${initials(sup.name)}</div>
+
+          <div class="entity-avatar">
+            ${initials(sup.name)}
+          </div>
+
           <div class="entity-info">
             <strong>${highlightText(sup.name, q)}</strong>
             <p>${highlightText(sup.email, q)}</p>
           </div>
         </div>
-        <div style="margin-bottom:12px"><span class="id-pill">${highlightText(sup.sup_code || "—", q)}</span></div>
-        <div class="entity-stats">
-          <div class="entity-stat-cell"><strong>${sup.teamCount || 0}</strong><span>Teams</span></div>
-          <div class="entity-stat-cell"><strong>${sup.designation || "Lecturer"}</strong><span>Designation</span></div>
+
+        <div style="margin-bottom:12px">
+
+          <span class="id-pill">
+            ${highlightText(sup.sup_code || "—", q)}
+          </span>
+
+          <span
+            class="id-pill"
+            style="
+              margin-left:6px;
+              background:${sup.is_chairman
+                ? 'rgba(191,161,74,.15)'
+                : 'rgba(99,102,241,.1)'};
+              color:${sup.is_chairman
+                ? '#9a7e2a'
+                : '#4f46e5'}
+            "
+          >
+            ${sup.is_chairman
+              ? "Chairman / HOD"
+              : sup.designation || "Supervisor"}
+          </span>
         </div>
+
+        <div class="entity-stats">
+
+          <div class="entity-stat-cell">
+            <strong>${sup.teamCount || 0}</strong>
+            <span>Teams</span>
+          </div>
+
+          <div class="entity-stat-cell">
+            <strong style="display:inline-flex;align-items:center;gap:4px">
+
+              <svg viewBox="0 0 24 24" fill="currentColor" width="13" height="13" style="color:#15803d">
+                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+              </svg>
+
+              ${highlightText(sup.whatsapp || "—", q)}
+            </strong>
+
+            <span>WhatsApp</span>
+          </div>
+        </div>
+
         <div style="text-align:center;font-size:.72rem;color:var(--secondary);font-weight:700;margin-top:10px">
           Click to view teams →
         </div>
-      </div>`;
+      </div>
+    `;
   }).join("");
 }
 
