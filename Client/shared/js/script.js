@@ -692,6 +692,34 @@ function formatPipTime(sec) {
     }
   });
 })();
+async function loadHomepageDeadlines() {
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/deadlines");
+    const data = await res.json();
+    const container = document.getElementById("homepage-deadlines");
+    if (!container) return;
+
+    if (!data.length) { container.innerHTML = `<p style="color:#94a3b8">No deadlines posted yet.</p>`; return; }
+
+    container.innerHTML = data.map(d => {
+      const due = new Date(d.dueDate);
+      const diffDays = Math.ceil((due - new Date()) / 86400000);
+      const expired = diffDays < 0;
+      const label = d.type === "Other" && d.customName ? d.customName : d.type;
+      const dateStr = due.toLocaleDateString("en-PK", { day: "numeric", month: "short" });
+      const color = expired ? "#dc2626" : diffDays <= 2 ? "#a16207" : "#15803d";
+
+      return `
+        <div style="border:1.5px solid #e2e8f0;border-radius:12px;padding:18px;background:#fff">
+          <div style="font-size:.72rem;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.06em">${label}</div>
+          <div style="font-size:1rem;font-weight:800;margin:6px 0">${dateStr}</div>
+          <div style="font-size:.78rem;color:${color};font-weight:600">${expired ? "Expired" : diffDays === 0 ? "Due Today!" : diffDays + " days left"}</div>
+        </div>`;
+    }).join("");
+  } catch (e) { console.error("Deadlines load failed:", e); }
+}
+
+loadHomepageDeadlines();
 renderCoursera();
 renderFAQ();
 initReveal();

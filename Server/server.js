@@ -15,7 +15,7 @@ import authRoutes       from "./Routes/authRoutes.js";
 import studentRoutes    from "./Routes/studentRoutes.js";
 import groupRoutes      from "./Routes/groupRoutes.js";
 import marksRoutes      from "./Routes/marksRoutes.js";
-
+import deadlineRoutes   from "./Routes/deadlineRoutes.js";
 import supervisorRoutes from "./Routes/supervisorRoutes.js";
 import adminRoutes      from "./Routes/adminRoutes.js";
 
@@ -38,6 +38,7 @@ app.use("/api/auth",        authRoutes);
 app.use("/api/students",    studentRoutes);
 app.use("/api/groups",      groupRoutes);
 app.use("/api/marks",       marksRoutes);
+app.use("/api/deadlines", deadlineRoutes);
 // app.use("/api/proposals",   proposalRoutes);
 // app.use("/api/files",       fileRoutes);
 app.use("/api/supervisors", supervisorRoutes);
@@ -49,13 +50,13 @@ app.get("/", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.error("\n🔴🔴🔴 SERVER ERROR 🔴🔴🔴");
+  console.error("\nSERVER ERROR");
   console.error("URL:", req.method, req.url);
   console.error("Message:", err.message);
   console.error("Name:", err.name);
   console.error("Code:", err.code);
   console.error("Full stack:", err.stack);
-  console.error("🔴🔴🔴 END ERROR 🔴🔴🔴\n");
+  console.error("END ERROR\n");
   res.status(500).json({ 
     message: err.message || "Server Error",
     name: err.name,

@@ -1777,6 +1777,50 @@ async function handleProposalUpload(files) {
   setProposalState("pending");
   toast("Proposal uploaded ✓", "gold");
 }
+async function loadStudentDeadlines() {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const container = document.getElementById("student-deadlines-container");
+  if (!container) return;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/deadlines", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${user.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    if (!data.length) {
+      container.innerHTML = `<p style="color:var(--text-mute)">No upcoming deadlines.</p>`;
+      return;
+    }
+
+    container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">` +
+      data.map(d => {
+        const now = new Date();
+        const due = new Date(d.dueDate);
+        const diffMs = due - now;
+        const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const expired = diffMs < 0;
+        const near = !expired && diffDays <= 2;
+        const color = expired ? "#dc2626" : near ? "#a16207" : "#15803d";
+        const bg    = expired ? "rgba(220,38,38,.06)" : near ? "rgba(234,179,8,.08)" : "rgba(34,197,94,.06)";
+        const border = expired ? "#dc2626" : near ? "#eab308" : "#22c55e";
+        const label  = d.type === "Other" && d.customName ? d.customName : d.type;
+        const dateStr = due.toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" });
+        const timeLeft = expired ? "Expired" : diffDays === 0 ? "Due Today!" : `${diffDays} Day${diffDays > 1 ? "s" : ""} Left`;
+
+        return `
+          <div style="background:${bg};border:1.5px solid ${border};border-radius:12px;padding:16px">
+            <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:${color};margin-bottom:6px">${label}</div>
+            <div style="font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:4px">${dateStr} · 11:59 PM</div>
+            <div style="font-size:.78rem;font-weight:800;color:${color}">${timeLeft}</div>
+            ${d.description ? `<div style="font-size:.7rem;color:var(--text-mute);margin-top:8px;line-height:1.4">${d.description}</div>` : ""}
+          </div>`;
+      }).join("") + `</div>`;
+  } catch (err) {
+    container.innerHTML = `<p style="color:#dc2626">Failed to load: ${err.message}</p>`;
+  }
+}
 /* ══════════════════════════════════
    INIT
 ══════════════════════════════════ */
@@ -1796,6 +1840,7 @@ function initDashboard() {
 
   // Load dashboard data from backend
   loadDashboard();
+  loadStudentDeadlines();
 }
 
 // Start initialization when DOM is ready

@@ -125,6 +125,15 @@
             <span>Mark Settings</span>
           </a>
         </a>
+        <a class="nav-item" data-view="deadlines">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+  <span>Deadlines</span>
+</a>
       </div>
     </aside>
 
@@ -506,6 +515,55 @@
           <div class="panel-body" id="global-toggles-body"></div>
         </div>
       </section>
+      <!-- ───── DEADLINES VIEW ───── -->
+<section class="view" id="view-deadlines">
+  <div class="section-head">
+    <div class="section-head-text">
+      <h2>Deadline Management</h2>
+      <p>Create and manage submission deadlines visible to all students and supervisors</p>
+    </div>
+    <div class="section-head-actions">
+      <button class="btn btn-primary" onclick="openDeadlineModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Create Deadline
+      </button>
+    </div>
+  </div>
+
+  <div class="dash-panel">
+    <div class="panel-body" style="padding:0">
+      <div class="data-table-wrap">
+        <table class="data-table" id="deadlinesTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Due Date</th>
+              <th>Description</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Upcoming Deadlines -->
+<div class="dash-panel" style="margin-top:24px">
+  <div class="panel-head">
+    <div class="panel-head-text">
+      <h3>Upcoming Deadlines</h3>
+      <p>Sorted by nearest due date</p>
+    </div>
+  </div>
+  <div class="panel-body" id="student-deadlines-container">
+    <p style="color:var(--text-mute)">Loading deadlines…</p>
+  </div>
+</div>
     </main>
 
     <!-- ═══ ADD SUPERVISOR MODAL ═══ -->
@@ -824,6 +882,86 @@
         </svg>
         Yes, Delete
       </button>
+    </div>
+  </div>
+</div>
+<!-- ═══ CREATE/EDIT DEADLINE MODAL ═══ -->
+<div class="modal-overlay" id="deadlineModal">
+  <div class="modal-box" style="max-width:480px" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <h3 id="deadlineModalTitle">Create Deadline</h3>
+        <p>Visible to all students and supervisors</p>
+      </div>
+      <button class="modal-close" onclick="closeDeadlineModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editDeadlineId" />
+      <div class="form-group">
+        <label class="form-label">Deadline Type <span class="req">*</span></label>
+        <select class="form-select" id="deadlineType" onchange="onDeadlineTypeChange()">
+          <option value="">— Select type —</option>
+          <option value="Proposal Submission">Proposal Submission</option>
+          <option value="SRS Submission">SRS Submission</option>
+          <option value="Documentation">Documentation</option>
+          <option value="Presentation">Presentation</option>
+          <option value="Final Report">Final Report</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group" id="customNameGroup" style="display:none">
+        <label class="form-label">Custom Name <span class="req">*</span></label>
+        <input type="text" class="form-input" id="deadlineCustomName" placeholder="e.g. Mid-Semester Review" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description <span class="opt">Optional</span></label>
+        <textarea class="form-input" id="deadlineDesc" rows="3" placeholder="Instructions, file format rules, notes…" style="resize:vertical"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Due Date <span class="req">*</span></label>
+        <input type="date" class="form-input" id="deadlineDate" />
+        <span class="form-help">Time is automatically set to 11:59 PM</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDeadlineModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitDeadline()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span id="deadlineSubmitLabel">Create Deadline</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DELETE DEADLINE MODAL ═══ -->
+<div class="modal-overlay" id="deleteDeadlineModal">
+  <div class="modal-box" style="max-width:400px" onclick="event.stopPropagation()">
+    <div class="modal-head" style="background:rgba(220,38,38,.04)">
+      <div class="modal-head-text">
+        <h3 style="color:#dc2626">Delete Deadline</h3>
+        <p>This cannot be undone</p>
+      </div>
+      <button class="modal-close" onclick="closeDeleteDeadlineModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px">
+      <p style="font-size:.95rem;font-weight:600;margin-bottom:8px">Delete deadline:</p>
+      <p style="font-size:1rem;font-weight:800;color:#dc2626" id="deleteDeadlineName">—</p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px">
+      <button class="btn btn-ghost" onclick="closeDeleteDeadlineModal()" style="min-width:100px">Cancel</button>
+      <button class="btn btn-sm" onclick="confirmDeleteDeadline()" style="background:#dc2626;color:#fff;min-width:100px">Yes, Delete</button>
     </div>
   </div>
 </div>

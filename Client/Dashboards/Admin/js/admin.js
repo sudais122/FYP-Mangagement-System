@@ -122,7 +122,8 @@ function toast(message, subtitle, type = "success") {
 /* ════════════════════════════════════
    VIEW ROUTING
 ══════════════════════════════════════ */
-function switchView(view) {
+function switchView(view) 
+{
   $$(".view").forEach((v) => v.classList.remove("active"));
   $$(".nav-item").forEach((n) => n.classList.remove("active"));
   const target = $(`#view-${view}`);
@@ -132,6 +133,7 @@ function switchView(view) {
   );
   $("#sidebar").classList.remove("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
+  if (view === "deadlines") renderDeadlines();
 }
 
 $$(".nav-item").forEach((item) => {
@@ -1623,6 +1625,185 @@ async function submitEditSupervisor() {
   }
 }
 /* ════════════════════════════════════
+   DEADLINES
+══════════════════════════════════════ */
+let DEADLINES_DATA = [];
+let deleteDeadlineId = null;
+let editingDeadlineId = null;
+
+function getDeadlineLabel(d) {
+  return d.type === "Other" && d.customName ? d.customName : d.type;
+}
+
+function getDeadlineStatus(dueDate) {
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diffMs = due - now;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  if (diffMs < 0) return { label: "Expired", color: "#dc2626", bg: "rgba(220,38,38,.1)", days: null };
+  if (diffDays <= 2) return { label: `${diffDays}d left`, color: "#a16207", bg: "rgba(234,179,8,.12)", days: diffDays };
+  return { label: `${diffDays}d left`, color: "#15803d", bg: "rgba(34,197,94,.1)", days: diffDays };
+}
+
+async function renderDeadlines() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const tbody = document.querySelector("#deadlinesTable tbody");
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/deadlines", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    DEADLINES_DATA = Array.isArray(data) ? data : [];
+
+    if (!DEADLINES_DATA.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">No deadlines yet. Click "Create Deadline" to add one.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = DEADLINES_DATA.map(d => {
+      const status = getDeadlineStatus(d.dueDate);
+      const label  = getDeadlineLabel(d);
+      const dateStr = new Date(d.dueDate).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" });
+
+      return `
+        <tr>
+          <td><strong>${label}</strong></td>
+          <td>${dateStr} · 11:59 PM</td>
+          <td style="max-width:200px;color:var(--text-mute);font-size:.78rem">${d.description || "—"}</td>
+          <td>
+            <span style="padding:3px 10px;border-radius:6px;font-size:.72rem;font-weight:700;background:${status.bg};color:${status.color}">
+              ${status.label}
+            </span>
+          </td>
+          <td>
+            <div class="action-row">
+              <button class="icon-action" title="Edit" onclick="openEditDeadlineModal('${d._id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button class="icon-action danger" title="Delete" style="color:#dc2626" onclick="openDeleteDeadlineModal('${d._id}', '${label.replace(/'/g,"\\'")}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>`;
+    }).join("");
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
+  }
+}
+
+function onDeadlineTypeChange() {
+  const val = document.getElementById("deadlineType").value;
+  document.getElementById("customNameGroup").style.display = val === "Other" ? "block" : "none";
+}
+
+function openDeadlineModal() {
+  editingDeadlineId = null;
+  document.getElementById("deadlineModalTitle").textContent = "Create Deadline";
+  document.getElementById("deadlineSubmitLabel").textContent = "Create Deadline";
+  document.getElementById("editDeadlineId").value = "";
+  document.getElementById("deadlineType").value = "";
+  document.getElementById("deadlineCustomName").value = "";
+  document.getElementById("deadlineDesc").value = "";
+  document.getElementById("deadlineDate").value = "";
+  document.getElementById("customNameGroup").style.display = "none";
+  setTimeout(() => document.getElementById("deadlineModal").classList.add("open"), 50);
+}
+
+function openEditDeadlineModal(id) {
+  const d = DEADLINES_DATA.find(x => x._id === id);
+  if (!d) return;
+  editingDeadlineId = id;
+  document.getElementById("deadlineModalTitle").textContent = "Edit Deadline";
+  document.getElementById("deadlineSubmitLabel").textContent = "Save Changes";
+  document.getElementById("editDeadlineId").value = id;
+  document.getElementById("deadlineType").value = d.type;
+  document.getElementById("deadlineCustomName").value = d.customName || "";
+  document.getElementById("deadlineDesc").value = d.description || "";
+  document.getElementById("deadlineDate").value = new Date(d.dueDate).toISOString().split("T")[0];
+  document.getElementById("customNameGroup").style.display = d.type === "Other" ? "block" : "none";
+  setTimeout(() => document.getElementById("deadlineModal").classList.add("open"), 50);
+}
+
+function closeDeadlineModal() {
+  document.getElementById("deadlineModal").classList.remove("open");
+}
+
+async function submitDeadline() {
+  const type       = document.getElementById("deadlineType").value;
+  const customName = document.getElementById("deadlineCustomName").value.trim();
+  const description = document.getElementById("deadlineDesc").value.trim();
+  const dueDate    = document.getElementById("deadlineDate").value;
+
+  if (!type) { toast("Missing field", "Please select a deadline type", "error"); return; }
+  if (type === "Other" && !customName) { toast("Missing field", "Please enter a custom name", "error"); return; }
+  if (!dueDate) { toast("Missing field", "Please select a due date", "error"); return; }
+
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const id = document.getElementById("editDeadlineId").value;
+  const url = id ? `http://127.0.0.1:5001/api/deadlines/${id}` : "http://127.0.0.1:5001/api/deadlines";
+  const method = id ? "PUT" : "POST";
+
+  try {
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
+      body: JSON.stringify({ type, customName, description, dueDate })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    closeDeadlineModal();
+    await renderDeadlines();
+    toast(id ? "Deadline updated" : "Deadline created", data.deadline ? getDeadlineLabel(data.deadline) : "", "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
+
+function openDeleteDeadlineModal(id, name) {
+  deleteDeadlineId = id;
+  document.getElementById("deleteDeadlineName").textContent = name;
+  setTimeout(() => document.getElementById("deleteDeadlineModal").classList.add("open"), 50);
+}
+
+function closeDeleteDeadlineModal() {
+  deleteDeadlineId = null;
+  document.getElementById("deleteDeadlineModal").classList.remove("open");
+}
+
+async function confirmDeleteDeadline() {
+  if (!deleteDeadlineId) return;
+  const name = document.getElementById("deleteDeadlineName").textContent;
+  const admin = JSON.parse(localStorage.getItem("admin"));
+
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/deadlines/${deleteDeadlineId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    closeDeleteDeadlineModal();
+    await renderDeadlines();
+    toast("Deadline deleted", name + " removed", "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
+/* ════════════════════════════════════
    GLOBAL DATA + INIT
 ══════════════════════════════════════ */
 let SUPERVISORS_DATA = [];
@@ -1636,6 +1817,7 @@ async function initDashboard() {
   await renderTeams();
   await renderStudents();
   await loadGlobalToggles();
+  await renderDeadlines();          
 }
 
 initDashboard();

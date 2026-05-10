@@ -1,99 +1,48 @@
 import Deadline from "../Models/deadline.js";
 
-
-
-// CREATE DEADLINE
 export const createDeadline = async (req, res) => {
   try {
-    const {
-      deadlineType,
-      customDeadlineName,
-      description,
-      dueDate,
-    } = req.body;
-
-    // Convert selected date into real Date
-    const finalDate = new Date(dueDate);
-
-    // Automatically set time to 11:59 PM
-    finalDate.setHours(23, 59, 0, 0);
-
-    // Create new deadline
-    const deadline = await Deadline.create({
-      deadlineType,
-      customDeadlineName,
-      description,
-      dueDate: finalDate,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Deadline created successfully",
-      deadline,
-    });
-
-  } catch (error) {
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-
+    const { type, customName, description, dueDate } = req.body;
+    const date = new Date(dueDate);
+    date.setHours(23, 59, 0, 0); // auto 11:59 PM
+    const deadline = await Deadline.create({ type, customName, description, dueDate: date, createdBy: req.user.id });
+    res.status(201).json({ message: "Deadline created", deadline });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-
-
-// GET ALL DEADLINES
-export const getDeadlines = async (req, res) => {
+export const getAllDeadlines = async (req, res) => {
   try {
+    const deadlines = await Deadline.find().sort({ dueDate: 1 });
+    res.json(deadlines);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
-    // Get all deadlines sorted by nearest date
-    const deadlines = await Deadline.find().sort({
-      dueDate: 1,
-    });
-
-    res.status(200).json({
-      success: true,
-      deadlines,
-    });
-
-  } catch (error) {
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-
+export const updateDeadline = async (req, res) => {
+  try {
+    const { type, customName, description, dueDate } = req.body;
+    const date = new Date(dueDate);
+    date.setHours(23, 59, 0, 0);
+    const deadline = await Deadline.findByIdAndUpdate(
+      req.params.id,
+      { type, customName, description, dueDate: date },
+      { new: true }
+    );
+    if (!deadline) return res.status(404).json({ message: "Not found" });
+    res.json({ message: "Updated", deadline });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 export const deleteDeadline = async (req, res) => {
   try {
-
-    const deadline = await Deadline.findById(req.params.id);
-
-    // Check if deadline exists
-    if (!deadline) {
-      return res.status(404).json({
-        success: false,
-        message: "Deadline not found",
-      });
-    }
-
-    await deadline.deleteOne();
-
-    res.status(200).json({
-      success: true,
-      message: "Deadline deleted successfully",
-    });
-
-  } catch (error) {
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-
+    await Deadline.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
