@@ -43,6 +43,8 @@
 
     <div class="layout">
       <aside class="sidebar" id="sidebar">
+
+        <!-- ── Supervisor section ── -->
         <button class="sb-btn active" id="sb-overview" onclick="showTab('overview')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="9"/>
@@ -51,12 +53,20 @@
             <rect x="3" y="16" width="7" height="5"/>
           </svg>Overview
         </button>
-        <button class="sb-btn" id="sb-workload" onclick="showTab('workload')">
+        <button class="sb-btn" id="sb-mygroups" onclick="showTab('mygroups')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>Supervisor Workload
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>My Groups
         </button>
+
+        <!-- ── Chairman label ── -->
+        <div class="sb-section-label" style="color:var(--gold);font-weight:800;font-size:.78rem;padding:14px 16px 4px;letter-spacing:.06em;text-transform:uppercase;border-top:1px solid var(--border-soft);margin-top:8px">
+          ★ Chairman
+        </div>
+
         <button class="sb-btn" id="sb-teams" onclick="showTab('teams')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -64,6 +74,12 @@
             <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>All Teams
+        </button>
+        <button class="sb-btn" id="sb-workload" onclick="showTab('workload')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>Supervisor Workload
         </button>
         <button class="sb-btn" id="sb-students" onclick="showTab('students')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -90,8 +106,8 @@
 
       <main class="main">
         <div class="page-head">
-          <h1 id="page-title">Department Overview</h1>
-          <p id="page-sub">Department-wide statistics — Chairman view</p>
+          <h1 id="page-title">Overview</h1>
+          <p id="page-sub">Your groups and department statistics</p>
         </div>
 
         <!-- ══════════════ OVERVIEW TAB ══════════════ -->
@@ -104,164 +120,199 @@
               <div class="sup-id-notice">
                 <div class="sup-id-notice-icon">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2l3 7h7l-5.5 4 2 7L12 16l-6.5 4 2-7L2 9h7z"/>
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
                   </svg>
                 </div>
                 <div class="sup-id-notice-text">
-                  <strong>Chairman Access — Read Only</strong>
-                  <span>You can <b>view</b> all department activity but cannot edit marks or change proposal statuses. Use this dashboard to monitor progress across teams and supervisors.</span>
+                  <strong>Chairman Access</strong>
+                  <span>You can <b>view</b> all department activity and <b>edit marks for your own teams only</b>. All other data is read-only.</span>
                 </div>
               </div>
             </div>
             <div class="stats-block" style="grid-template-columns:1fr 1fr">
               <div class="st-card" style="--accent: var(--primary)">
-                <div class="st-label">Total Students</div>
-                <div class="st-val" id="ov-total-students">—</div>
-                <div class="st-sub">Enrolled this semester</div>
+                <div class="st-label">My Groups</div>
+                <div class="st-val" id="ov-my-groups">—</div>
+                <div class="st-sub">Assigned to you</div>
               </div>
               <div class="st-card" style="--accent: var(--secondary)">
-                <div class="st-label">Total Supervisors</div>
-                <div class="st-val" id="ov-total-sups">—</div>
-                <div class="st-sub">Faculty members</div>
+                <div class="st-label">My Students</div>
+                <div class="st-val" id="ov-my-students">—</div>
+                <div class="st-sub">Across your groups</div>
               </div>
               <div class="st-card" style="--accent: var(--gold)">
                 <div class="st-label">Total Teams</div>
                 <div class="st-val" id="ov-total-teams">—</div>
-                <div class="st-sub">FYP groups</div>
+                <div class="st-sub">Department-wide</div>
               </div>
               <div class="st-card" style="--accent: #7c3aed">
-                <div class="st-label">Average Score</div>
-                <div class="st-val">
-                  <span id="ov-avg-score">—</span>
-                  <small style="font-size:.7rem;color:var(--text-mute);font-weight:600">/200</small>
-                </div>
-                <div class="st-sub">Across all students</div>
+                <div class="st-label">Total Students</div>
+                <div class="st-val" id="ov-total-students">—</div>
+                <div class="st-sub">Department-wide</div>
               </div>
-            </div>
-          </div>
-
-          <!-- Proposal Status -->
-          <div class="card">
-            <div class="card-head">
-              <h3>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                Proposal Status — Department-wide
-              </h3>
-            </div>
-            <div class="card-body" style="padding:18px">
-              <div id="ov-proposal-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px"></div>
             </div>
           </div>
         </div>
 
-        <!-- ══════════════ WORKLOAD TAB ══════════════ -->
-        <div class="tab" id="tab-workload">
-          <div class="card">
-            <div class="card-head">
-              <h3>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-                Workload Per Supervisor
-              </h3>
-              <div class="search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input type="text" id="search-workload" placeholder="Search supervisor name or code…" oninput="filterWorkload(this.value)">
+        <!-- ══════════════ MY GROUPS TAB ══════════════ -->
+        <div class="tab" id="tab-mygroups">
+          <div id="mygroups-list-view">
+            <div class="card">
+              <div class="card-head">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                  </svg>My Groups
+                </h3>
+                <div class="search-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <input type="text" id="search-mygroups" placeholder="Search by Team ID or project title…" oninput="filterMyGroups(this.value)">
+                </div>
+              </div>
+              <div class="card-body">
+                <table class="g-table">
+                  <thead>
+                    <tr>
+                      <th>Group ID</th>
+                      <th>Project Title</th>
+                      <th>Students</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="mygroups-tbody"></tbody>
+                </table>
               </div>
             </div>
-            <div class="card-body">
-              <table class="g-table">
-                <thead>
-                  <tr>
-                    <th>Supervisor</th>
-                    <th>Code</th>
-                    <th>Teams</th>
-                    <th>Students</th>
-                  </tr>
-                </thead>
-                <tbody id="workload-tbody"></tbody>
-              </table>
-            </div>
           </div>
+          <!-- Group detail view (marks editable) -->
+          <div id="mygroups-detail-view" style="display:none"></div>
         </div>
 
         <!-- ══════════════ ALL TEAMS TAB ══════════════ -->
         <div class="tab" id="tab-teams">
-          <div class="card">
-            <div class="card-head">
-              <h3>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                </svg>
-                All Teams (Read-Only)
-              </h3>
-              <div class="search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input type="text" id="search-teams" placeholder="Search team ID, project, or supervisor…" oninput="filterTeams(this.value)">
+          <div id="teams-list-view">
+            <div class="card">
+              <div class="card-head">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                  </svg>All Teams
+                  <span style="font-size:.72rem;font-weight:500;color:var(--text-mute);margin-left:8px">Read-Only</span>
+                </h3>
+                <div class="search-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <input type="text" id="search-teams" placeholder="Search team ID, project, or supervisor…" oninput="filterTeams(this.value)">
+                </div>
+              </div>
+              <div class="card-body">
+                <table class="g-table">
+                  <thead>
+                    <tr>
+                      <th>Team ID</th>
+                      <th>Project Title</th>
+                      <th>Supervisor</th>
+                      <th>Students</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="teams-tbody"></tbody>
+                </table>
               </div>
             </div>
-            <div class="card-body">
-              <table class="g-table">
-                <thead>
-                  <tr>
-                    <th>Team ID</th>
-                    <th>Project</th>
-                    <th>Supervisor</th>
-                    <th>Students</th>
-                  </tr>
-                </thead>
-                <tbody id="teams-tbody"></tbody>
-              </table>
+          </div>
+          <!-- Team detail (read-only marks) -->
+          <div id="teams-detail-view" style="display:none"></div>
+        </div>
+
+        <!-- ══════════════ SUPERVISOR WORKLOAD TAB ══════════════ -->
+        <div class="tab" id="tab-workload">
+          <div id="workload-list-view">
+            <div class="card">
+              <div class="card-head">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>Supervisor Workload
+                </h3>
+                <div class="search-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <input type="text" id="search-workload" placeholder="Search supervisor name or code…" oninput="filterWorkload(this.value)">
+                </div>
+              </div>
+              <div class="card-body">
+                <table class="g-table">
+                  <thead>
+                    <tr>
+                      <th>Supervisor Name</th>
+                      <th>Sup ID</th>
+                      <th>Teams</th>
+                      <th>Students</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="workload-tbody"></tbody>
+                </table>
+              </div>
             </div>
           </div>
+          <!-- Supervisor detail (read-only) -->
+          <div id="workload-detail-view" style="display:none"></div>
         </div>
 
         <!-- ══════════════ ALL STUDENTS TAB ══════════════ -->
         <div class="tab" id="tab-students">
-          <div class="card">
-            <div class="card-head">
-              <h3>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                </svg>
-                All Students (Read-Only)
-              </h3>
-              <div class="search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input type="text" id="search-students" placeholder="Search student ID, name, or team…" oninput="filterStudents(this.value)">
+          <div id="students-list-view">
+            <div class="card">
+              <div class="card-head">
+                <h3>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                  </svg>All Students
+                  <span style="font-size:.72rem;font-weight:500;color:var(--text-mute);margin-left:8px">Read-Only</span>
+                </h3>
+                <div class="search-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                  <input type="text" id="search-students" placeholder="Search student ID, name, or team…" oninput="filterStudents(this.value)">
+                </div>
+              </div>
+              <div class="card-body">
+                <table class="s-table">
+                  <thead>
+                    <tr>
+                      <th>Student ID</th>
+                      <th>Name</th>
+                      <th>Team ID</th>
+                      <th>Supervisor</th>
+                      <th>Role</th>
+                      <th style="text-align:right">Marks</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="students-tbody"></tbody>
+                </table>
               </div>
             </div>
-            <div class="card-body">
-              <table class="s-table">
-                <thead>
-                  <tr>
-                    <th>Student ID</th>
-                    <th>Name</th>
-                    <th>Team</th>
-                    <th>Supervisor</th>
-                    <th>Role</th>
-                    <th style="text-align:right">Marks</th>
-                  </tr>
-                </thead>
-                <tbody id="students-tbody"></tbody>
-              </table>
-            </div>
           </div>
+          <!-- Student marks detail (read-only) -->
+          <div id="students-detail-view" style="display:none"></div>
         </div>
 
         <!-- ══════════════ PROPOSALS TAB ══════════════ -->
@@ -272,15 +323,15 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                   <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                All Team Proposals (Read-Only)
+                </svg>All Proposals
+                <span style="font-size:.72rem;font-weight:500;color:var(--text-mute);margin-left:8px">Read-Only</span>
               </h3>
               <div class="search-box">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="11" cy="11" r="8"/>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
-                <input type="text" id="search-proposals" placeholder="Search team or status…" oninput="filterProposals(this.value)">
+                <input type="text" id="search-proposals" placeholder="Search team, project, or status…" oninput="filterProposals(this.value)">
               </div>
             </div>
             <div class="card-body">
@@ -288,7 +339,7 @@
                 <thead>
                   <tr>
                     <th>Team ID</th>
-                    <th>Project</th>
+                    <th>Project Title</th>
                     <th>Status</th>
                     <th>Supervisor</th>
                   </tr>
@@ -298,24 +349,9 @@
             </div>
           </div>
         </div>
-        <!-- Chairman's own teams -->
-<div class="card" style="margin-top:20px">
-  <div class="card-head">
-    <h3>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-        <circle cx="9" cy="7" r="4"/>
-      </svg>
-      My Teams &amp; Marks
-    </h3>
-  </div>
-  <div class="card-body" id="my-teams-container">
-    <p style="color:var(--text-mute)">Loading…</p>
-  </div>
-</div>
+
       </main>
     </div>
-
     <div class="toast" id="toast"></div>
     <script src="./js/chairman.js"></script>
   </body>
