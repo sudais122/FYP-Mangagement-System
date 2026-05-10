@@ -432,9 +432,9 @@ async function handleLogin(e) {
     if (data.force_password_change) {
       window.location.href = "../Dashboards/Supervisor/change-password.html";
     } else if (data.is_chairman) {
-      window.location.href = "../../Dashboards/Chairman/index.html";   // ← chairman
+      window.location.href = "../Dashboards/Chairman/index.html";   
     } else {
-      window.location.href = "../../Dashboards/Chairman/index.html"; // ← supervisor
+      window.location.href = "../Dashboards/Supervisor/index.html"; 
     }
   }, 1000);
     }

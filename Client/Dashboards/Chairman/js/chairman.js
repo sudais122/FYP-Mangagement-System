@@ -4,6 +4,228 @@ if (!sup) {
   window.location.href = "../../Auth/login.html";
 }
 
+/* ═══════════════════════════════════
+   MY TEAMS (chairman's own groups)
+═══════════════════════════════════ */
+const MARKS_SCHEMA = [
+  { section: "Monthly Meetings", items: [
+    { key: "oct", label: "October",  max: 10 },
+    { key: "nov", label: "November", max: 10 },
+    { key: "dec", label: "December", max: 10 },
+    { key: "feb", label: "February", max: 10 },
+    { key: "mar", label: "March",    max: 10 },
+  ]},
+  { section: "Submissions", items: [
+    { key: "proposal",        label: "Proposal",      max: 10 },
+    { key: "progress_report", label: "Progress Rpt",  max: 20 },
+    { key: "thesis",          label: "Thesis",        max: 20 },
+    { key: "code",            label: "Code",          max: 10 },
+    { key: "prog_sim",        label: "Prog Sim",      max: 5  },
+    { key: "thesis_sim",      label: "Thesis Sim",    max: 5  },
+  ]},
+  { section: "Viva", items: [
+    { key: "iv1", label: "Internal Viva 1", max: 25 },
+    { key: "iv2", label: "Internal Viva 2", max: 25 },
+    { key: "ext", label: "External Viva",   max: 30 },
+  ]},
+];
+
+async function loadMyTeams() {
+  const container = document.getElementById("my-teams-container");
+  if (!container) return;
+  container.innerHTML = `<p style="color:var(--text-mute);padding:20px">Loading your teams…</p>`;
+
+  try {
+    const res = await fetch(`${API_BASE}/groups/supervisor`, { headers: authHeaders });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+        const groups = Array.isArray(data) ? data : data.groups || [];
+
+
+    if (!groups.length) {
+      container.innerHTML = `<p style="color:var(--text-mute);padding:20px">No teams assigned to you yet.</p>`;
+      return;
+    }
+
+    // Fetch marks for each group
+    for (const group of groups) {
+      try {
+        const mRes = await fetch(`${API_BASE}/admin/marks/group/${group._id}`, { headers: authHeaders });
+        if (!mRes.ok) continue;
+        const marksData = await mRes.json();
+        const marksList = Array.isArray(marksData) ? marksData : (marksData?.marks || []);
+
+        const allStudents = [group.leader, ...(group.members || [])].filter(Boolean);
+        allStudents.forEach(student => {
+          const markRecord = marksList.find(m => {
+            const ref = typeof m.student === "string" ? m.student : m.student?._id;
+            return ref === student._id;
+          });
+          if (markRecord) {
+            student.marks = {
+              oct: markRecord.monthly?.oct ?? null,
+              nov: markRecord.monthly?.nov ?? null,
+              dec: markRecord.monthly?.dec ?? null,
+              feb: markRecord.monthly?.feb ?? null,
+              mar: markRecord.monthly?.mar ?? null,
+              proposal:        markRecord.submissions?.proposal ?? null,
+              progress_report: markRecord.submissions?.progress ?? null,
+              thesis:          markRecord.documentation?.final ?? null,
+              code:            markRecord.submissions?.code ?? null,
+              prog_sim:        markRecord.submissions?.prog_sim ?? null,
+              thesis_sim:      markRecord.submissions?.thesis_sim ?? null,
+              iv1: markRecord.viva?.internal1 ?? null,
+              iv2: markRecord.viva?.internal2 ?? null,
+              ext: markRecord.viva?.external ?? null,
+            };
+            student.total_marks = markRecord.total ?? 0;
+          } else {
+            student.marks = {};
+            student.total_marks = 0;
+          }
+        });
+      } catch (e) { console.warn("Marks load failed:", e); }
+    }
+
+    container.innerHTML = groups.map(group => renderChairmanTeamBlock(group)).join("");
+
+  } catch (err) {
+    container.innerHTML = `<p style="color:#dc2626;padding:20px">Error: ${err.message}</p>`;
+  }
+}
+
+function renderChairmanTeamBlock(group) {
+  const allStudents = [
+    group.leader ? { ...group.leader, role: "Leader" } : null,
+    ...(group.members || []).map(m => ({ ...m, role: "Member" }))
+  ].filter(Boolean);
+
+  if (!allStudents.length) return `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-head"><h3>${group.group_code || group.team_code || "—"}</h3></div>
+      <div class="card-body"><p style="color:var(--text-mute)">No students linked.</p></div>
+    </div>`;
+
+  const headers = MARKS_SCHEMA.flatMap(sec =>
+    sec.items.map(it => `<th style="text-align:center;white-space:nowrap">${it.label}<br><small style="color:var(--text-mute)">/${it.max}</small></th>`)
+  ).join("");
+
+  const rows = allStudents.map(s => {
+    const cells = MARKS_SCHEMA.flatMap(sec =>
+      sec.items.map(it => {
+        const val = s.marks?.[it.key];
+        const display = val !== null && val !== undefined ? val : "";
+        return `<td style="text-align:center">
+          <input type="number" min="0" max="${it.max}"
+            style="width:52px;padding:4px;text-align:center;border:1.5px solid var(--border);border-radius:6px;font-weight:700"
+            data-student="${s._id}" data-key="${it.key}" data-max="${it.max}" data-group="${group._id}"
+            value="${display}" placeholder="—"
+            oninput="onChairmanMarkChange(this)">
+        </td>`;
+      })
+    ).join("");
+
+    return `<tr>
+      <td>
+        <strong>${s.name}</strong>
+        <div style="font-size:.7rem;color:var(--text-mute)">${s.email || ""}</div>
+        <div style="font-size:.7rem;color:#15803d">${s.whatsapp || "—"}</div>
+      </td>
+      <td><span class="tid">${s.student_code || s._id}</span></td>
+      <td><span class="s-role ${s.role.toLowerCase()}">${s.role}</span></td>
+      ${cells}
+      <td><strong id="ch-total-${s._id}" style="font-family:monospace">${s.total_marks || 0}<span style="color:var(--text-mute);font-weight:400">/200</span></strong></td>
+    </tr>`;
+  }).join("");
+
+  return `
+    <div class="card" style="margin-bottom:20px;overflow:hidden">
+      <div class="card-head" style="justify-content:space-between">
+        <h3>${group.group_code || group.team_code || "—"} &nbsp;·&nbsp; <span style="font-weight:400;font-size:.9rem">${group.project_title || "—"}</span></h3>
+        <button onclick="saveChairmanMarks('${group._id}')"
+          style="padding:8px 16px;background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer">
+          Save Changes
+        </button>
+      </div>
+      <div class="card-body" style="padding:0;overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <thead style="background:var(--bg)">
+            <tr>
+              <th style="padding:10px 14px;text-align:left">Student</th>
+              <th style="padding:10px 14px">ID</th>
+              <th style="padding:10px 14px">Role</th>
+              ${headers}
+              <th style="padding:10px 14px">Total</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function onChairmanMarkChange(input) {
+  const max = parseInt(input.dataset.max);
+  let val = parseInt(input.value);
+  if (input.value === "") { updateChairmanTotal(input.dataset.student); return; }
+  if (isNaN(val) || val < 0) val = 0;
+  if (val > max) { val = max; input.value = val; input.style.borderColor = "#dc2626"; }
+  else input.style.borderColor = "";
+  updateChairmanTotal(input.dataset.student);
+}
+
+function updateChairmanTotal(studentId) {
+  let total = 0;
+  document.querySelectorAll(`input[data-student="${studentId}"]`).forEach(inp => {
+    const v = parseInt(inp.value);
+    if (!isNaN(v) && v >= 0) total += v;
+  });
+  const el = document.getElementById(`ch-total-${studentId}`);
+  if (el) el.innerHTML = `${total}<span style="color:var(--text-mute);font-weight:400">/200</span>`;
+}
+
+async function saveChairmanMarks(groupId) {
+  const inputs = document.querySelectorAll(`input[data-group="${groupId}"]`);
+  const marksByStudent = {};
+  inputs.forEach(inp => {
+    const sid = inp.dataset.student;
+    if (!marksByStudent[sid]) marksByStudent[sid] = {};
+    if (inp.value !== "") marksByStudent[sid][inp.dataset.key] = parseInt(inp.value) || 0;
+  });
+
+  try {
+    for (const studentId in marksByStudent) {
+      const marks = marksByStudent[studentId];
+      const monthly = {}, submissions = {}, viva = {}, documentation = {};
+
+      Object.entries(marks).forEach(([key, value]) => {
+        if (["oct","nov","dec","feb","mar"].includes(key)) monthly[key] = value;
+        else if (["proposal","progress_report","code","prog_sim","thesis_sim"].includes(key))
+          submissions[key === "progress_report" ? "progress" : key] = value;
+        else if (["iv1","iv2","ext"].includes(key))
+          viva[key === "iv1" ? "internal1" : key === "iv2" ? "internal2" : "external"] = value;
+        else if (key === "thesis") documentation.final = value;
+      });
+
+      const res = await fetch(`${API_BASE}/supervisors/marks`, {
+        method: "POST",
+        headers: authHeaders,
+        body: JSON.stringify({ student_id: studentId, monthly, submissions, viva, documentation })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Save failed");
+
+      const el = document.getElementById(`ch-total-${studentId}`);
+      if (el && data.total !== undefined)
+        el.innerHTML = `${data.total}<span style="color:var(--text-mute);font-weight:400">/200</span>`;
+    }
+    toast("Marks saved successfully", "green");
+  } catch (err) {
+    toast("Error: " + err.message, "red");
+  }
+}
 // Force password change check
 if (sup.force_password_change) {
   window.location.href = "../Supervisor/change-password.html";
@@ -105,9 +327,11 @@ async function loadOverview() {
         </div>
       </div>
     `).join("");
+
   } catch (err) {
     toast("Failed to load overview: " + err.message, "red");
   }
+  loadMyTeams();
 }
 
 /* ═══════════════════════════════════

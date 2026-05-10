@@ -165,19 +165,32 @@ export const getSupervisorDetail = async (req, res) => {
   }
 };
 
-const getGroupsBySupervisor = async (req, res) => {
+// In supervisorController.js — fix this:
+export const getGroupsBySupervisor = async (req, res) => {
   try {
-    const supervisorId = req.user._id;
+    const supervisorId = req.user._id || req.user.id; // ← add fallback
 
     const groups = await Group.find({ supervisor: supervisorId })
-      .populate('leader', 'name email student_code whatsapp')   
-      .populate('members', 'name email student_code whatsapp')  
-      .populate('supervisor', 'name email sup_code designation');
+      .populate("leader",   "name email student_code whatsapp")
+      .populate("members",  "name email student_code whatsapp")
+      .populate("supervisor", "name email sup_code designation");
 
     return res.status(200).json({ groups });
-
   } catch (error) {
     return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getGroupMarks = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const marks = await Marks.find({ group: groupId })
+      .populate("student", "name email student_code");
+
+    res.json(marks);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 // ── GET MY STUDENTS (Supervisor) ───────────────────────────────
@@ -317,6 +330,7 @@ export const getWorkloadPerSupervisor = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // ── CHAIRMAN: All students 
 export const getAllStudentsForChairman = async (req, res) => {

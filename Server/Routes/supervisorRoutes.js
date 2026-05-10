@@ -10,6 +10,7 @@ import {
   getWorkloadPerSupervisor,
   getAllStudentsForChairman,
   getAllTeamsForChairman,
+  getGroupMarks
 } from "../controllers/supervisorController.js";
 import { protect, adminOnly, supervisorOnly } from "../middleware/auth.js";
 
@@ -28,7 +29,8 @@ router.get("/chairman/overview",   protect, supervisorOnly, getDepartmentOvervie
 router.get("/chairman/workload",   protect, supervisorOnly, getWorkloadPerSupervisor);
 router.get("/chairman/students",   protect, supervisorOnly, getAllStudentsForChairman);
 router.get("/chairman/teams",      protect, supervisorOnly, getAllTeamsForChairman);
-
+router.get("/my-groups", protect, getGroupMarks);
+router.get("/marks/group/:groupId", protect, getGroupMarks);
 // ── Admin-only routes ──
 router.get("/",     protect, adminOnly, getAllSupervisors);
 router.get("/:id",  protect, adminOnly, getSupervisorDetail);
