@@ -328,6 +328,7 @@ function showTab(tab) {
     "workload":      ["Supervisor Workload",  "Teams & students assigned to each supervisor"],
     "all-teams":     ["All Teams",            "Read-only view of every team in the department"],
     "all-students":  ["All Students",         "Read-only view of every student in the department"],
+    "deadlines": ["Academic Deadlines", "Upcoming submission and evaluation deadlines"],
   };
   const t = titles[tab] || [tab, ""];
   document.getElementById("page-title").textContent = t[0];
@@ -339,6 +340,7 @@ function showTab(tab) {
   if (tab === "workload")     loadWorkload();
   if (tab === "all-teams")    loadAllTeams();
   if (tab === "all-students") loadAllStudents();
+  if (tab === "deadlines") renderTabDeadlines();
 }
 
 /* ═══════════════════════════════════
@@ -1102,7 +1104,144 @@ async function loadAllStudents() {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
   }
 }
+async function loadSupDeadlines() {
+  const container = document.getElementById("sup-deadlines-container");
+  if (!container) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/deadlines`, {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    if (!data.length) {
+      container.innerHTML = `<p style="color:var(--text-mute);font-size:.82rem">No deadlines posted yet.</p>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <p style="font-size:.68rem;font-weight:700;color:var(--text-mute);text-transform:uppercase;
+         letter-spacing:.08em;margin-bottom:14px;padding-bottom:10px;
+         border-bottom:2px solid var(--border-soft)"></p>` +
+      data.map(d => {
+        const due = new Date(d.dueDate);
+        const diffMs = due - new Date();
+        const diffDays = Math.ceil(diffMs / 86400000);
+        const expired = diffMs < 0;
+        const near = !expired && diffDays <= 2;
+        const label = d.type === "Other" && d.customName ? d.customName : d.type;
+        const day = due.getDate().toString().padStart(2, "0");
+        const mo = due.toLocaleString("en-PK", { month: "short" });
+        const tagText = expired ? "Expired" : diffDays === 0 ? "Today!" : `${diffDays} days`;
+        const bgColor = expired ? "#dc2626" : near ? "var(--gold)" : "var(--primary)";
+        const tagColor = expired ? "#dc2626" : near ? "#a16207" : "var(--secondary)";
+        const tagBg = expired ? "rgba(220,38,38,.08)" : near ? "rgba(234,179,8,.1)" : "rgba(0,75,45,.08)";
+
+        return `
+          <div style="display:flex;gap:14px;align-items:center;padding:11px 0;
+                      border-bottom:1px solid var(--border-soft)">
+            <div style="background:${bgColor};color:#fff;border-radius:9px;padding:7px 10px;
+                        text-align:center;flex-shrink:0;min-width:46px">
+              <span style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;
+                           line-height:1;display:block">${day}</span>
+              <span style="font-size:.58rem;font-weight:600;opacity:.7;text-transform:uppercase;
+                           letter-spacing:.06em">${mo}</span>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:2px">${label}</div>
+              <div style="font-size:.74rem;color:var(--text-mute)">${d.description || "Submission deadline — 11:59 PM"}</div>
+            </div>
+            <span style="margin-left:auto;flex-shrink:0;padding:3px 9px;border-radius:20px;
+                         font-size:.68rem;font-weight:700;background:${tagBg};color:${tagColor}">
+              ${tagText}
+            </span>
+          </div>`;
+      }).join("") +
+      `<div style="border-bottom:none"></div>`;
+
+  } catch (err) {
+    container.innerHTML = `<p style="color:#dc2626;font-size:.82rem">Failed to load: ${err.message}</p>`;
+  }
+}
+
 /* ═══════════════════════════════════
-   INIT — load real data
+   DEADLINES
 ═══════════════════════════════════ */
+function deadlineRowsHtml(data) {
+  if (!data.length) return `<p style="color:var(--text-mute);font-size:.82rem">No deadlines posted yet.</p>`;
+
+  return `
+    ` +
+    data.map(d => {
+      const due      = new Date(d.dueDate);
+      const diffMs   = due - new Date();
+      const diffDays = Math.ceil(diffMs / 86400000);
+      const expired  = diffMs < 0;
+      const near     = !expired && diffDays <= 2;
+      const label    = d.type === "Other" && d.customName ? d.customName : d.type;
+      const day      = due.getDate().toString().padStart(2, "0");
+      const mo       = due.toLocaleString("en-PK", { month: "short" });
+      const tagText  = expired ? "Expired" : diffDays === 0 ? "Today!" : `${diffDays} days`;
+      const bgColor  = expired ? "#dc2626" : near ? "var(--gold)" : "var(--primary)";
+      const tagColor = expired ? "#dc2626" : near ? "#a16207" : "var(--secondary)";
+      const tagBg    = expired ? "rgba(220,38,38,.08)" : near ? "rgba(234,179,8,.1)" : "rgba(0,75,45,.08)";
+
+      return `
+        <div style="display:flex;gap:14px;align-items:center;padding:11px 0;
+                    border-bottom:1px solid var(--border-soft)">
+          <div style="background:${bgColor};color:#fff;border-radius:9px;padding:7px 10px;
+                      text-align:center;flex-shrink:0;min-width:46px">
+            <span style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;
+                         line-height:1;display:block">${day}</span>
+            <span style="font-size:.58rem;font-weight:600;opacity:.7;
+                         text-transform:uppercase;letter-spacing:.06em">${mo}</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:2px">${label}</div>
+            <div style="font-size:.74rem;color:var(--text-mute)">${d.description || "Submission deadline — 11:59 PM"}</div>
+          </div>
+          <span style="margin-left:auto;flex-shrink:0;padding:3px 9px;border-radius:20px;
+                       font-size:.68rem;font-weight:700;background:${tagBg};color:${tagColor}">
+            ${tagText}
+          </span>
+        </div>`;
+    }).join("");
+}
+
+let DEADLINES_CACHE = null;
+
+async function loadDeadlines() {
+  if (DEADLINES_CACHE) return DEADLINES_CACHE;
+  try {
+    const res = await fetch(`${API_BASE}/deadlines`, {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+    DEADLINES_CACHE = Array.isArray(data) ? data : [];
+    return DEADLINES_CACHE;
+  } catch (err) {
+    return [];
+  }
+}
+
+async function renderDashDeadlines() {
+  const container = document.getElementById("dash-deadlines-container");
+  if (!container) return;
+  const data = await loadDeadlines();
+  container.innerHTML = deadlineRowsHtml(data);
+}
+
+async function renderTabDeadlines() {
+  const container = document.getElementById("tab-deadlines-container");
+  if (!container) return;
+  container.innerHTML = `<p style="color:var(--text-mute);font-size:.82rem">Loading…</p>`;
+  const data = await loadDeadlines();
+  container.innerHTML = deadlineRowsHtml(data);
+}
+/* ═══════════════════════════════════
+INIT — load real data
+═══════════════════════════════════ */
+loadSupDeadlines();
 loadTeams();

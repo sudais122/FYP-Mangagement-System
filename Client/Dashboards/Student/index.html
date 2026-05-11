@@ -650,83 +650,23 @@
           </div>
 
           <!-- Deadlines -->
-          <div class="dash-card">
-            <div class="dash-card-header">
-              <h3>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" /></svg
-                >Academic Deadlines
-              </h3>
-            </div>
-            <div class="dash-card-body">
-              <div class="dl-item">
-                <div class="dl-date" style="background: #15803d">
-                  <span class="dl-day">15</span><span class="dl-mo">Jan</span>
-                </div>
-                <div>
-                  <div class="dl-title">Proposal Submission</div>
-                  <div class="dl-desc">
-                    Deadline for FYP project proposal submission
-                  </div>
-                </div>
-                <span class="dl-tag tag-ok">Done ✓</span>
-              </div>
-              <div class="dl-item">
-                <div class="dl-date">
-                  <span class="dl-day">20</span><span class="dl-mo">Apr</span>
-                </div>
-                <div>
-                  <div class="dl-title">Mid Evaluation</div>
-                  <div class="dl-desc">
-                    Progress presentation to evaluation committee
-                  </div>
-                </div>
-                <span class="dl-tag tag-urgent">12 days</span>
-              </div>
-              <div class="dl-item">
-                <div class="dl-date" style="background: var(--gold)">
-                  <span class="dl-day">10</span><span class="dl-mo">Jun</span>
-                </div>
-                <div>
-                  <div class="dl-title">Documentation Submission</div>
-                  <div class="dl-desc">
-                    Final project documentation to department
-                  </div>
-                </div>
-                <span class="dl-tag tag-near">~60 days</span>
-              </div>
-              <div class="dl-item">
-                <div class="dl-date" style="background: var(--secondary)">
-                  <span class="dl-day">25</span><span class="dl-mo">Jun</span>
-                </div>
-                <div>
-                  <div class="dl-title">Final Presentation</div>
-                  <div class="dl-desc">Defense before faculty panel</div>
-                </div>
-                <span class="dl-tag tag-ok">~75 days</span>
-              </div>
-              <div class="dl-item">
-                <div class="dl-date" style="background: #3b82f6">
-                  <span class="dl-day">10</span><span class="dl-mo">Jul</span>
-                </div>
-                <div>
-                  <div class="dl-title">Results Announcement</div>
-                  <div class="dl-desc">Final grades announced via portal</div>
-                </div>
-                <span class="dl-tag tag-ok">~90 days</span>
-              </div>
-            </div>
-          </div>
+<div class="dash-card">
+  <div class="dash-card-header">
+    <h3>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      Academic Deadlines
+    </h3>
+  </div>
+  <div class="dash-card-body" id="student-deadlines-container">
+    <p style="color:var(--text-mute);font-size:.82rem">Loading deadlines…</p>
+  </div>
+</div>
         </div>
 
         <!-- ══════════════ SUPERVISOR TAB (info only) ══════════════ -->

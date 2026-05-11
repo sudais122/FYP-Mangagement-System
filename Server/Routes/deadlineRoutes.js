@@ -9,7 +9,7 @@ import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/", protect, getAllDeadlines);
+router.get("/", getAllDeadlines);
 router.post("/", protect, adminOnly, createDeadline);
 router.put("/:id", protect, adminOnly, updateDeadline);
 router.delete("/:id", protect, adminOnly, deleteDeadline);

@@ -62,7 +62,15 @@
             <path d="M16 3.13a4 4 0 0 1 0 7.75" />
           </svg>My Groups
         </button>
-
+        <button class="sb-btn" id="sb-deadlines" onclick="showTab('deadlines')">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>Deadlines
+</button>
         <!-- Chairman-only nav (hidden for regular supervisors) -->
         <div id="chairman-nav-items" style="display:none">
   <div class="sb-section-label" style="color:var(--gold);font-weight:700;font-size:.75rem;padding:10px 14px 4px;letter-spacing:.08em;text-transform:uppercase">
@@ -84,7 +92,6 @@
   </button>
 </div>
         <!-- END chairman-only nav -->
-
         <div class="sb-spacer"></div>
         <button class="sb-btn logout" onclick="logout()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -100,7 +107,6 @@
           <h1 id="page-title">Dashboard</h1>
           <p id="page-sub">Overview of your assigned groups and students</p>
         </div>
-
         <!-- ══════════════ DASHBOARD TAB ══════════════ -->
         <div class="tab active" id="tab-dashboard">
           <div class="top-strip">
@@ -159,6 +165,8 @@
                 <input type="text" id="search-dash-groups" placeholder="Search by Team ID or project title…" oninput="filterDashGroups(this.value)">
               </div>
             </div>
+            <div class="card">
+</div>
             <div class="card-body">
               <table class="g-table">
                 <thead>
@@ -189,7 +197,6 @@
             </div>
           </div>
         </div>
-
         <!-- ══════════════ MY GROUPS TAB ══════════════ -->
         <div class="tab" id="tab-groups">
           <div id="groups-list-view">
@@ -277,7 +284,24 @@
             </div>
           </div>
         </div>
-
+        <!-- ══════════════ DEADLINES TAB ══════════════ -->
+<div class="tab" id="tab-deadlines">
+  <div class="card">
+    <div class="card-head">
+      <h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>Academic Deadlines
+      </h3>
+    </div>
+    <div class="card-body" id="tab-deadlines-container" style="padding:16px 18px">
+    </div>
+  </div>
+</div>
       </main>
     </div>
 

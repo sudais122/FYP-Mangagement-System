@@ -11,7 +11,7 @@ import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
 
-import authRoutes       from "./Routes/authRoutes.js";
+import authRoutes       from "./Routes/authRoutes.js"; 
 import studentRoutes    from "./Routes/studentRoutes.js";
 import groupRoutes      from "./Routes/groupRoutes.js";
 import marksRoutes      from "./Routes/marksRoutes.js";

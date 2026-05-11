@@ -693,30 +693,110 @@ function formatPipTime(sec) {
   });
 })();
 async function loadHomepageDeadlines() {
+  const container = document.getElementById("dates-grid");
+  if (!container) return;
+
+  const colors = ["var(--primary)", "var(--secondary)", "var(--gold)", "#5B4A9E", "#A0522D", "#2D6A9E"];
+
   try {
     const res = await fetch("http://127.0.0.1:5001/api/deadlines");
     const data = await res.json();
-    const container = document.getElementById("homepage-deadlines");
-    if (!container) return;
 
-    if (!data.length) { container.innerHTML = `<p style="color:#94a3b8">No deadlines posted yet.</p>`; return; }
+    if (!data || !data.length) {
+      container.innerHTML = `<p style="color:var(--text-mute);text-align:center;grid-column:1/-1">No deadlines posted yet.</p>`;
+      return;
+    }
 
-    container.innerHTML = data.map(d => {
-      const due = new Date(d.dueDate);
-      const diffDays = Math.ceil((due - new Date()) / 86400000);
-      const expired = diffDays < 0;
-      const label = d.type === "Other" && d.customName ? d.customName : d.type;
-      const dateStr = due.toLocaleDateString("en-PK", { day: "numeric", month: "short" });
-      const color = expired ? "#dc2626" : diffDays <= 2 ? "#a16207" : "#15803d";
+// Replace the container.innerHTML = data.map(...) block in loadHomepageDeadlines()
 
-      return `
-        <div style="border:1.5px solid #e2e8f0;border-radius:12px;padding:18px;background:#fff">
-          <div style="font-size:.72rem;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.06em">${label}</div>
-          <div style="font-size:1rem;font-weight:800;margin:6px 0">${dateStr}</div>
-          <div style="font-size:.78rem;color:${color};font-weight:600">${expired ? "Expired" : diffDays === 0 ? "Due Today!" : diffDays + " days left"}</div>
-        </div>`;
-    }).join("");
-  } catch (e) { console.error("Deadlines load failed:", e); }
+container.innerHTML = data.map((d, i) => {
+  const due      = new Date(d.dueDate);
+  const now      = new Date();
+  const diffMs   = due - now;
+  const diffDays = Math.ceil(diffMs / 86400000);
+  const expired  = diffDays < 0;
+  const today    = diffDays === 0;
+  const near     = !expired && !today && diffDays <= 2;
+  const label    = d.type === "Other" && d.customName ? d.customName : d.type;
+
+  const day   = due.getDate().toString().padStart(2, "0");
+  const month = due.toLocaleString("en-PK", { month: "short" }).toUpperCase();
+  const year  = due.getFullYear();
+
+  // Status config
+  const status = expired
+    ? { text: "Expired",   cls: "dl-expired", dot: "#dc2626" }
+    : today
+    ? { text: "Due Today!", cls: "dl-today",   dot: "#f59e0b" }
+    : near
+    ? { text: `${diffDays} day${diffDays > 1 ? "s" : ""} left`, cls: "dl-near", dot: "#f59e0b" }
+    : { text: `${diffDays} days left`,  cls: "dl-active", dot: "#15803d" };
+
+  // Icon per type
+  const icons = {
+    "Proposal Submission": `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>`,
+    "SRS Submission":      `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 13 12 16 16 12"/>`,
+    "Documentation":       `<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>`,
+    "Presentation":        `<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/>`,
+    "Final Report":        `<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>`,
+    "Other":               `<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>`,
+  };
+  const iconPath = icons[d.type] || icons["Other"];
+
+  return `
+    <div class="date-card ${status.cls} reveal" style="animation-delay:${(i % 3) * 0.07}s">
+      <div class="dl-left">
+        <div class="dl-date-block">
+          <span class="dl-day">${day}</span>
+          <span class="dl-month">${month}</span>
+          <span class="dl-year">${year}</span>
+        </div>
+      </div>
+      <div class="dl-divider"></div>
+      <div class="dl-body">
+        <div class="dl-top-row">
+          <div class="dl-icon-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+              ${iconPath}
+            </svg>
+          </div>
+          <h4 class="dl-title">${label}</h4>
+          <span class="dl-badge ${status.cls}">
+            <span class="dl-dot" style="background:${status.dot}"></span>
+            ${status.text}
+          </span>
+        </div>
+        <p class="dl-desc">${d.description || "Submission deadline — 11:59 PM"}</p>
+        <div class="dl-meta">
+          <span class="dl-time-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            11:59 PM
+          </span>
+          <span class="dl-cal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            ${due.toLocaleDateString("en-PK", { weekday: "long" })}
+          </span>
+        </div>
+      </div>
+    </div>`;
+}).join("");
+
+    initReveal();
+  } catch (e) {
+    container.innerHTML = `<p style="color:#dc2626;grid-column:1/-1">Failed to load deadlines.</p>`;
+    console.error("Deadlines load failed:", e);
+  }
 }
 
 loadHomepageDeadlines();
