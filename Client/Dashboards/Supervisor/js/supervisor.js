@@ -67,7 +67,8 @@ let MARK_TOGGLES = {};
 const welcomeName = document.getElementById("welcome-name");
 const welcomeDes  = document.getElementById("welcome-designation");
 const welcomeId   = document.getElementById("welcome-sup-id");
-if (welcomeName) welcomeName.textContent = `Welcome back, ${sup.name} 👋`;
+if (welcomeName) welcomeName.textContent = getSupGreeting(sup.name);
+startSupClock();
 if (welcomeDes)  welcomeDes.textContent  = `${sup.designation || "Faculty Member"} · CS Department`;
 if (welcomeId)   welcomeId.textContent   = sup.sup_code || "—";
 
@@ -120,7 +121,42 @@ async function refreshMarkLocks() {
   await loadMarkToggles();
   applyMarkLocks();
 }
+function getSupGreeting(name) {
+  const hour = new Date().getHours();
+  let greeting, icon;
+  if (hour >= 5 && hour < 12)       { greeting = "Good Morning";   icon = "☀️"; }
+  else if (hour >= 12 && hour < 17) { greeting = "Good Afternoon"; icon = "🌤️"; }
+  else if (hour >= 17 && hour < 21) { greeting = "Good Evening";   icon = "🌆"; }
+  else                              { greeting = "Good Night";     icon = "🌙"; }
+  return `${greeting}, ${name} ${icon}`;
+}
 
+function startSupClock() {
+  function update() {
+    const el = document.getElementById("sup-datetime");
+    if (!el) return;
+    const now    = new Date();
+    const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const day    = days[now.getDay()];
+    const date   = now.getDate();
+    const month  = months[now.getMonth()];
+    const year   = now.getFullYear();
+    let hours    = now.getHours();
+    const mins   = String(now.getMinutes()).padStart(2, "0");
+    const ampm   = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      ${day}, ${date} ${month} ${year} &nbsp;·&nbsp; ${hours}:${mins} ${ampm}`;
+  }
+  update();
+  setInterval(update, 1000);
+}
 /* ═══════════════════════════════════
    FETCH TEAMS FROM BACKEND
 ═══════════════════════════════════ */

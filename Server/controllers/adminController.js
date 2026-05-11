@@ -197,21 +197,20 @@ export const getAllStudents = async (req, res) => {
 export const getAllSupervisors = async (req, res) => {
   try {
     const supervisors = await Supervisor.find()
-      .select("-password")
-      .populate({
-        path: "groups",
-        select: "team_code project_title"
-      });
-    
-    res.json({
-      success: true,
-      supervisors
-    });
+      .select("name email sup_code designation whatsapp office is_chairman role")
+      .lean();
+
+    const result = await Promise.all(
+      supervisors.map(async (s) => {
+        const teamCount = await Group.countDocuments({ supervisor: s._id });
+        return { ...s, teamCount };
+      })
+    );
+
+    res.json(result);
   } catch (error) {
-    res.status(500).json({ 
-      success: false,
-      message: error.message 
-    });
+    console.error("getAllSupervisors error:", error); 
+    res.status(500).json({ message: error.message });
   }
 };
 

@@ -12,8 +12,11 @@ import {
   deleteStudent,
   getMarkToggles,
   saveMarkToggles,
-  updateSupervisor
+  updateSupervisor,
 } from "../controllers/adminController.js";
+import {
+   getSupervisorDetail
+  } from "../controllers/supervisorController.js";
 
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
 
@@ -28,6 +31,8 @@ router.get("/supervisors", protect, adminOnly, getAllSupervisors);
 router.delete("/supervisors/:id", protect, adminOnly, deleteSupervisor, cleanupOrphanedTeams);
 router.post("/supervisor",  protect, adminOnly, addSupervisor); 
 router.put("/supervisors/:id", protect, adminOnly, updateSupervisor);
+router.get("/supervisors/:id", protect, adminOnly, getSupervisorDetail);
+
 // Students
 router.get("/students", protect, adminOnly, getAllStudentsForAdmin);
 router.get("/marks/group/:groupId", protect, adminOnly, getGroupMarks); 

@@ -1487,3 +1487,24 @@ button {
   font-weight: 700;
   margin-left: 6px;
 }
+/* ══ SUPERVISOR DATETIME PILL ══ */
+.sup-datetime {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.6);
+  letter-spacing: .03em;
+  margin-bottom: 10px;
+  padding: 5px 12px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 20px;
+}
+
+.info-block h2 {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin-bottom: 2px;
+}

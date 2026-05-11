@@ -191,7 +191,6 @@ async function loadDashboard() {
       // Populate supervisor
 if (data.group.supervisor) {
   STATE.selectedSupervisor = data.group.supervisor._id;
-  // ✅ Map all fields properly
   STATE.supervisorData = {
     _id:            data.group.supervisor._id,
     name:           data.group.supervisor.name,
@@ -367,7 +366,8 @@ const SUBS = {
 
 function switchTab(tab, el) {
   // 1. Hide all subpages, show the selected one
-  document.querySelectorAll(".dash-subpage").forEach((p) => p.classList.remove("active"));
+  document.querySelectorAll(".dash-subpage")
+          .forEach(p => p.classList.remove("active"));
   const t = document.getElementById("tab-" + tab);
   if (t) t.classList.add("active");
 
@@ -1106,15 +1106,16 @@ STUDENT_MARKS = {};
 const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
 if (selSup) {
   STATE.supervisorData = {
-    _id:            selSup.id,
-    name:           selSup.name,
-    email:          selSup.email,
-    designation:    selSup.designation || "Faculty Member",
-    research_areas: selSup.research_areas || [],
-    office:         selSup.office || "CS Department",
-    office_hours:   selSup.office_hours || "Contact for details",
-    sup_code:       selSup.sup_code,
-  };
+  _id:            data.group.supervisor._id,
+  name:           data.group.supervisor.name,
+  email:          data.group.supervisor.email,
+  designation:    data.group.supervisor.designation || "Faculty Member",
+  research_areas: data.group.supervisor.research_areas || [],
+  office:         data.group.supervisor.office || "CS Department",
+  office_hours:   data.group.supervisor.office_hours || "Contact supervisor",
+  sup_code:       data.group.supervisor.sup_code,
+  whatsapp:       data.group.supervisor.whatsapp || "",
+};
 }
   const chips = [
     { icon: "id", text: STATE.teamId },
@@ -1426,34 +1427,26 @@ function saveNewMember() {
 
 /* ══ Render supervisor tab ══ */
 function renderSupervisorTab() {
+  const card = document.getElementById("supervisor-card-body");
+  if (!card) return;
+
+    console.log("supervisorData:", STATE.supervisorData); // ← add this
+
   if (!STATE.supervisorData) {
-    // Show a "no supervisor yet" state
-    const card = document.querySelector("#tab-supervisor .dash-card-body");
-    if (card) {
-      card.innerHTML = `
-        <div style="text-align:center;padding:36px 20px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-               stroke-linecap="round" stroke-linejoin="round"
-               width="48" height="48" style="margin:0 auto 16px;color:var(--border)">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-          <h4 style="font-size:1rem;font-weight:700;color:var(--text-soft);margin-bottom:8px">
-            No Supervisor Assigned
-          </h4>
-          <p style="font-size:.84rem;color:var(--text-mute)">
-            Complete your team setup to get a supervisor.
-          </p>
-        </div>`;
-    }
+    card.innerHTML = `
+      <div style="text-align:center;padding:36px 20px;color:var(--text-mute)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" stroke-linejoin="round"
+             width="48" height="48" style="margin:0 auto 16px;color:var(--border)">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <p style="font-size:.84rem">No supervisor assigned yet.</p>
+      </div>`;
     return;
   }
 
   const sup = STATE.supervisorData;
-
-  // Build the supervisor tab content dynamically
-  const card = document.querySelector("#tab-supervisor .dash-card-body");
-  if (!card) return;
 
   card.innerHTML = `
     <div class="sup-card">
@@ -1465,23 +1458,57 @@ function renderSupervisorTab() {
     </div>
     <div class="proj-row">
       <span class="proj-key">Email</span>
-      <span class="proj-val">${sup.email || "—"}</span>
+      <span class="proj-val">
+        <a href="mailto:${sup.email || ""}"
+           style="color:var(--primary);font-weight:600;text-decoration:none">
+          ${sup.email || "—"}
+        </a>
+      </span>
     </div>
     <div class="proj-row">
       <span class="proj-key">Office</span>
       <span class="proj-val">${sup.office || "CS Department"}</span>
     </div>
     <div class="proj-row">
-      <span class="proj-key">Contact</span>
-      <span class="proj-val">${sup.office_hours || "Contact supervisor directly"}</span>
-    </div>
+  <span class="proj-key">Contact Hours</span>
+  <span class="proj-val">${sup.office_hours || "Contact supervisor directly"}</span>
+</div>
+<div class="proj-row">
+  <span class="proj-key">Phone / WhatsApp</span>
+  <span class="proj-val">
+    ${sup.whatsapp
+      ? `<a href="https://wa.me/${sup.whatsapp.replace(/^0/, "92").replace(/[^0-9]/g, "")}"
+            target="_blank"
+            style="display:inline-flex;align-items:center;gap:7px;color:#15803d;
+                   font-weight:700;text-decoration:none;font-size:.86rem">
+           <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17">
+             <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+           </svg>
+           ${sup.whatsapp}
+         </a>`
+      : "<span style='color:var(--text-mute)'>Not provided</span>"}
+  </span>
+</div>
+    ${sup.whatsapp ? `
     <div class="proj-row">
-      <span class="proj-val">${
-        sup.research_areas && sup.research_areas.length
-          ? sup.research_areas.join(", ")
-          : "—"
-      }</span>
-    </div>
+      <span class="proj-key">WhatsApp</span>
+      <span class="proj-val">
+        <a href="https://wa.me/${sup.whatsapp.replace(/^0/, "92").replace(/[^0-9]/g, "")}"
+           target="_blank"
+           style="display:inline-flex;align-items:center;gap:7px;color:#15803d;
+                  font-weight:700;text-decoration:none;font-size:.86rem">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17">
+            <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+          </svg>
+          ${sup.whatsapp}
+        </a>
+      </span>
+    </div>` : ""}
+    ${sup.research_areas && sup.research_areas.length ? `
+    <div class="proj-row">
+      <span class="proj-key">Research Areas</span>
+      <span class="proj-val">${sup.research_areas.join(", ")}</span>
+    </div>` : ""}
     ${sup.sup_code ? `
     <div class="proj-row">
       <span class="proj-key">Supervisor ID</span>
@@ -1823,6 +1850,22 @@ container.innerHTML = data.map(d => {
     container.innerHTML = `<p style="color:#dc2626">Failed to load: ${err.message}</p>`;
   }
 }
+function getGreeting(name) {
+  const hour = new Date().getHours();
+  let greeting, icon;
+
+  if (hour >= 5 && hour < 12) {
+    greeting = "Good Morning"; icon = "☀️";
+  } else if (hour >= 12 && hour < 17) {
+    greeting = "Good Afternoon"; icon = "🌤️";
+  } else if (hour >= 17 && hour < 21) {
+    greeting = "Good Evening"; icon = "🌆";
+  } else {
+    greeting = "Good Night"; icon = "🌙";
+  }
+
+  return `${greeting}, ${name} ${icon}`;
+}
 /* ══════════════════════════════════
    INIT
 ══════════════════════════════════ */
@@ -1837,7 +1880,8 @@ function initDashboard() {
   if (navStdId) navStdId.textContent = STATE.studentId;
   if (navName) navName.textContent = STATE.studentName;
   if (navInitials) navInitials.textContent = initials(STATE.studentName);
-  if (bannerName) bannerName.textContent = STATE.studentName;
+  if (bannerName) bannerName.textContent = getGreeting(STATE.studentName);
+  startBannerClock();
   if (studentId) studentId.textContent = STATE.studentId;
 
   // Load dashboard data from backend
@@ -1845,6 +1889,33 @@ function initDashboard() {
   loadStudentDeadlines();
 }
 
+function startBannerClock() {
+  function update() {
+    const el = document.getElementById("banner-datetime");
+    if (!el) return;
+    const now = new Date();
+    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const day   = days[now.getDay()];
+    const date  = now.getDate();
+    const month = months[now.getMonth()];
+    const year  = now.getFullYear();
+    let hours   = now.getHours();
+    const mins  = String(now.getMinutes()).padStart(2, "0");
+    const ampm  = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      ${day}, ${date} ${month} ${year} &nbsp;·&nbsp; ${hours}:${mins} ${ampm}`;
+  }
+  update();
+  setInterval(update, 1000);
+}
 // Start initialization when DOM is ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initDashboard);

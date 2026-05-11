@@ -40,8 +40,6 @@ export const searchStudent = async (req, res) => {
   }
 };
 
-
-
 export const uploadStudentCV = async (req, res) => {
   try {
     if (!req.file) {
@@ -49,6 +47,7 @@ export const uploadStudentCV = async (req, res) => {
     }
 
     const student = await Student.findById(req.user.id);
+
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
@@ -59,20 +58,23 @@ export const uploadStudentCV = async (req, res) => {
       });
     }
 
-    student.cv_url = req.file.path;          
-    student.cv_public_id = req.file.filename; 
+    student.cv_url = req.file.path;
+    student.cv_public_id = req.file.filename;
+
     await student.save();
 
     res.json({
       message: "CV uploaded successfully",
       cv_url: student.cv_url,
     });
+
   } catch (error) {
     console.error("CV upload error:", error);
     res.status(500).json({ message: error.message });
   }
 };
-// GET MT DASHBOARD
+
+// ── GET MY DASHBOARD ───────────────────────────────────────────
 export const getMyDashboard = async (req, res) => {
   try {
     const student = await Student.findById(req.user.id)
@@ -82,7 +84,10 @@ export const getMyDashboard = async (req, res) => {
         populate: [
           { path: "leader", select: "name student_code" },
           { path: "members", select: "name student_code" },
-          { path: "supervisor", select: "name sup_code email office office_hours research_areas" },
+          { 
+            path: "supervisor", 
+            select: "name sup_code email office office_hours research_areas whatsapp designation" 
+          },
         ],
       });
 
@@ -90,7 +95,7 @@ export const getMyDashboard = async (req, res) => {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    // CASE 1: No group → show create team UI
+    // CASE 1: No group
     if (!student.group) {
       return res.json({
         hasGroup: false,
@@ -102,7 +107,7 @@ export const getMyDashboard = async (req, res) => {
       });
     }
 
-    // CASE 2: Has group → full dashboard data
+    // CASE 2: Has group
     return res.json({
       hasGroup: true,
       student: {
@@ -136,16 +141,17 @@ export const getMyMarks = async (req, res) => {
     });
 
     res.json(marks);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 // ── GET ALL TEAM MEMBERS' MARKS ────────────────────────────────
-
 export const getTeamMarks = async (req, res) => {
   try {
     const student = await Student.findById(req.user.id);
+
     if (!student || !student.group) {
       return res.status(404).json({ message: "You are not in a team" });
     }
@@ -153,7 +159,8 @@ export const getTeamMarks = async (req, res) => {
     const marks = await Marks.find({ group: student.group })
       .populate("student", "name student_code");
 
-    res.json(marks);  // returns an ARRAY
+    res.json(marks);
+
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -169,7 +176,10 @@ export const getMyProfile = async (req, res) => {
         populate: [
           { path: "leader", select: "name student_code" },
           { path: "members", select: "name student_code" },
-          { path: "supervisor", select: "name sup_code email office office_hours" },
+          { 
+            path: "supervisor", 
+            select: "name sup_code email office office_hours research_areas whatsapp designation" 
+          },
         ],
       });
 
@@ -178,6 +188,7 @@ export const getMyProfile = async (req, res) => {
     }
 
     res.json(student);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

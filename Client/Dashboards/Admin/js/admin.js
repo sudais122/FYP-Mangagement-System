@@ -157,7 +157,7 @@ async function renderSupervisors() {
   grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-mute)">Loading...</div>`;
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/supervisors", {
+      const res = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -300,7 +300,7 @@ async function openSupDetail(supId) {
     </div>`;
 
   try {
-    const res = await fetch(`http://127.0.0.1:5001/api/supervisors/${supId}`, {
+      const res = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${supId}`, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${admin.token}`
