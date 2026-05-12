@@ -259,30 +259,64 @@ function renderSupervisorCards(list) {
 ══════════════════════════════════════ */
 function displayAdminInfo() {
   const admin = JSON.parse(localStorage.getItem("admin"));
-  
+
   if (!admin) {
-    // If no admin in localStorage, redirect to login
     window.location.href = "../../Auth/login.html";
     return;
   }
 
-  // Update navbar user info
-  const navUserInfo = document.querySelector(".nav-user-info strong");
-  if (navUserInfo) {
-    navUserInfo.textContent = admin.name;
-  }
+  // Navbar name
+  const navName = document.getElementById("nav-admin-name");
+  if (navName) navName.textContent = admin.name;
 
-  // Update navbar avatar initials
-  const navAvatar = document.querySelector(".nav-avatar");
-  if (navAvatar) {
-    navAvatar.textContent = initials(admin.name);
-  }
+  // Navbar avatar — initials
+  const navAvatar = document.getElementById("nav-admin-avatar");
+  if (navAvatar) navAvatar.textContent = initials(admin.name);
 
-  // Update banner welcome message
-  const bannerTitle = document.querySelector(".banner-content h2");
-  if (bannerTitle) {
-    bannerTitle.textContent = `Welcome back, ${admin.name}`;
+  // Banner greeting
+  const bannerGreeting = document.getElementById("admin-banner-greeting");
+  if (bannerGreeting) bannerGreeting.textContent = getAdminGreeting(admin.name);
+
+  // Start clock
+  startAdminClock();
+}
+
+function getAdminGreeting(name) {
+  const hour = new Date().getHours();
+  let greeting, icon;
+  if (hour >= 5 && hour < 12)       { greeting = "Good Morning";   icon = "☀️"; }
+  else if (hour >= 12 && hour < 17) { greeting = "Good Afternoon"; icon = "🌤️"; }
+  else if (hour >= 17 && hour < 21) { greeting = "Good Evening";   icon = "🌆"; }
+  else                              { greeting = "Good Night";     icon = "🌙"; }
+  return `${greeting}, ${name} ${icon}`;
+}
+
+function startAdminClock() {
+  function update() {
+    const el = document.getElementById("admin-datetime");
+    if (!el) return;
+    const now    = new Date();
+    const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const day    = days[now.getDay()];
+    const date   = now.getDate();
+    const month  = months[now.getMonth()];
+    const year   = now.getFullYear();
+    let hours    = now.getHours();
+    const mins   = String(now.getMinutes()).padStart(2, "0");
+    const ampm   = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="11" height="11"
+           style="display:inline;vertical-align:middle;margin-right:4px">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      ${day}, ${date} ${month} ${year} · ${hours}:${mins} ${ampm}`;
   }
+  update();
+  setInterval(update, 1000);
 }
 
 /* ════════════════════════════════════
@@ -439,8 +473,6 @@ function renderTeamBlockFromDB(group) {
       <div class="team-block">
         <div class="team-block-head">
           <div class="team-block-head-left">
-            <div class="team-avatar">${(group.group_code || group.team_code || "—").slice(-2)}</div>
-            <div>
               <h3>${group.group_code || group.team_code || "—"}</h3>
               <p>${group.project_title || "—"} · No students linked</p>
             </div>
@@ -504,8 +536,6 @@ function renderTeamBlockFromDB(group) {
     <div class="team-block">
       <div class="team-block-head">
         <div class="team-block-head-left">
-          <div class="team-avatar">${(group.group_code || "—").slice(-2)}</div>
-          <div>
             <h3>${group.group_code || group.team_code || "—"}</h3>
             <p>${group.project_title || "—"} · ${allStudents.length} students</p>
           </div>
@@ -844,22 +874,6 @@ function downloadDoc(url, filename) {
   document.body.removeChild(a);
 }
 
-function viewDoc(url) {
-  if (!url) return toast("No document", "File not available", "warn");
-  window.open(url, "_blank", "noopener");
-}
-
-function downloadDoc(url, filename) {
-  if (!url) return toast("No document", "File not available", "warn");
-  // Cloudinary trick: fl_attachment forces download instead of inline preview
-  const downloadUrl = url.replace("/upload/", "/upload/fl_attachment/");
-  const a = document.createElement("a");
-  a.href = downloadUrl;
-  a.download = (filename || "document").replace(/[^\w\-]/g, "_");
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
 
 
 function toggleMarkEnabled(groupId, key, enabled) {
@@ -1133,7 +1147,7 @@ async function deleteStudent(studentId, studentName) {
 
 function logout() {
   localStorage.removeItem("admin");
-  window.location.href = "../../Admin/login.html";
+  window.location.href = "./login.html";
 }
 
 /* ════════════════════════════════════
@@ -2005,6 +2019,54 @@ async function updateProposalStatus(groupId, status) {
     toast("Error", err.message, "error");
   }
 }
+async function renderRecentTeams() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const tbody = document.getElementById("recentTeamsTbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/groups", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    const teams = (Array.isArray(data) ? data : data.groups || []).slice(0, 5);
+
+    if (!teams.length) {
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">No teams yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = teams.map(g => {
+      const code    = g.group_code || g.team_code || "—";
+      const title   = g.project_title || "—";
+      const supName = g.supervisor?.name || "Unassigned";
+      const abbr    = code.slice(-2).toUpperCase();
+      const members = 1 + (g.members?.length || 0);
+
+      return `
+        <tr>
+          <td>
+            <div class="team-cell">
+              <div class="team-avatar">${abbr}</div>
+              <div class="team-info">
+                <strong>${title.length > 28 ? title.slice(0, 28) + "…" : title}</strong>
+                <span>${members} member${members !== 1 ? "s" : ""}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="id-pill gold">${code}</span></td>
+          <td>${supName}</td>
+        </tr>`;
+    }).join("");
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
+  }
+}
 /* ════════════════════════════════════
    GLOBAL DATA + INIT
 ══════════════════════════════════════ */
@@ -2019,7 +2081,8 @@ async function initDashboard() {
   await renderTeams();
   await renderStudents();
   await loadGlobalToggles();
-  await renderDeadlines();          
+  await renderDeadlines();
+  await renderRecentTeams();
 }
 
 initDashboard();

@@ -10,32 +10,36 @@
   <body>
     <!-- ═══ NAVBAR ═══ -->
     <nav class="dash-nav">
-      <div class="nav-inner">
-        <button
-          class="nav-icon-btn nav-mobile-btn"
-          id="mobileMenuBtn"
-          aria-label="Toggle menu"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-          >
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
-        </button>
-        <div class="nav-brand">
-          <div class="nav-logo">A</div>
-          <div class="nav-title">
-            <h1>FYP Management</h1>
-            <p>Admin Portal · AWKUM</p>
-          </div>
-        </div>
-      </div>
+<div class="nav-inner">
+  <button class="nav-icon-btn nav-mobile-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+  <div class="nav-brand">
+    <div class="nav-logo" id="nav-admin-avatar">A</div>
+    <div class="nav-title">
+      <h1>FYP Management</h1>
+      <p>Admin Portal · AWKUM</p>
+    </div>
+  </div>
+  <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+    <div style="text-align:right;line-height:1.2">
+      <div style="font-size:.78rem;font-weight:700;color:var(--primary-dark)" id="nav-admin-name">—</div>
+      <div style="font-size:.65rem;color:var(--text-mute);font-weight:600">Administrator</div>
+    </div>
+    <button class="nav-logout-btn" onclick="logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span>Logout</span>
+    </button>
+  </div>
+</div>
     </nav>
 
     <!-- ═══ SIDEBAR ═══ -->
@@ -144,14 +148,19 @@
         <div class="dash-banner">
           <div class="banner-content">
             <div class="banner-text">
-              <div class="banner-greeting"><span>Admin Console</span></div>
-              <h2>Welcome back, Dr. Rashid</h2>
-              <p>
-                You have full oversight of the FYP Management System. Add
-                supervisors, manage assignments, and monitor academic
-                performance — all from one place.
-              </p>
-            </div>
+  <div class="banner-greeting">
+    <span>Admin Console</span>
+    <span id="admin-datetime" style="
+      font-size:.72rem;font-weight:600;
+      padding:4px 12px;border-radius:20px;
+      background:rgba(255,255,255,.1);
+      border:1px solid rgba(255,255,255,.2);
+      letter-spacing:.02em;text-transform:none
+    "></span>
+  </div>
+  <h2 id="admin-banner-greeting">—</h2>
+  <p>You have full oversight of the FYP Management System. Add supervisors, manage assignments, and monitor academic performance — all from one place.</p>
+</div>
             <div class="banner-actions">
               <button
                 class="banner-btn primary"

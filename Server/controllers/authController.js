@@ -8,6 +8,7 @@ import { sendEmail }           from "../utils/sendEmail.js";
 import { otpEmailTemplate }        from "../utils/emailTemplates/otpEmail.js";
 import { supervisorOtpTemplate }   from "../utils/emailTemplates/supervisorOtp.js";
 
+
 // ── LOGIN ────────────────────────────────────────────
 export const login = async (req, res) => {
   const { email, password } = req.body;
@@ -120,48 +121,86 @@ export const forgotPassword = async (req, res) => {
     const { email } = req.body;
 
     if (!email) {
-      return res.status(400).json({ message: "Email is required" });
+      return res.status(400).json({
+        message: "Email is required"
+      });
     }
 
-    // Find user across all collections
-    let user = await Student.findOne({ email });
-    if (!user) user = await Supervisor.findOne({ email });
-    if (!user) user = await Admin.findOne({ email });
+    let user = null;
+    let userType = null;
 
-    // Always return same message to prevent email enumeration
+    // ── FIND STUDENT ───────────────────────────────────────────
+    user = await Student.findOne({ email });
+
+    if (user) {
+      userType = "student";
+    }
+
+    // ── FIND SUPERVISOR ───────────────────────────────────────
     if (!user) {
-      return res.json({ message: "If this email is registered, an OTP has been sent." });
+      user = await Supervisor.findOne({ email });
+
+      if (user) {
+        userType = "supervisor";
+      }
     }
 
-    // Generate 6-digit OTP
+    if (!user) {
+      return res.json({
+        message: "If this email is registered, an OTP has been sent."
+      });
+    }
+
+    //  GENERATE OTP 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    user.resetPasswordToken  = otp;
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 mins
-    await user.save({ validateBeforeSave: false });
-    
-    // Send OTP email — use role-specific template
-    const isSupervisor = !!(await import("../Models/supervisor.js")
-      .then(m => m.default.findOne({ email })));
+    user.resetPasswordToken = otp;
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
 
-    const { subject, html } = isSupervisor
-      ? supervisorOtpTemplate({ name: user.name, otp })
-      : otpEmailTemplate({ name: user.name, otp });
-    const result = await sendEmail({ to: email, subject, html });
+    await user.save({ validateBeforeSave: false });
+
+    //EMAIL TEMPLATE 
+    let emailTemplate;
+
+    if (userType === "supervisor") {
+      emailTemplate = supervisorOtpTemplate({
+        name: user.name,
+        otp
+      });
+    } else {
+      emailTemplate = otpEmailTemplate({
+        name: user.name,
+        otp
+      });
+    }
+
+    // SEND EMAIL 
+    const result = await sendEmail({
+      to: email,
+      subject: emailTemplate.subject,
+      html: emailTemplate.html,
+    });
 
     if (!result.success) {
       console.error("OTP email failed:", result.error);
-      return res.status(500).json({ message: "Failed to send OTP email" });
+
+      return res.status(500).json({
+        message: "Failed to send OTP email"
+      });
     }
 
-    res.json({ message: "If this email is registered, an OTP has been sent." });
+    res.json({
+      message: "If this email is registered, an OTP has been sent."
+    });
 
   } catch (err) {
     console.error("forgotPassword error:", err);
-    res.status(500).json({ message: "Failed to send OTP" });
+
+    res.status(500).json({
+      message: "Failed to send OTP"
+    });
   }
 };
-
 // ── VERIFY OTP ───────────────────────────────────────
 export const verifyOtp = async (req, res) => {
   try {

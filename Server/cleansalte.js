@@ -15,9 +15,9 @@ import Counter from "./Models/counter.js";
 
 await mongoose.connect(process.env.MONGO_URI);
 
-console.log("✅ MongoDB connected\n");
+console.log("MongoDB connected\n");
 
-// ─── DELETE ONLY SUPERVISORS / GROUPS / MARKS ─────────────
+// ───DELETE ONLY SUPERVISORS─────────────
 
 const supervisorsDeleted = await Supervisor.deleteMany({});
 console.log(`🧹 Deleted ${supervisorsDeleted.deletedCount} supervisors`);
@@ -43,7 +43,7 @@ await Counter.findOneAndUpdate(
   { upsert: true }
 );
 
-console.log(`\n✅ Supervisor and Team counters reset`);
+console.log(`\n Supervisor and Team counters reset`);
 
 const year = new Date().getFullYear();
 
@@ -52,6 +52,6 @@ console.log(`\nNext IDs will be:`);
 console.log(`   Supervisor → SUP-${year}0001`);
 console.log(`   Team       → TEAM-${year}0001`);
 
-console.log("\n🎉 Cleanup complete!");
+console.log("\nCleanup complete!");
 
 process.exit(0);

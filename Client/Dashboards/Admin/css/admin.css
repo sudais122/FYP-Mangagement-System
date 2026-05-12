@@ -516,7 +516,10 @@ a {
     color: #fff;
     box-shadow: 0 4px 12px rgba(0, 75, 45, .2);
 }
-
+.nav-logo {
+  font-size: .85rem;
+  letter-spacing: .02em;
+}
 .nav-item.active .nav-item-badge {
     background: rgba(255, 255, 255, .2);
     color: #fff;
