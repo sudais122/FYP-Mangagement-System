@@ -2381,3 +2381,71 @@ tr.search-match,
   background: rgba(191, 161, 74, .15);
   color: var(--secondary, #bfa14a);
 }
+/* ══════════════════════════════════════════════════════════════
+   Add to admin.css — fixes action buttons showing below cells
+══════════════════════════════════════════════════════════════ */
+
+/* Force action buttons to always stay in a horizontal row */
+.action-row,
+td > div[style*="flex-direction:row"],
+td > div[style*="display:flex"] {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 6px !important;
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+}
+
+.icon-action {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--text-soft);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all var(--tr);
+  flex-shrink: 0;
+}
+
+.icon-action:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.icon-action.danger:hover,
+.icon-action[style*="color:#dc2626"]:hover {
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
+.icon-action svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+/* Prevent table cells from wrapping weirdly */
+.data-table td {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* But allow the student name cell to wrap normally */
+.data-table td:first-child {
+  white-space: normal;
+  min-width: 160px;
+}
+
+/* Doc badge inline */
+.doc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}

@@ -61,27 +61,6 @@ const MARKS_TEMPLATE = [
   { section: "Viva", component: "External Viva",   max: 30 },
 ];
 
-function generateMarks(seed) {
-  const rng = (min, max) => {
-    seed = (seed * 9301 + 49297) % 233280;
-    return Math.floor(min + (seed / 233280) * (max - min + 1));
-  };
-  return MARKS_TEMPLATE.map((item, i) => {
-    if (item.section === "Monthly Meetings") {
-      const monthIdx = i;
-      if (monthIdx < 5) {
-        return { ...item, marks: rng(Math.floor(item.max * 0.6), item.max) };
-      }
-      return { ...item, marks: null };
-    }
-    if (item.component === "Proposal Submission")
-      return { ...item, marks: rng(8, 10) };
-    if (item.component === "Progress Report")
-      return { ...item, marks: rng(12, 18) };
-    return { ...item, marks: null };
-  });
-}
-
 let STUDENT_MARKS = {};
 
 function getAllStudents() {
@@ -157,6 +136,15 @@ async function loadDashboard() {
       STATE.category = data.group.category;
       STATE.teamRole = data.student.team_role;
       STATE.groupData = data.group;
+      // Set proposal state from backend
+      const proposalStatus = data.group.proposal_status;
+      const proposalUrl    = data.group.proposal_url;
+      if (proposalUrl) {
+        STATE.proposalState = proposalStatus || "pending";
+        STATE.proposalFile  = data.group.proposal_filename || data.group.proposal_url;
+      } else {
+        STATE.proposalState = "idle";
+      }
 
       // Populate members
       STATE.members = [];
@@ -462,7 +450,7 @@ function setProposalState(state) {
         </div>
         <div class="pstate-info">
           <strong>Proposal Under Review</strong>
-          <span>Your proposal has been submitted and is awaiting approval from your supervisor.</span>
+          <span>Your proposal has been submitted and is awaiting review by the department.</span>
           ${STATE.proposalFile ? `<div class="proposal-filename">${STATE.proposalFile}</div>` : ""}
         </div>
       </div>`;
@@ -478,8 +466,7 @@ function setProposalState(state) {
         </div>
         <div class="pstate-info">
           <strong>Proposal Approved</strong>
-          <span>Your FYP proposal has been officially approved by your supervisor.</span>
-          ${STATE.proposalFile ? `<div class="proposal-filename">${STATE.proposalFile}</div>` : ""}
+          <span>Your FYP proposal has been officially approved by the Department od Computer Science.</span>
         </div>
       </div>`;
   } else if (state === "rejected") {
@@ -512,7 +499,7 @@ function setProposalState(state) {
   }
 }
 
-function handleProposalUpload(files) {
+async function handleProposalUpload(files) {
   if (!files.length) return;
   const file = files[0];
   const ext = file.name.split(".").pop().toLowerCase();
@@ -524,11 +511,26 @@ function handleProposalUpload(files) {
     toast("File exceeds 20 MB limit", "red");
     return;
   }
-  STATE.proposalFile = file.name;
+
+  toast("Uploading proposal…", "gold");
+  const result = await uploadProposalAPI(file);
+  if (result.error) {
+    toast("Upload failed: " + result.error, "red");
+    return;
+  }
+
+  // Update STATE from real backend response
+  const group = result.data?.group;
+  if (group) {
+    STATE.groupData.proposal_url         = group.proposal_url;
+    STATE.groupData.proposal_status      = group.proposal_status;
+    STATE.groupData.proposal_uploaded_by = group.proposal_uploaded_by;
+    STATE.groupData.proposal_uploaded_at = group.proposal_uploaded_at;
+  }
+
   STATE.proposalState = "pending";
   setProposalState("pending");
   toast("Proposal uploaded successfully ✓", "gold");
-  // TODO: Upload to backend
 }
 
 function handleProposalDrop(e) {
@@ -1104,18 +1106,19 @@ STUDENT_MARKS = {};
 
 
 const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
-if (selSup) {
+  if (result.group?.supervisor) {
+  const sup = result.group.supervisor;
   STATE.supervisorData = {
-  _id:            data.group.supervisor._id,
-  name:           data.group.supervisor.name,
-  email:          data.group.supervisor.email,
-  designation:    data.group.supervisor.designation || "Faculty Member",
-  research_areas: data.group.supervisor.research_areas || [],
-  office:         data.group.supervisor.office || "CS Department",
-  office_hours:   data.group.supervisor.office_hours || "Contact supervisor",
-  sup_code:       data.group.supervisor.sup_code,
-  whatsapp:       data.group.supervisor.whatsapp || "",
-};
+    _id:            sup._id,
+    name:           sup.name,
+    email:          sup.email,
+    designation:    sup.designation || "Faculty Member",
+    research_areas: sup.research_areas || [],
+    office:         sup.office || "CS Department",
+    office_hours:   sup.office_hours || "Contact supervisor",
+    sup_code:       sup.sup_code,
+    whatsapp:       sup.whatsapp || "",
+  };
 }
   const chips = [
     { icon: "id", text: STATE.teamId },
@@ -1386,8 +1389,11 @@ display.innerHTML += `
 
 function openAddMemberModal() {
   memberCountBeforeModal = STATE.members.length; 
+    const setupOverlay = document.getElementById("setup-overlay");
+  if (setupOverlay) setupOverlay.style.display = "flex";
+    document.getElementById("step-1").style.display = "none";
+  document.getElementById("step-2").style.display = "block";
 }
-
 function saveNewMember() {
   if (STATE.members.length <= memberCountBeforeModal) {
     toast("Please search and add a member first", "red");
@@ -1413,16 +1419,6 @@ footer.innerHTML = `
   // Remove close button
   document.querySelector(".modal-close-btn")?.remove();
   renderTeamTab();
-}
-
-function saveNewMember() {
-  const beforeCount = STATE.members.length;
-  if (STATE.members.length === 0 || STATE.members.length === beforeCount) {
-    toast("Please search and add a member first", "red");
-    return;
-  }
-  closeAddMemberModal();
-  toast("Member added successfully");
 }
 
 /* ══ Render supervisor tab ══ */
@@ -1591,76 +1587,6 @@ function toast(msg, type) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
 }
-function openAddMemberModal() {
-  memberCountBeforeModal = STATE.members.length;
-  
-  const setupOverlay = document.getElementById("setup-overlay");
-  if (setupOverlay) setupOverlay.style.display = "flex";
-  
-  renderMemberSlots();
-  clearSearch();
-  
-  // Hide all steps
-  [1, 2, 3, "done"].forEach((s) => {
-    const step = document.getElementById("setup-step-" + s);
-    if (step) step.style.display = "none";
-  });
-  
-  // Show step 2 only
-  const step2 = document.getElementById("setup-step-2");
-  if (step2) step2.style.display = "block";
-  
-  // Replace footer with Save + Close buttons
-  const footer = step2.querySelector(".setup-footer");
-  if (footer) {
-    footer.innerHTML = `
-      <button class="btn btn-ghost" onclick="closeAddMemberModal()">✕ Close</button>
-      <button class="btn btn-primary" onclick="saveNewMember()">
-        Save Member
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
-      </button>`;
-  }
-  
-  // Add X button to header
-  const header = step2.querySelector(".setup-header");
-  if (header && !header.querySelector(".modal-close-btn")) {
-    header.style.position = "relative";
-    header.insertAdjacentHTML("beforeend", `
-      <button class="modal-close-btn" onclick="closeAddMemberModal()" style="position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;color:var(--text-soft)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>`);
-  }
-}
-
-function closeAddMemberModal() {
-  const setupOverlay = document.getElementById("setup-overlay");
-  if (setupOverlay) setupOverlay.style.display = "none";
-  
-  // Restore original step 2 footer
-  const footer = document.getElementById("setup-step-2")?.querySelector(".setup-footer");
-  if (footer) {
-    footer.innerHTML = `
-      <button class="btn btn-ghost" onclick="backStep1()">← Back</button>
-      <button class="btn btn-primary" onclick="goStep3()">
-        Next: Choose Supervisor
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>`;
-  }
-  
-  // Remove X button
-  document.querySelector(".modal-close-btn")?.remove();
-  renderTeamTab();
-}
-
-function saveNewMember() {
-  if (STATE.members.length <= memberCountBeforeModal) {
-    toast("Please search and add a member first", "red");
-    return;
-  }
-  closeAddMemberModal();
-  toast("Member added successfully ✓");
-}
-
 
 // Get next available team ID from backend
 async function getNextTeamId() {
@@ -1777,32 +1703,27 @@ async function uploadProposalAPI(file) {
 }
 
 /* Replace your existing handleProposalUpload */
-async function handleProposalUpload(files) {
-  if (!files.length) return;
-  const file = files[0];
-  const ext = file.name.split(".").pop().toLowerCase();
-  if (!["pdf", "docx", "doc"].includes(ext)) {
-    toast("Only PDF and DOCX files are accepted", "red");
-    return;
-  }
-  if (file.size > 20 * 1024 * 1024) {
-    toast("File exceeds 20 MB limit", "red");
-    return;
+async function uploadProposalAPI(file) {
+  const groupId = STATE.groupData?._id;
+  if (!groupId) {
+    return { error: "You are not in a team yet" };
   }
 
-  toast("Uploading proposal…", "gold");
-  const result = await uploadProposalAPI(file);
-  if (result.error) {
-    toast("Upload failed: " + result.error, "red");
-    return;
-  }
+  const formData = new FormData();
+  formData.append("proposal", file);
 
-  STATE.proposalFile     = result.proposal.filename;
-  STATE.proposalUrl      = result.proposal.url;
-  STATE.proposalUploader = result.proposal.uploaded_by;
-  STATE.proposalState    = "pending";
-  setProposalState("pending");
-  toast("Proposal uploaded ✓", "gold");
+  try {
+    const res = await fetch(`${API_BASE}/groups/${groupId}/proposal`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${user.token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+    return { success: true, data };
+  } catch (err) {
+    return { error: err.message };
+  }
 }
 async function loadStudentDeadlines() {
   const user = JSON.parse(localStorage.getItem("user"));

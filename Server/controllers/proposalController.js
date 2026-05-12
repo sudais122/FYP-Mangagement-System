@@ -1,104 +1,123 @@
-import Proposal from "../Models/proposal.js";
-import Student  from "../Models/student.js";
+import Group   from "../Models/group.js";
+import Student from "../Models/student.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { proposalApprovedTemplate } from "../utils/emailTemplates/proposalStatus.js";
+import { proposalRejectedTemplate  } from "../utils/emailTemplates/proposalStatus.js";
+import path    from "path";
+import { fileURLToPath } from "url";
 
-// ── SUBMIT PROPOSAL (Student) ──────────────────────────────────
-export const submitProposal = async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded" });
-  }
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+
+// ── UPLOAD PROPOSAL ───────────────────────────────────────────
+export const uploadProposal = async (req, res) => {
   try {
-    const student = await Student.findById(req.user.id);
-    if (!student.group) {
-      return res.status(400).json({ message: "You must have a team first" });
+    if (!req.file) {
+      return res.status(400).json({ message: "Proposal file is required" });
     }
 
-    // Check if a proposal already exists for this group
-    const existing = await Proposal.findOne({ group: student.group });
+    const studentId = req.user.id;
+    const student   = await Student.findById(studentId);
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
-    if (existing) {
-      // Delete old file from Cloudinary
-      if (existing.file_public_id) {
-        await cloudinary.uploader.destroy(existing.file_public_id, {
-          resource_type: "raw",
-        });
+    const group = await Group.findById(student.group)
+      .populate("leader",  "name student_code email")
+      .populate("members", "name student_code email");
+
+    if (!group) return res.status(404).json({ message: "You are not in a team" });
+
+    // Save proposal info
+    group.proposal_url         = `/uploads/proposals/${req.file.filename}`;
+    group.proposal_public_id   = req.file.filename;
+    group.proposal_status      = "pending";
+    group.proposal_uploaded_by = studentId;
+    group.proposal_uploaded_at = new Date();
+    group.proposal_rejection_reason = null;
+
+    await group.save();
+
+    // Re-fetch with uploader populated
+    const updatedGroup = await Group.findById(group._id)
+      .populate("proposal_uploaded_by", "name student_code email");
+
+    res.json({
+      message: "Proposal uploaded successfully",
+      group: {
+        proposal_url:         updatedGroup.proposal_url,
+        proposal_status:      updatedGroup.proposal_status,
+        proposal_uploaded_at: updatedGroup.proposal_uploaded_at,
+        proposal_uploaded_by: updatedGroup.proposal_uploaded_by,
       }
-      // Update existing proposal
-      existing.file_url       = req.file.path;
-      existing.file_public_id = req.file.filename;
-      existing.original_filename = req.file.originalname;
-      existing.file_size      = req.file.size;
-      existing.status         = "pending";
-      existing.version        += 1;
-      existing.submittedAt    = new Date();
-      await existing.save();
-      return res.json({ message: "Proposal re-submitted", proposal: existing });
-    }
-
-    // Create new proposal
-    const proposal = await Proposal.create({
-      group:             student.group,
-      student:           req.user.id,
-      supervisor:        req.body.supervisor_id,
-      file_url:          req.file.path,
-      file_public_id:    req.file.filename,
-      original_filename: req.file.originalname,
-      file_size:         req.file.size,
     });
 
-    res.status(201).json({ message: "Proposal submitted", proposal });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    console.error("Upload proposal error:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 
-// ── GET MY PROPOSAL ────────────────────────────────────────────
-export const getMyProposal = async (req, res) => {
+// ── UPDATE PROPOSAL STATUS (Admin only) ───────────────────────
+export const updateProposalStatus = async (req, res) => {
   try {
-    const student = await Student.findById(req.user.id);
-    if (!student.group) {
-      return res.status(404).json({ message: "No group found" });
+    const { status, reason } = req.body;
+    const { groupId } = req.params;
+
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
     }
-    const proposal = await Proposal.findOne({ group: student.group })
-      .populate("student",    "name student_code")
-      .populate("supervisor", "name sup_code");
-    if (!proposal) {
-      return res.json({ status: "idle", message: "No proposal submitted yet" });
+
+    const group = await Group.findById(groupId)
+      .populate("leader",  "name email student_code")
+      .populate("members", "name email student_code");
+
+    if (!group) return res.status(404).json({ message: "Group not found" });
+
+    group.proposal_status = status;
+    if (status === "rejected" && reason) {
+      group.proposal_rejection_reason = reason;
+    } else {
+      group.proposal_rejection_reason = null;
     }
-    res.json(proposal);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
-// ── REVIEW PROPOSAL (Supervisor) ───────────────────────────────
-export const reviewProposal = async (req, res) => {
-  const { status, rejection_reason } = req.body;
-  if (!["approved", "rejected"].includes(status)) {
-    return res.status(400).json({ message: "Status must be 'approved' or 'rejected'" });
-  }
-  try {
-    const proposal = await Proposal.findById(req.params.id);
-    if (!proposal) return res.status(404).json({ message: "Proposal not found" });
+    await group.save();
 
-    proposal.status           = status;
-    proposal.rejection_reason = rejection_reason || "";
-    proposal.reviewedAt       = new Date();
-    await proposal.save();
+    // Collect all members + leader emails
+    const allMembers = [
+      group.leader,
+      ...(group.members || [])
+    ].filter(Boolean);
 
-    res.json({ message: `Proposal ${status}`, proposal });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    // Send email to each member
+    for (const member of allMembers) {
+      const { subject, html } = status === "approved"
+        ? proposalApprovedTemplate({
+            studentName:  member.name,
+            groupCode:    group.group_code,
+            projectTitle: group.project_title
+          })
+        : proposalRejectedTemplate({
+            studentName:  member.name,
+            groupCode:    group.group_code,
+            projectTitle: group.project_title,
+            reason:       reason || ""
+          });
 
-// ── GET ALL PROPOSALS FOR SUPERVISOR ──────────────────────────
-export const getProposalsBySupervisor = async (req, res) => {
-  try {
-    const proposals = await Proposal.find({ supervisor: req.user.id })
-      .populate("student",  "name student_code")
-      .populate("group",    "team_code project_title");
-    res.json(proposals);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+      sendEmail({ to: member.email, subject, html }).then(r => {
+        if (!r.success) console.warn(`Email failed for ${member.email}:`, r.error);
+      });
+    }
+
+    res.json({
+      message: `Proposal ${status}`,
+      group: {
+        _id:             group._id,
+        proposal_status: group.proposal_status,
+        proposal_rejection_reason: group.proposal_rejection_reason
+      }
+    });
+
+  } catch (err) {
+    console.error("Update proposal status error:", err);
+    res.status(500).json({ message: err.message });
   }
 };

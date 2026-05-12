@@ -81,13 +81,11 @@ export const getMyDashboard = async (req, res) => {
       .select("-password")
       .populate({
         path: "group",
+        select: "group_code project_title category proposal_url proposal_status proposal_filename proposal_uploaded_by proposal_uploaded_at leader members supervisor",
         populate: [
-          { path: "leader", select: "name student_code" },
-          { path: "members", select: "name student_code" },
-          { 
-            path: "supervisor", 
-            select: "name sup_code email office office_hours research_areas whatsapp designation" 
-          },
+          { path: "leader",     select: "name student_code" },
+          { path: "members",    select: "name student_code" },
+          { path: "supervisor", select: "name sup_code email office office_hours research_areas designation whatsapp" },
         ],
       });
 

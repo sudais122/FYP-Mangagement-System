@@ -44,6 +44,8 @@ app.use("/api/supervisors", supervisorRoutes);
 app.use("/api/admin",       adminRoutes);
 app.use("/api/supervisor",  supervisorRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.get("/", (req, res) => {
   res.json({ message: "FYP Management System API is running" });
 });

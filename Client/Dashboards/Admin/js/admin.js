@@ -1,3 +1,6 @@
+/* ════════════════════════════════════
+   MARKS SCHEMA
+══════════════════════════════════════ */
 const MARKS_SCHEMA = [
   {
     section: "Monthly Meetings",
@@ -32,85 +35,54 @@ const MARKS_SCHEMA = [
 
 const MAX_TOTAL = 200;
 
-function makeStudent(id, name, teamId, marks) {
-  return { id, name, teamId, marks };
-}
-function studentTotal(s) {
-  return Object.values(s.marks).reduce((a, b) => a + (Number(b) || 0), 0);
-}
-
 /* ════════════════════════════════════
    HELPERS
 ══════════════════════════════════════ */
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
+
 const initials = (s) =>
-  s
+  (s || "")
     .split(" ")
     .filter((p) => p && /[A-Za-z]/.test(p[0]))
     .slice(-2)
     .map((p) => p[0].toUpperCase())
     .join("");
-const supById = (id) =>
-  supervisors.find((s) => s.id === id) || { name: "—", id: "—", email: "" };
-const teamById = (id) =>
-  teams.find((t) => t.id === id) || { id: "—", members: 0 };
-const studentsByTeam = (teamId) => students.filter((s) => s.teamId === teamId);
-const teamsBySupervisor = (supId) => teams.filter((t) => t.supId === supId);
 
-function generateSupId() {
-  const list = SUPERVISORS_DATA || [];
-  if (!list.length) {
-    const year = new Date().getFullYear();
-    return `SUP-${year}0001`;
-  }
-  const year = new Date().getFullYear();
-  const numbers = list
-    .map(s => {
-      const code = s.sup_code || "";
-      const match = code.match(/SUP-\d{4}(\d+)/);
-      return match ? parseInt(match[1]) : 0;
-    })
-    .filter(n => !isNaN(n));
-  const max = numbers.length ? Math.max(...numbers) : 0;
-  return `SUP-${year}${String(max + 1).padStart(4, "0")}`;
-}
-function generatePassword() {
-  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-  const lower = "abcdefghjkmnpqrstuvwxyz";
-  const nums  = "23456789";
-  const syms  = "!@#$%&*";
-
-  let pwd = "";
-  pwd += upper[Math.floor(Math.random() * upper.length)];
-  pwd += upper[Math.floor(Math.random() * upper.length)];
-  pwd += lower[Math.floor(Math.random() * lower.length)];
-  pwd += lower[Math.floor(Math.random() * lower.length)];
-  pwd += nums[Math.floor(Math.random() * nums.length)];
-  pwd += nums[Math.floor(Math.random() * nums.length)];
-  pwd += syms[Math.floor(Math.random() * syms.length)];
-  pwd += lower[Math.floor(Math.random() * lower.length)];
-
-  // Shuffle
-  pwd = pwd.split("").sort(() => Math.random() - 0.5).join("");
-
-  $("#supPassword").value = pwd;
-  $("#pwdHelp").textContent = "✓ Password generated — copy it before saving";
-  $("#pwdHelp").className = "form-help success";
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  );
 }
 
+function highlightText(text, query) {
+  const safe = escapeHtml(text);
+  if (!query) return safe;
+  const q = query.trim();
+  if (!q) return safe;
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+  return safe.replace(re, '<mark class="q-hl">$1</mark>');
+}
+
+function matches(haystack, query) {
+  if (!query) return true;
+  return String(haystack ?? "").toLowerCase().includes(query.trim().toLowerCase());
+}
+
+/* ════════════════════════════════════
+   TOAST
+══════════════════════════════════════ */
 function toast(message, subtitle, type = "success") {
   const wrap = $("#toastWrap");
+  if (!wrap) return;
   const t = document.createElement("div");
   t.className = `toast ${type}`;
   const icons = {
-    success:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    error:
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>',
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    warn:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>',
   };
-  t.innerHTML = `<div class="toast-icon">${icons[type] || icons.success}</div><div class="toast-text"><strong>${message}</strong><span>${subtitle}</span></div>`;
+  t.innerHTML = `<div class="toast-icon">${icons[type] || icons.success}</div><div class="toast-text"><strong>${message}</strong><span>${subtitle || ""}</span></div>`;
   wrap.appendChild(t);
   requestAnimationFrame(() => t.classList.add("show"));
   setTimeout(() => {
@@ -120,175 +92,35 @@ function toast(message, subtitle, type = "success") {
 }
 
 /* ════════════════════════════════════
-   VIEW ROUTING
-══════════════════════════════════════ */
-function switchView(view) 
-{
-  $$(".view").forEach((v) => v.classList.remove("active"));
-  $$(".nav-item").forEach((n) => n.classList.remove("active"));
-  const target = $(`#view-${view}`);
-  if (target) target.classList.add("active");
-  $$(`.nav-item[data-view="${view}"]`).forEach((n) =>
-    n.classList.add("active"),
-  );
-  $("#sidebar").classList.remove("open");
-  window.scrollTo({ top: 0, behavior: "smooth" });
-  if (view === "deadlines") renderDeadlines();
-}
-
-$$(".nav-item").forEach((item) => {
-  item.addEventListener("click", (e) => {
-    e.preventDefault();
-    const view = item.dataset.view;
-    if (view) switchView(view);
-  });
-});
-
-$("#mobileMenuBtn")?.addEventListener("click", () => {
-  $("#sidebar").classList.toggle("open");
-});
-
-/* ════════════════════════════════════
-   RENDER: SUPERVISORS
-══════════════════════════════════════ */
-async function renderSupervisors() {
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  const grid  = $("#supervisorCards");
-  grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-mute)">Loading...</div>`;
-
-  try {
-      const res = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed");
-
-    SUPERVISORS_DATA = data;
-    renderSupervisorCards(data);
-  } catch (err) {
-    grid.innerHTML = `<div style="padding:40px;color:#dc2626">Failed: ${err.message}</div>`;
-  }
-}
-
-function renderSupervisorCards(list) {
-  const grid = $("#supervisorCards");
-
-  if (!list || !list.length) {
-    grid.innerHTML = `
-      <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">
-        No supervisors found.
-      </div>`;
-    return;
-  }
-
-  grid.innerHTML = list.map(sup => `
-    <div 
-      class="entity-card"
-      data-chairman="${sup.is_chairman === true}"
-    >
-      <div class="entity-card-head">
-        <div class="entity-avatar">${initials(sup.name)}</div>
-        <div class="entity-info">
-          <strong>${sup.name}</strong>
-          <p>${sup.email}</p>
-        </div>
-      </div>
-
-      <div style="margin-bottom:12px">
-        <span class="id-pill">${sup.sup_code || "—"}</span>
-        <span class="id-pill" style="
-          margin-left:6px;
-          background:${sup.is_chairman ? 'rgba(191,161,74,.15)' : 'rgba(99,102,241,.1)'};
-          color:${sup.is_chairman ? '#9a7e2a' : '#4f46e5'}
-        ">
-          ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
-        </span>
-      </div>
-
-      <div class="entity-stats">
-        <div class="entity-stat-cell">
-          <strong>${sup.teamCount || 0}</strong>
-          <span>Teams</span>
-        </div>
-
-        <div class="entity-stat-cell">
-          <strong style="display:inline-flex;align-items:center;gap:4px">
-            ${sup.whatsapp || "—"}
-          </strong>
-          <span>WhatsApp</span>
-        </div>
-      </div>
-
-      <!-- ACTION BUTTONS -->
-      <div style="display:flex;gap:8px;margin-top:12px">
-
-        <button 
-          class="btn btn-ghost btn-sm"
-          style="flex:1"
-          onclick="openSupDetail('${sup._id}')">
-          View
-        </button>
-
-        <button 
-          class="btn btn-sm"
-          style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
-          onclick="openEditSupModal(
-            '${sup._id}',
-            '${(sup.name || "").replace(/'/g, "\\'")}',
-            '${(sup.email || "").replace(/'/g, "\\'")}',
-            '${(sup.whatsapp || "").replace(/'/g, "\\'")}',
-            '${sup.is_chairman ? "chairman" : "supervisor"}'
-          )">
-          Edit
-        </button>
-
-        <button 
-          class="btn btn-sm"
-          style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
-          onclick="event.stopPropagation(); openDeleteSupModal('${sup._id}', '${(sup.name || "").replace(/'/g, "\\'")}')">
-          Delete
-        </button>
-
-      </div>
-    </div>
-  `).join("");
-}
-
-/* ════════════════════════════════════
-   DISPLAY LOGGED-IN ADMIN INFO
+   ADMIN INFO + GREETING + CLOCK
 ══════════════════════════════════════ */
 function displayAdminInfo() {
   const admin = JSON.parse(localStorage.getItem("admin"));
 
   if (!admin) {
-    window.location.href = "../../Auth/login.html";
+    window.location.href = "./login.html";
     return;
   }
 
-  // Navbar name
-  const navName = document.getElementById("nav-admin-name");
-  if (navName) navName.textContent = admin.name;
-
-  // Navbar avatar — initials
+  const navName   = document.getElementById("nav-admin-name");
   const navAvatar = document.getElementById("nav-admin-avatar");
+  const greeting  = document.getElementById("admin-banner-greeting");
+
+  if (navName)   navName.textContent   = admin.name;
   if (navAvatar) navAvatar.textContent = initials(admin.name);
+  if (greeting)  greeting.textContent  = getAdminGreeting(admin.name);
 
-  // Banner greeting
-  const bannerGreeting = document.getElementById("admin-banner-greeting");
-  if (bannerGreeting) bannerGreeting.textContent = getAdminGreeting(admin.name);
-
-  // Start clock
   startAdminClock();
 }
 
 function getAdminGreeting(name) {
   const hour = new Date().getHours();
-  let greeting, icon;
-  if (hour >= 5 && hour < 12)       { greeting = "Good Morning";   icon = "☀️"; }
-  else if (hour >= 12 && hour < 17) { greeting = "Good Afternoon"; icon = "🌤️"; }
-  else if (hour >= 17 && hour < 21) { greeting = "Good Evening";   icon = "🌆"; }
-  else                              { greeting = "Good Night";     icon = "🌙"; }
-  return `${greeting}, ${name} ${icon}`;
+  let g, icon;
+  if      (hour >= 5  && hour < 12) { g = "Good Morning";   icon = "☀️"; }
+  else if (hour >= 12 && hour < 17) { g = "Good Afternoon"; icon = "🌤️"; }
+  else if (hour >= 17 && hour < 21) { g = "Good Evening";   icon = "🌆"; }
+  else                               { g = "Good Night";     icon = "🌙"; }
+  return `${g}, ${name} ${icon}`;
 }
 
 function startAdminClock() {
@@ -319,60 +151,249 @@ function startAdminClock() {
   setInterval(update, 1000);
 }
 
+function logout() {
+  localStorage.removeItem("admin");
+  window.location.href = "./login.html";
+}
+
 /* ════════════════════════════════════
-   SUPERVISOR DETAIL VIEW
+   VIEW ROUTING
+══════════════════════════════════════ */
+function switchView(view) {
+  $$(".view").forEach((v) => v.classList.remove("active"));
+  $$(".nav-item").forEach((n) => n.classList.remove("active"));
+  const target = $(`#view-${view}`);
+  if (target) target.classList.add("active");
+  $$(`.nav-item[data-view="${view}"]`).forEach((n) => n.classList.add("active"));
+  $("#sidebar").classList.remove("open");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (view === "deadlines") renderDeadlines();
+}
+
+$$(".nav-item").forEach((item) => {
+  item.addEventListener("click", (e) => {
+    e.preventDefault();
+    const view = item.dataset.view;
+    if (view) switchView(view);
+  });
+});
+
+$("#mobileMenuBtn")?.addEventListener("click", () => {
+  $("#sidebar").classList.toggle("open");
+});
+
+/* ════════════════════════════════════
+   DASHBOARD STATS
+══════════════════════════════════════ */
+async function fetchDashboardStats() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin?.token) return;
+
+  try {
+    const res  = await fetch("http://127.0.0.1:5001/api/admin/stats", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) return console.error("Stats fetch failed:", data.message);
+
+    updateDashboardStats(data.stats);
+    updateSidebarBadges(data.stats);
+  } catch (err) {
+    console.error("Error fetching dashboard stats:", err);
+  }
+}
+
+function updateDashboardStats(stats) {
+  const cards = document.querySelectorAll(".dstat-card");
+  if (cards[0]) cards[0].querySelector(".dstat-value").textContent = stats.students;
+  if (cards[1]) cards[1].querySelector(".dstat-value").textContent = stats.supervisors;
+  if (cards[2]) cards[2].querySelector(".dstat-value").textContent = stats.teams;
+}
+
+function updateSidebarBadges(stats) {
+  document.querySelectorAll(".nav-item").forEach(item => {
+    const view  = item.dataset.view;
+    const badge = item.querySelector(".nav-item-badge");
+    if (!badge) return;
+    if (view === "supervisors") badge.textContent = stats.supervisors;
+    else if (view === "teams")  badge.textContent = stats.teams;
+    else if (view === "students") badge.textContent = stats.students;
+  });
+}
+
+/* ════════════════════════════════════
+   RECENT TEAMS
+══════════════════════════════════════ */
+async function renderRecentTeams() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const tbody = document.getElementById("recentTeamsTbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
+
+  try {
+    const res  = await fetch("http://127.0.0.1:5001/api/groups", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    const teams = (Array.isArray(data) ? data : data.groups || []).slice(0, 5);
+
+    if (!teams.length) {
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">No teams yet.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = teams.map(g => {
+      const code    = g.group_code || g.team_code || "—";
+      const title   = g.project_title || "—";
+      const supName = g.supervisor?.name || "Unassigned";
+      const abbr    = code.slice(-2).toUpperCase();
+      const members = 1 + (g.members?.length || 0);
+
+      return `
+        <tr>
+          <td>
+            <div class="team-cell">
+              <div class="team-avatar">${abbr}</div>
+              <div class="team-info">
+                <strong>${title.length > 28 ? title.slice(0, 28) + "…" : title}</strong>
+                <span>${members} member${members !== 1 ? "s" : ""}</span>
+              </div>
+            </div>
+          </td>
+          <td><span class="id-pill gold">${code}</span></td>
+          <td>${supName}</td>
+        </tr>`;
+    }).join("");
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
+  }
+}
+
+/* ════════════════════════════════════
+   SUPERVISORS
+══════════════════════════════════════ */
+async function renderSupervisors() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const grid  = $("#supervisorCards");
+  grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-mute)">Loading...</div>`;
+
+  try {
+    const res  = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    SUPERVISORS_DATA = data;
+    renderSupervisorCards(data);
+  } catch (err) {
+    grid.innerHTML = `<div style="padding:40px;color:#dc2626">Failed: ${err.message}</div>`;
+  }
+}
+
+function renderSupervisorCards(list) {
+  const grid = $("#supervisorCards");
+
+  if (!list?.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(sup => `
+    <div class="entity-card" data-chairman="${sup.is_chairman === true}">
+      <div class="entity-card-head">
+        <div class="entity-avatar">${initials(sup.name)}</div>
+        <div class="entity-info">
+          <strong>${sup.name}</strong>
+          <p>${sup.email}</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom:12px">
+        <span class="id-pill">${sup.sup_code || "—"}</span>
+        <span class="id-pill" style="
+          margin-left:6px;
+          background:${sup.is_chairman ? "rgba(191,161,74,.15)" : "rgba(99,102,241,.1)"};
+          color:${sup.is_chairman ? "#9a7e2a" : "#4f46e5"}
+        ">
+          ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
+        </span>
+      </div>
+
+      <div class="entity-stats">
+        <div class="entity-stat-cell">
+          <strong>${sup.teamCount || 0}</strong>
+          <span>Teams</span>
+        </div>
+        <div class="entity-stat-cell">
+          <strong>${sup.whatsapp || "—"}</strong>
+          <span>WhatsApp</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-ghost btn-sm" style="flex:1"
+          onclick="openSupDetail('${sup._id}')">View</button>
+
+        <button class="btn btn-sm"
+          style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
+          onclick="openEditSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">
+          Edit
+        </button>
+
+        <button class="btn btn-sm"
+          style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
+          onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}')">
+          Delete
+        </button>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* ════════════════════════════════════
+   SUPERVISOR DETAIL
 ══════════════════════════════════════ */
 async function openSupDetail(supId) {
   const admin = JSON.parse(localStorage.getItem("admin"));
 
-  // Show detail view immediately with loading state
   $$(".view").forEach(v => v.classList.remove("active"));
   $("#view-sup-detail").classList.add("active");
   $("#supDetailContent").innerHTML = `
-    <div style="padding:60px 20px;text-align:center;color:var(--text-mute)">
-      Loading supervisor details...
-    </div>`;
+    <div style="padding:60px 20px;text-align:center;color:var(--text-mute)">Loading supervisor details...</div>`;
 
   try {
-      const res = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${supId}`, {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      }
+    const res  = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${supId}`, {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
-
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
     const sup    = data.supervisor;
     const groups = data.groups || [];
 
-    // ─── NEW: fetch marks for every group ───
+    // Fetch marks for every group
     for (const group of groups) {
       try {
-          const mRes = await fetch(`http://127.0.0.1:5001/api/admin/marks/group/${group._id}`, {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${admin.token}`
-          }
+        const mRes = await fetch(`http://127.0.0.1:5001/api/admin/marks/group/${group._id}`, {
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
         });
         if (!mRes.ok) continue;
 
         const marksData = await mRes.json();
         const marksList = Array.isArray(marksData) ? marksData
-                       : (Array.isArray(marksData?.marks) ? marksData.marks : []);
+          : (Array.isArray(marksData?.marks) ? marksData.marks : []);
 
-        // Attach marks to each student in the group
-        const allStudents = [
-          group.leader,
-          ...(group.members || [])
-        ].filter(Boolean);
+        const allStudents = [group.leader, ...(group.members || [])].filter(Boolean);
 
         allStudents.forEach(student => {
-          const studentRefId = student._id;
           const markRecord = marksList.find(m => {
             const ref = (typeof m.student === "string") ? m.student : m.student?._id;
-            return ref === studentRefId;
+            return ref === student._id;
           });
 
           if (markRecord) {
@@ -382,19 +403,19 @@ async function openSupDetail(supId) {
               dec: markRecord.monthly?.dec ?? null,
               feb: markRecord.monthly?.feb ?? null,
               mar: markRecord.monthly?.mar ?? null,
-              proposal:        markRecord.submissions?.proposal ?? null,
-              progress_report: markRecord.submissions?.progress ?? null,
-              thesis:          markRecord.documentation?.final ?? null,
-              code:            markRecord.submissions?.code ?? null,
-              prog_sim:        markRecord.submissions?.prog_sim ?? null,
+              proposal:        markRecord.submissions?.proposal  ?? null,
+              progress_report: markRecord.submissions?.progress  ?? null,
+              thesis:          markRecord.documentation?.final   ?? null,
+              code:            markRecord.submissions?.code      ?? null,
+              prog_sim:        markRecord.submissions?.prog_sim  ?? null,
               thesis_sim:      markRecord.submissions?.thesis_sim ?? null,
               iv1: markRecord.viva?.internal1 ?? null,
               iv2: markRecord.viva?.internal2 ?? null,
-              ext: markRecord.viva?.external ?? null,
+              ext: markRecord.viva?.external  ?? null,
             };
             student.total_marks = markRecord.total ?? 0;
           } else {
-            student.marks = {};
+            student.marks       = {};
             student.total_marks = 0;
           }
         });
@@ -402,7 +423,6 @@ async function openSupDetail(supId) {
         console.warn(`Could not load marks for ${group.group_code}:`, err);
       }
     }
-    // ─── END NEW ───
 
     const totalStudents = groups.reduce((sum, g) =>
       sum + (g.members?.length || 0) + (g.leader ? 1 : 0), 0);
@@ -414,58 +434,36 @@ async function openSupDetail(supId) {
           <h2>${sup.name}</h2>
           <p>${sup.email}</p>
           <div class="sup-detail-stats">
-            <div class="sup-detail-stat">
-              <strong>${sup.sup_code || "—"}</strong>
-              <span>SUP ID</span>
-            </div>
-            <div class="sup-detail-stat">
-              <strong>${sup.designation || "Lecturer"}</strong>
-              <span>Designation</span>
-            </div>
-            <div class="sup-detail-stat">
-              📋 <strong>${groups.length}</strong> Teams
-            </div>
-            <div class="sup-detail-stat">
-              👥 <strong>${totalStudents}</strong> Students
-            </div>
+            <div class="sup-detail-stat"><strong>${sup.sup_code || "—"}</strong><span>SUP ID</span></div>
+            <div class="sup-detail-stat"><strong>${sup.designation || "Lecturer"}</strong><span>Designation</span></div>
+            <div class="sup-detail-stat">📋 <strong>${groups.length}</strong> Teams</div>
+            <div class="sup-detail-stat">👥 <strong>${totalStudents}</strong> Students</div>
           </div>
         </div>
       </div>`;
 
-    if (groups.length === 0) {
-      html += `
-        <div class="dash-panel">
-          <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
-            <p>No teams assigned to this supervisor yet.</p>
-          </div>
-        </div>`;
-    } else {
-      html += groups.map(group => renderTeamBlockFromDB(group)).join("");
-    }
+    html += groups.length === 0
+      ? `<div class="dash-panel"><div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">No teams assigned yet.</div></div>`
+      : groups.map(group => renderTeamBlockFromDB(group)).join("");
 
     $("#supDetailContent").innerHTML = html;
 
   } catch (err) {
     console.error(err);
     $("#supDetailContent").innerHTML = `
-      <div style="padding:40px;text-align:center;color:#dc2626">
-        Failed to load: ${err.message}
-      </div>`;
+      <div style="padding:40px;text-align:center;color:#dc2626">Failed to load: ${err.message}</div>`;
   }
 
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /* ════════════════════════════════════
-   RENDER TEAM BLOCK FROM DB
+   TEAM BLOCK WITH MARKS
 ══════════════════════════════════════ */
 function renderTeamBlockFromDB(group) {
-  const leader  = group.leader;
-  const members = group.members || [];
-
   const allStudents = [
-    leader ? { ...leader, role: "Leader" } : null,
-    ...members.map(m => ({ ...m, role: "Member" }))
+    group.leader ? { ...group.leader, role: "Leader" } : null,
+    ...(group.members || []).map(m => ({ ...m, role: "Member" }))
   ].filter(Boolean);
 
   if (allStudents.length === 0) {
@@ -473,7 +471,9 @@ function renderTeamBlockFromDB(group) {
       <div class="team-block">
         <div class="team-block-head">
           <div class="team-block-head-left">
-              <h3>${group.group_code || group.team_code || "—"}</h3>
+            <div class="team-avatar">${(group.group_code || "—").slice(-2)}</div>
+            <div>
+              <h3>${group.group_code || "—"}</h3>
               <p>${group.project_title || "—"} · No students linked</p>
             </div>
           </div>
@@ -481,7 +481,6 @@ function renderTeamBlockFromDB(group) {
       </div>`;
   }
 
-  // Simple headers — no toggles
   const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
     sec.items.map(it => `
       <th title="${sec.section} · max ${it.max}">
@@ -492,12 +491,11 @@ function renderTeamBlockFromDB(group) {
       </th>`)
   ).join("");
 
-  // ✅ FIX: Move cells INSIDE the rows loop
   const rows = allStudents.map(s => {
     const cells = MARKS_SCHEMA.flatMap(sec =>
       sec.items.map(it => {
-        const savedValue = s.marks?.[it.key];
-        const displayValue = (savedValue !== null && savedValue !== undefined) ? savedValue : "";
+        const val = s.marks?.[it.key];
+        const displayValue = (val !== null && val !== undefined) ? val : "";
         return `
           <td class="mark-input-cell">
             <input type="number" min="0" max="${it.max}"
@@ -536,7 +534,9 @@ function renderTeamBlockFromDB(group) {
     <div class="team-block">
       <div class="team-block-head">
         <div class="team-block-head-left">
-            <h3>${group.group_code || group.team_code || "—"}</h3>
+          <div class="team-avatar">${(group.group_code || "—").slice(-2)}</div>
+          <div>
+            <h3>${group.group_code || "—"}</h3>
             <p>${group.project_title || "—"} · ${allStudents.length} students</p>
           </div>
         </div>
@@ -564,6 +564,106 @@ function renderTeamBlockFromDB(group) {
     </div>`;
 }
 
+/* ════════════════════════════════════
+   MARKS — LIVE VALIDATION + SAVE
+══════════════════════════════════════ */
+function onMarkChange(input) {
+  const max = parseInt(input.dataset.max);
+  let val   = parseInt(input.value);
+
+  if (input.value === "") {
+    input.classList.remove("invalid");
+    updateStudentTotal(input.dataset.student);
+    return;
+  }
+
+  if (isNaN(val)) val = 0;
+  if (val < 0)    val = 0;
+  if (val > max) {
+    input.classList.add("invalid");
+    toast("Invalid mark", `Maximum allowed is ${max}`, "warn");
+    val = max;
+    input.value = val;
+  } else {
+    input.classList.remove("invalid");
+  }
+
+  updateStudentTotal(input.dataset.student);
+}
+
+function updateStudentTotal(studentId) {
+  let total = 0;
+  document.querySelectorAll(`.mark-input[data-student="${studentId}"]`).forEach(inp => {
+    if (inp.value !== "") {
+      const v = parseInt(inp.value);
+      if (!isNaN(v) && v >= 0) total += v;
+    }
+  });
+  const el = document.getElementById(`total-${studentId}`);
+  if (el) el.innerHTML = `${total}<span class="out">/${MAX_TOTAL}</span>`;
+}
+
+async function saveTeamMarks(groupId) {
+  const admin  = JSON.parse(localStorage.getItem("admin"));
+  const inputs = document.querySelectorAll(`.mark-input[data-group="${groupId}"]`);
+
+  const marksByStudent = {};
+  inputs.forEach(inp => {
+    const sid = inp.dataset.student;
+    const key = inp.dataset.key;
+    if (!marksByStudent[sid]) marksByStudent[sid] = {};
+    if (inp.value !== "") marksByStudent[sid][key] = parseInt(inp.value) || 0;
+  });
+
+  try {
+    for (const studentId in marksByStudent) {
+      const marks        = marksByStudent[studentId];
+      const monthly      = {};
+      const submissions  = {};
+      const viva         = {};
+      const documentation = {};
+
+      Object.entries(marks).forEach(([key, value]) => {
+        if (["oct","nov","dec","feb","mar"].includes(key)) {
+          monthly[key] = value;
+        } else if (["proposal","progress_report","code","prog_sim","thesis_sim"].includes(key)) {
+          submissions[key === "progress_report" ? "progress" : key] = value;
+        } else if (["iv1","iv2","ext"].includes(key)) {
+          viva[key === "iv1" ? "internal1" : key === "iv2" ? "internal2" : "external"] = value;
+        } else if (key === "thesis") {
+          documentation.final = value;
+        }
+      });
+
+      const res = await fetch("http://127.0.0.1:5001/api/admin/marks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
+        body: JSON.stringify({ student_id: studentId, monthly, submissions, viva, documentation })
+      });
+
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.message || "Save failed");
+      }
+
+      const d = await res.json();
+      const totalEl = document.getElementById(`total-${studentId}`);
+      if (totalEl && d.total !== undefined) {
+        totalEl.innerHTML = `${d.total}<span class="out">/${MAX_TOTAL}</span>`;
+      }
+    }
+
+    toast("Saved", `Marks saved for ${Object.keys(marksByStudent).length} students`, "success");
+
+  } catch (err) {
+    console.error(err);
+    toast("Error", err.message, "error");
+  }
+}
+
+/* ════════════════════════════════════
+   TEAMS
+══════════════════════════════════════ */
 async function renderTeams() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = $("#teamsTable tbody");
@@ -573,11 +673,9 @@ async function renderTeams() {
     const res = await fetch("http://127.0.0.1:5001/api/groups", {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
-
     const ct = res.headers.get("content-type") || "";
-    if (!ct.includes("application/json")) {
-      throw new Error("Server returned HTML — route not registered");
-    }
+    if (!ct.includes("application/json")) throw new Error("Server returned HTML — route not registered");
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
@@ -588,21 +686,74 @@ async function renderTeams() {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   PASTE THESE TWO FUNCTIONS into your admin.js
+   replacing the existing renderTeamsTable and renderStudentsTable
+══════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────────────────────────
+   TEAMS TABLE — now includes Proposal status + approve/reject
+──────────────────────────────────────────────────────────────*/
 function renderTeamsTable(list) {
   const tbody = $("#teamsTable tbody");
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-mute)">No teams found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">No teams found.</td></tr>`;
     return;
   }
+
   tbody.innerHTML = list.map(g => {
-    const sup      = g.supervisor;
-    const supName  = sup ? sup.name : "Unassigned";
-    const teamCode = g.group_code || g.team_code || "—";
+    const supName    = g.supervisor ? g.supervisor.name : "Unassigned";
+    const teamCode   = g.group_code || g.team_code || "—";
+    const proposalUrl    = g.proposal_url    || "";
+    const proposalStatus = g.proposal_status || "";
+
+    // Proposal badge
+    let proposalBadge = "";
+    if (!proposalUrl) {
+      proposalBadge = `<span style="font-size:.72rem;color:var(--text-mute);font-style:italic">Not submitted</span>`;
+    } else if (proposalStatus === "approved") {
+      proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(21,128,61,.1);color:#15803d">✓ Approved</span>`;
+    } else if (proposalStatus === "rejected") {
+      proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(220,38,38,.08);color:#dc2626">✗ Rejected</span>`;
+    } else {
+      proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(234,179,8,.1);color:#a16207">⏳ Pending</span>`;
+    }
+
+    // Proposal action buttons (only show if submitted)
+    let proposalActions = "";
+    if (proposalUrl) {
+      proposalActions = `
+        <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
+          <button onclick="viewDoc('${proposalUrl}')"
+            style="padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);color:var(--primary);transition:all .2s"
+            onmouseover="this.style.background='var(--primary)';this.style.color='#fff'"
+            onmouseout="this.style.background='rgba(0,75,45,.06)';this.style.color='var(--primary)'">
+            View
+          </button>
+          <button onclick="updateProposalStatus('${g._id}','approved')"
+            style="padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(21,128,61,.2);background:rgba(21,128,61,.06);color:#15803d;transition:all .2s"
+            onmouseover="this.style.background='#15803d';this.style.color='#fff'"
+            onmouseout="this.style.background='rgba(21,128,61,.06)';this.style.color='#15803d'">
+            ✓ Approve
+          </button>
+          <button onclick="updateProposalStatus('${g._id}','rejected')"
+            style="padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:#dc2626;transition:all .2s"
+            onmouseover="this.style.background='#dc2626';this.style.color='#fff'"
+            onmouseout="this.style.background='rgba(220,38,38,.05)';this.style.color='#dc2626'">
+            ✗ Reject
+          </button>
+        </div>`;
+    }
+
     return `
       <tr>
         <td><span class="id-pill gold">${teamCode}</span></td>
         <td>${g.project_title || "—"}</td>
         <td><span style="font-weight:600;color:var(--text)">${supName}</span></td>
+        <td>
+          ${proposalBadge}
+          ${proposalActions}
+        </td>
         <td>
           <div class="action-row">
             <button class="icon-action" title="Reassign supervisor"
@@ -628,21 +779,119 @@ function renderTeamsTable(list) {
   }).join("");
 }
 
-// Open team detail — fetches the team's supervisor and shows their detail page
-async function openTeamDetail(teamId) {
-  const team = TEAMS_DATA.find(t => t._id === teamId);
-  if (!team) {
-    toast("Error", "Team not found", "error");
+/* ────────────────────────────────────────────────────────────
+   STUDENTS TABLE — proposal column removed
+──────────────────────────────────────────────────────────────*/
+/* ══════════════════════════════════════════════════════════════
+   Replace your existing renderStudentsTable in admin.js
+   with this fixed version
+══════════════════════════════════════════════════════════════ */
+
+function renderStudentsTable(list, query = "", matchSet = new Set()) {
+  const tbody = $("#studentsTable tbody");
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
     return;
   }
-  if (team.supervisor && team.supervisor._id) {
+
+  tbody.innerHTML = list.map(s => {
+    const isMatch    = query && matchSet.has(s._id);
+    const supId      = s.group?.supervisor?._id || "";
+    const supName    = s.group?.supervisor?.name || "—";
+    const totalMarks = s.total_marks || 0;
+    const safeName   = (s.name || "").replace(/'/g, "\\'");
+    const whatsapp   = s.whatsapp || "—";
+    const cvUrl      = s.cv_url || "";
+
+    // CV badge only — no proposal anything
+    const cvBadge = cvUrl
+      ? `<div class="doc-badge available" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;font-size:.72rem;font-weight:600;background:rgba(0,75,45,.08);color:var(--primary);border:1px solid rgba(0,75,45,.15)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          CV
+          <button class="doc-btn" title="View CV" onclick="viewDoc('${cvUrl}')" style="background:none;border:none;cursor:pointer;padding:0;display:inline-flex;color:inherit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>`
+      : `<span style="font-size:.72rem;color:var(--text-mute);font-style:italic">No CV</span>`;
+
+    return `
+      <tr class="${isMatch ? "search-match" : ""}">
+
+        <td>
+          <div class="team-info">
+            <strong>${highlightText(s.name, query)}</strong>
+            <span style="display:block;font-size:.8rem;color:var(--text-mute)">${s.email || ""}</span>
+            <span style="display:block;font-size:.7rem;color:#15803d;font-weight:600;margin-top:2px">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"
+                   style="display:inline;vertical-align:middle;margin-right:3px">
+                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+              </svg>
+              ${whatsapp}
+            </span>
+          </div>
+        </td>
+
+        <td><span class="id-pill">${highlightText(s.student_code || "—", query)}</span></td>
+
+        <td style="font-weight:600;color:var(--text)">${highlightText(supName, query)}</td>
+
+        <td>
+          <strong style="font-family:monospace;color:var(--primary)">
+            ${totalMarks}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span>
+          </strong>
+        </td>
+
+        <td>${cvBadge}</td>
+
+        <td>
+          <div style="display:flex;flex-direction:row;gap:6px;align-items:center">
+            <button class="icon-action" title="View marks"
+              onclick="${supId
+                ? `openSupDetail('${supId}')`
+                : `toast('No supervisor','Student is not in a team yet','warn')`}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="icon-action" title="Delete student" style="color:#dc2626"
+              onclick="deleteStudent('${s._id}','${safeName}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+            </button>
+          </div>
+        </td>
+
+      </tr>`;
+  }).join("");
+}
+
+async function openTeamDetail(teamId) {
+  const team = TEAMS_DATA.find(t => t._id === teamId);
+  if (!team) { toast("Error", "Team not found", "error"); return; }
+  if (team.supervisor?._id) {
     openSupDetail(team.supervisor._id);
   } else {
     toast("No supervisor", "This team has no supervisor assigned yet", "warn");
   }
 }
 
-
+/* ════════════════════════════════════
+   REASSIGN SUPERVISOR
+══════════════════════════════════════ */
 let reassignTeamId = null;
 
 function openReassignModal(teamId) {
@@ -666,16 +915,17 @@ function openReassignModal(teamId) {
   $("#reassignModal").classList.add("open");
 }
 
+function closeReassignModal() {
+  $("#reassignModal").classList.remove("open");
+}
+
 async function confirmReassign() {
   const newSupId = $("#newSup").value;
-  if (!newSupId) {
-    toast("Select a supervisor", "Please choose a new supervisor", "error");
-    return;
-  }
+  if (!newSupId) { toast("Select a supervisor", "Please choose a new supervisor", "error"); return; }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch(`http://127.0.0.1:5001/api/groups/${reassignTeamId}/reassign`, {
+    const res  = await fetch(`http://127.0.0.1:5001/api/groups/${reassignTeamId}/reassign`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ supervisor_id: newSupId })
@@ -686,121 +936,22 @@ async function confirmReassign() {
     closeReassignModal();
     await renderTeams();
     await renderSupervisors();
-    toast("Supervisor reassigned", `Updated successfully`, "success");
+    toast("Supervisor reassigned", "Updated successfully", "success");
   } catch (err) {
-    toast("Error", err.message, "error");
-  }
-}
-
-/* Live mark validation + total update */
-function onMarkChange(input) {
-  const max = parseInt(input.dataset.max);
-  let val = parseInt(input.value);
-
-  if (input.value === "") {
-    input.classList.remove("invalid");
-    updateStudentTotal(input.dataset.student);
-    return;
-  }
-
-  if (isNaN(val)) val = 0;
-  if (val < 0) val = 0;
-  if (val > max) {
-    input.classList.add("invalid");
-    toast("Invalid mark", `Maximum allowed is ${max}`, "warn");
-    val = max;
-    input.value = val;
-  } else {
-    input.classList.remove("invalid");
-  }
-
-  updateStudentTotal(input.dataset.student);
-}
-
-function updateStudentTotal(studentId) {
-  let total = 0;
-  document.querySelectorAll(`.mark-input[data-student="${studentId}"]`).forEach(inp => {
-    if (inp.value !== "") {
-      const v = parseInt(inp.value);
-      if (!isNaN(v) && v >= 0) total += v;
-    }
-  });
-  const el = document.getElementById(`total-${studentId}`);
-  if (el) {
-    el.innerHTML = `${total}<span class="out">/${MAX_TOTAL}</span>`;
-  }
-}
-
-// Update saveTeamMarks to show real time total after backend confirms
-async function saveTeamMarks(groupId) {
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  const inputs = document.querySelectorAll(`.mark-input[data-group="${groupId}"]`);
-
-  const marksByStudent = {};
-  inputs.forEach(inp => {
-    const sid = inp.dataset.student;
-    const key = inp.dataset.key;
-    if (!marksByStudent[sid]) marksByStudent[sid] = {};
-    if (inp.value !== "") {
-      marksByStudent[sid][key] = parseInt(inp.value) || 0;
-    }
-  });
-
-  try {
-    for (const studentId in marksByStudent) {
-      const marks = marksByStudent[studentId];
-
-      const monthly = {}, submissions = {}, viva = {}, documentation = {};
-
-      Object.entries(marks).forEach(([key, value]) => {
-        if (["oct","nov","dec","feb","mar"].includes(key)) {
-          monthly[key] = value;
-        } else if (["proposal","progress_report","code","prog_sim","thesis_sim"].includes(key)) {
-          submissions[key === "progress_report" ? "progress" : key] = value;
-        } else if (["iv1","iv2","ext"].includes(key)) {
-          viva[key === "iv1" ? "internal1" : key === "iv2" ? "internal2" : "external"] = value;
-        } else if (key === "thesis") {
-          documentation.final = value;
-        }
-      });
-
-      const res = await fetch("http://127.0.0.1:5001/api/admin/marks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-        body: JSON.stringify({ student_id: studentId, monthly, submissions, viva, documentation })
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.message || "Save failed");
-      }
-
-      const data = await res.json();
-
-      const totalEl = document.getElementById(`total-${studentId}`);
-      if (totalEl && data.total !== undefined) {
-        totalEl.innerHTML = `${data.total}<span class="out">/${MAX_TOTAL}</span>`;
-      }
-    }
-
-    toast("Saved", `Marks saved for ${Object.keys(marksByStudent).length} students`, "success");
-
-  } catch (err) {
-    console.error(err);
     toast("Error", err.message, "error");
   }
 }
 
 /* ════════════════════════════════════
-   RENDER: STUDENTS
+   STUDENTS
 ══════════════════════════════════════ */
 async function renderStudents() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = $("#studentsTable tbody");
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/admin/students", {
+    const res  = await fetch("http://127.0.0.1:5001/api/admin/students", {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -809,14 +960,92 @@ async function renderStudents() {
     STUDENTS_DATA = Array.isArray(data) ? data : data.students || [];
     renderStudentsTable(STUDENTS_DATA);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:30px">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#dc2626;padding:30px">${err.message}</td></tr>`;
   }
 }
+
+function renderStudentsTable(list, query = "", matchSet = new Set()) {
+  const tbody = $("#studentsTable tbody");
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(s => {
+    const isMatch          = query && matchSet.has(s._id);
+    const supId            = s.group?.supervisor?._id || "";
+    const supName          = s.group?.supervisor?.name || "—";
+    const totalMarks       = s.total_marks || 0;
+    const safeName         = (s.name || "").replace(/'/g, "\\'");
+    const whatsapp         = s.whatsapp || "—";
+    const cvUrl            = s.cv_url || "";
+    const proposalUrl      = s.group?.proposal_url || "";
+    const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
+    const proposalStatus   = s.group?.proposal_status || "";
+
+    return `
+      <tr class="${isMatch ? "search-match" : ""}">
+
+        <td>
+          <div class="team-info">
+            <strong>${highlightText(s.name, query)}</strong>
+            <span style="display:block">${s.email || ""}</span>
+            <span style="display:block;font-size:.7rem;color:var(--success);font-weight:600">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"
+                   style="display:inline;vertical-align:middle;margin-right:3px">
+                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+              </svg>
+              ${whatsapp}
+            </span>
+          </div>
+        </td>
+
+        <td><span class="id-pill">${highlightText(s.student_code || "—", query)}</span></td>
+
+        <td>${highlightText(supName, query)}</td>
+
+        <td>
+          <strong style="font-family:monospace;color:var(--primary)">
+            ${totalMarks}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span>
+          </strong>
+        </td>
+
+        <td>
+          <div class="doc-cell">
+            ${renderDocBadge("CV", cvUrl, true, safeName)}
+            ${renderDocBadge("Proposal", proposalUrl, false, safeName, proposalUploader, proposalStatus)}
+          </div>
+        </td>
+        <td>
+          <div class="action-row">
+            <button class="icon-action" title="View supervisor"
+              onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+            <button class="icon-action danger" title="Delete student" style="color:#dc2626"
+              onclick="deleteStudent('${s._id}','${safeName}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+            </button>
+          </div>
+        </td>
+
+      </tr>`;
+  }).join("");
+}
+
 /* ════════════════════════════════════
-   DOCUMENT BADGES — CV / Proposal
-══════════════════════════════════════ */
-/* ════════════════════════════════════
-   DOCUMENT BADGES — CV / Proposal
+   DOCUMENT BADGES
 ══════════════════════════════════════ */
 function renderDocBadge(label, url, required, studentName, uploaderName = "", status = "") {
   if (!url) {
@@ -859,276 +1088,61 @@ function renderDocBadge(label, url, required, studentName, uploaderName = "", st
 
 function viewDoc(url) {
   if (!url) return toast("No document", "File not available", "warn");
-  window.open(url, "_blank", "noopener");
+  window.open(`http://127.0.0.1:5001${url}`, "_blank", "noopener");
 }
 
 function downloadDoc(url, filename) {
   if (!url) return toast("No document", "File not available", "warn");
-  // Cloudinary trick: fl_attachment forces download instead of inline preview
-  const downloadUrl = url.replace("/upload/", "/upload/fl_attachment/");
   const a = document.createElement("a");
-  a.href = downloadUrl;
+  a.href     = `http://127.0.0.1:5001${url}`;
   a.download = (filename || "document").replace(/[^\w\-]/g, "_");
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
 }
 
-
-
-function toggleMarkEnabled(groupId, key, enabled) {
-  // Update the status label under the toggle
-  const statusEl = document.getElementById(`toggle-status-${groupId}-${key}`);
-  if (statusEl) {
-    statusEl.textContent = enabled ? "Open" : "Locked";
-    statusEl.style.color = enabled ? "var(--success, #15803d)" : "var(--danger, #dc2626)";
-  }
-
-  // Save toggle state to backend so supervisor sees it
-  saveMarkToggle(groupId, key, enabled);
-
-  toast(
-    enabled ? "Mark unlocked" : "Mark locked",
-    `Supervisor ${enabled ? "can now edit" : "cannot edit"} this mark`,
-    enabled ? "success" : "warn"
-  );
-}
-
-// Send toggle state to backend
-async function saveMarkToggle(groupId, key, enabled) {
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  try {
-    await fetch(`http://127.0.0.1:5001/api/admin/mark-toggle`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      },
-      body: JSON.stringify({ group_id: groupId, mark_key: key, enabled })
-    });
-  } catch (err) {
-    console.error("Failed to save toggle:", err);
-  }
-}
 /* ════════════════════════════════════
-   RENDER: MARKS (overview)
+   PROPOSAL STATUS
 ══════════════════════════════════════ */
-// ✅ NEW renderMarks — fetches from DB instead of hardcoded array
-async function renderMarks() {
+async function updateProposalStatus(groupId, status) {
+  if (!groupId) return;
+
+  let reason = "";
+  if (status === "rejected") {
+    reason = prompt("Enter rejection reason (optional):");
+    if (reason === null) return; // cancelled
+  }
+
   const admin = JSON.parse(localStorage.getItem("admin"));
-  const tbody = $("#marksTable tbody");
-  if (!tbody) return;
-
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/admin/students", {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      }
+    const res  = await fetch(`http://127.0.0.1:5001/api/groups/${groupId}/proposal-status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
+      body: JSON.stringify({ status, reason })
     });
-
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
-    const students = Array.isArray(data) ? data : data.students || [];
-
-    if (!students.length) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:30px;color:var(--text-mute)">No students yet.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = students.map(s => `
-      <tr>
-        <td><strong>${s.name}</strong></td>
-        <td><span class="id-pill">${s.student_code || "—"}</span></td>
-        <td>
-          <strong style="font-family:monospace;color:var(--primary)">
-            — <span style="color:var(--text-mute);font-weight:500">/ 200</span>
-          </strong>
-        </td>
-      </tr>`
-    ).join("");
-
+    toast(
+      status === "approved" ? "Proposal Approved ✓" : "Proposal Rejected",
+      data.message || "",
+      status === "approved" ? "success" : "warn"
+    );
+    await renderStudents();
   } catch (err) {
-    console.error(err);
-    if (tbody) tbody.innerHTML = `<tr><td colspan="3" style="color:#dc2626;text-align:center;padding:20px">Failed to load marks: ${err.message}</td></tr>`;
-  }
-}
-
-/* ════════════════════════════════════
-   ADD SUPERVISOR MODAL
-══════════════════════════════════════ */
-function openSupervisorModal() {
-  $("#generatedSupId").textContent = generateSupId();
-  $("#supName").value = "";
-  $("#supEmail").value = "";
-  if ($("#supPassword")) $("#supPassword").value = "";          
-  if ($("#forceChange")) $("#forceChange").checked = true;
-  const pwdHelp = $("#pwdHelp");
-  if (pwdHelp) {
-    pwdHelp.textContent = "Minimum 8 characters · Will be sent to supervisor via email";
-    pwdHelp.className = "form-help";
-  }
-  $("#supervisorModal").classList.add("open");
-}
-function closeSupervisorModal() {
-  $("#supervisorModal").classList.remove("open");
-}
-
-async function submitSupervisor() {
-  const admin = JSON.parse(localStorage.getItem("admin"));
-
-  const name        = $("#supName").value.trim();
-  const email       = $("#supEmail").value.trim();
-  const pwd         = $("#supPassword").value.trim();
-  const designation = $("#supDesignation")?.value.trim() || "";
-  const office      = $("#supOffice")?.value.trim() || "";
-  const whatsapp    = $("#supWhatsapp")?.value.trim() || "";
-  const isChairman  = $("#supRole")?.value === "chairman";
-
-  console.log("isChairman:", isChairman);
-
-  // ✅ BASIC VALIDATION
-  if (!name || !email || !pwd) {
-    toast("Missing fields", "Name, email and password are required", "error");
-    return;
-  }
-
-  try {
-    const res = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}` 
-      },
-      body: JSON.stringify({
-        name,
-        email,
-        password: pwd,
-        designation,
-        office,
-        whatsapp,
-        is_chairman: isChairman 
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.message);
-
-    toast("Success", "Supervisor created successfully", "success");
-    closeSupervisorModal();
-    renderSupervisors();
-
-  } catch (err) {
-    console.error(err);
     toast("Error", err.message, "error");
   }
-}
-/* ════════════════════════════════════
-   REASSIGN MODAL
-══════════════════════════════════════ */
-function closeReassignModal() {
-  $("#reassignModal").classList.remove("open");
-}
-
-/* ════════════════════════════════════
-   CLOSE MODALS
-══════════════════════════════════════ */
-$$(".modal-overlay").forEach((overlay) => {
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) overlay.classList.remove("open");
-  });
-});
-
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape")
-    $$(".modal-overlay.open").forEach((m) => m.classList.remove("open"));
-});
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("searchSupervisors")?.addEventListener("input", e => {
-    filterSupervisors(e.target.value);
-  });
-  document.getElementById("searchTeams")?.addEventListener("input", e => {
-    filterTeams(e.target.value);
-  });
-  document.getElementById("searchStudents")?.addEventListener("input", e => {
-    filterStudents(e.target.value);
-  });
-});
-
-
-function filterStudents(query) {
-  const q = (query || "").trim().toLowerCase();
-  const filtered = STUDENTS_DATA.filter(s =>
-    s.name?.toLowerCase().includes(q) ||
-    s.email?.toLowerCase().includes(q) ||
-    s.student_code?.toLowerCase().includes(q)
-  );
-  renderStudentsTable(filtered);
-}
-/* ════════════════════════════════════
-   FETCH REAL DASHBOARD STATS
-══════════════════════════════════════ */
-async function fetchDashboardStats() {
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  if (!admin || !admin.token) return console.error("No admin token found");
-
-  try {
-    const res = await fetch("http://127.0.0.1:5001/api/admin/stats", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      }
-    });
-    const data = await res.json();
-    if (!res.ok) return console.error("Stats fetch failed:", data.message);
-
-    updateDashboardStats(data.stats);
-    updateSidebarBadges(data.stats);
-    if (data.stats.marks) updateMarksSummary(data.stats.marks);
-  } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
-  }
-}
-
-function updateDashboardStats(stats) {
-  const cards = document.querySelectorAll(".dstat-card");
-  if (cards[0]) cards[0].querySelector(".dstat-value").textContent = stats.students;
-  if (cards[1]) cards[1].querySelector(".dstat-value").textContent = stats.supervisors;
-  if (cards[2]) cards[2].querySelector(".dstat-value").textContent = stats.teams;
-}
-
-function updateSidebarBadges(stats) {
-  document.querySelectorAll(".nav-item").forEach(item => {
-    const view = item.dataset.view;
-    const badge = item.querySelector(".nav-item-badge");
-    if (!badge) return;
-    if (view === "supervisors") badge.textContent = stats.supervisors;
-    else if (view === "teams")  badge.textContent = stats.teams;
-    else if (view === "students") badge.textContent = stats.students;
-  });
-}
-
-function updateMarksSummary(marksData) {
-  const stats = document.querySelectorAll(".marks-stat");
-  if (stats[0]) stats[0].querySelector(".marks-stat-value").innerHTML =
-    `${marksData.avgScore}<span style="font-size:.9rem;color:var(--text-mute);font-weight:600">/180</span>`;
-  if (stats[1]) stats[1].querySelector(".marks-stat-value").textContent = marksData.topScore;
-  if (stats[2]) stats[2].querySelector(".marks-stat-value").textContent = marksData.pendingMarks;
-  if (stats[3]) stats[3].querySelector(".marks-stat-value").textContent = `${marksData.completedPct}%`;
 }
 
 /* ════════════════════════════════════
    DELETE STUDENT
 ══════════════════════════════════════ */
 async function deleteStudent(studentId, studentName) {
-  if (!confirm(`Delete ${studentName}?\n\nThis will also remove them from their team. If they're a team leader, the entire team will be deleted.`)) return;
+  if (!confirm(`Delete ${studentName}?\n\nThis will also remove them from their team. If they're the team leader, the entire team will be deleted.`)) return;
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch(`http://127.0.0.1:5001/api/admin/student/${studentId}`, {
+    const res  = await fetch(`http://127.0.0.1:5001/api/admin/student/${studentId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
@@ -1145,321 +1159,33 @@ async function deleteStudent(studentId, studentName) {
   }
 }
 
-function logout() {
-  localStorage.removeItem("admin");
-  window.location.href = "./login.html";
-}
-
-/* ════════════════════════════════════
-   SEARCH HELPERS
-══════════════════════════════════════ */
-function escapeHtml(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c =>
-    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c])
-  );
-}
-function highlightText(text, query) {
-  const safe = escapeHtml(text);
-  if (!query) return safe;
-  const q = query.trim();
-  if (!q) return safe;
-  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
-  return safe.replace(re, '<mark class="q-hl">$1</mark>');
-}
-function matches(haystack, query) {
-  if (!query) return true;
-  return String(haystack ?? "").toLowerCase().includes(query.trim().toLowerCase());
-}
-
-/* ════════════════════════════════════
-   STUDENTS TABLE — with Documents + Action buttons
-══════════════════════════════════════ */
-function renderStudentsTable(list, query = "", matchSet = new Set()) {
-  const tbody = $("#studentsTable tbody");
-
-  if (!list.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="8" style="text-align:center;padding:40px;color:var(--text-mute)">
-          No students found.
-        </td>
-      </tr>`;
-    return;
-  }
-
-  tbody.innerHTML = list.map(s => {
-
-    const isMatch    = query && matchSet.has(s._id);
-
-    const supId      = s.group?.supervisor?._id || "";
-    const supName    = s.group?.supervisor?.name || "—";
-
-    const totalMarks = s.total_marks || 0;
-
-    const safeName   = (s.name || "").replace(/'/g, "\\'");
-
-    const whatsapp   = s.whatsapp || "—";
-
-    const cvUrl            = s.cv_url || "";
-
-    const proposalUrl      = s.group?.proposal_url || "";
-    const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
-    const proposalStatus   = s.group?.proposal_status || "";
-
-    return `
-      <tr class="${isMatch ? "search-match" : ""}">
-
-        <!-- STUDENT INFO -->
-        <td>
-          <div class="team-info">
-            <strong>${highlightText(s.name, query)}</strong>
-
-            <span style="display:block">
-              ${s.email || ""}
-            </span>
-
-            <span style="
-              display:block;
-              font-size:.7rem;
-              color:var(--success);
-              font-weight:600
-            ">
-              <svg viewBox="0 0 24 24"
-                   fill="currentColor"
-                   width="11"
-                   height="11"
-                   style="display:inline;vertical-align:middle;margin-right:3px">
-                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
-              </svg>
-              ${whatsapp}
-            </span>
-          </div>
-        </td>
-
-        <!-- STUDENT CODE -->
-        <td>
-          <span class="id-pill">
-            ${highlightText(s.student_code || "—", query)}
-          </span>
-        </td>
-
-        <!-- SUPERVISOR -->
-        <td>
-          ${highlightText(supName, query)}
-        </td>
-
-        <!-- MARKS -->
-        <td>
-          <strong style="
-            font-family:monospace;
-            color:var(--primary)
-          ">
-            ${totalMarks}
-            <span style="
-              color:var(--text-mute);
-              font-weight:500
-            ">
-              /${MAX_TOTAL}
-            </span>
-          </strong>
-        </td>
-
-        <!-- DOCUMENTS -->
-        <td>
-          <div class="doc-cell">
-            ${renderDocBadge("CV", cvUrl, true, safeName)}
-
-            ${renderDocBadge(
-              "Proposal",
-              proposalUrl,
-              false,
-              safeName,
-              proposalUploader,
-              proposalStatus
-            )}
-          </div>
-        </td>
-
-        <!-- PROPOSAL ACTIONS -->
-        <td>
-
-          ${proposalUrl ? `
-
-            <div style="
-              display:flex;
-              flex-direction:column;
-              gap:5px
-            ">
-
-              <button
-                onclick="updateProposalStatus('${s.group?._id}','approved')"
-
-                style="
-                  padding:4px 10px;
-                  border-radius:6px;
-                  font-size:.68rem;
-                  font-weight:700;
-                  cursor:pointer;
-                  border:none;
-                  background:rgba(21,128,61,.12);
-                  color:#15803d;
-                  transition:all .2s
-                "
-
-                onmouseover="
-                  this.style.background='#15803d';
-                  this.style.color='#fff'
-                "
-
-                onmouseout="
-                  this.style.background='rgba(21,128,61,.12)';
-                  this.style.color='#15803d'
-                "
-              >
-                ✓ Approve
-              </button>
-
-              <button
-                onclick="updateProposalStatus('${s.group?._id}','rejected')"
-
-                style="
-                  padding:4px 10px;
-                  border-radius:6px;
-                  font-size:.68rem;
-                  font-weight:700;
-                  cursor:pointer;
-                  border:none;
-                  background:rgba(220,38,38,.08);
-                  color:#dc2626;
-                  transition:all .2s
-                "
-
-                onmouseover="
-                  this.style.background='#dc2626';
-                  this.style.color='#fff'
-                "
-
-                onmouseout="
-                  this.style.background='rgba(220,38,38,.08)';
-                  this.style.color='#dc2626'
-                "
-              >
-                ✗ Reject
-              </button>
-
-            </div>
-
-          ` : `
-
-            <span style="
-              font-size:.72rem;
-              color:var(--text-mute)
-            ">
-              No proposal
-            </span>
-
-          `}
-        </td>
-
-        <!-- ACTIONS -->
-        <td>
-          <div class="action-row">
-
-            <!-- VIEW SUPERVISOR -->
-            <button
-              class="icon-action"
-              title="View supervisor"
-
-              onclick="${
-                supId
-                  ? `openSupDetail('${supId}')`
-                  : `toast('No supervisor','Student is not in a team yet','warn')`
-              }"
-            >
-              <svg viewBox="0 0 24 24"
-                   fill="none"
-                   stroke="currentColor"
-                   stroke-width="2"
-                   stroke-linecap="round"
-                   stroke-linejoin="round">
-
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </button>
-
-            <!-- DELETE -->
-            <button
-              class="icon-action danger"
-              title="Delete student"
-              style="color:#dc2626"
-
-              onclick="deleteStudent('${s._id}', '${safeName}')"
-            >
-              <svg viewBox="0 0 24 24"
-                   fill="none"
-                   stroke="currentColor"
-                   stroke-width="2"
-                   stroke-linecap="round"
-                   stroke-linejoin="round">
-
-                <polyline points="3 6 5 6 21 6"/>
-
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-
-                <line x1="10" y1="11" x2="10" y2="17"/>
-
-                <line x1="14" y1="11" x2="14" y2="17"/>
-              </svg>
-            </button>
-
-          </div>
-        </td>
-
-      </tr>
-    `;
-
-  }).join("");
-}
-
 /* ════════════════════════════════════
    SEARCH FILTERS
 ══════════════════════════════════════ */
 function filterSupervisors(query) {
   if (!Array.isArray(SUPERVISORS_DATA)) return;
-
-  const q = (query || "").trim().toLowerCase();
-
+  const q       = (query || "").trim().toLowerCase();
   const matched = [];
-  const rest = [];
+  const rest    = [];
 
   SUPERVISORS_DATA.forEach(sup => {
-    const hit =
-      !q ||
-      (sup.name || "").toLowerCase().includes(q) ||
-      (sup.sup_code || "").toLowerCase().includes(q) ||
-      (sup.email || "").toLowerCase().includes(q);
-
+    const hit = !q
+      || (sup.name    || "").toLowerCase().includes(q)
+      || (sup.sup_code|| "").toLowerCase().includes(q)
+      || (sup.email   || "").toLowerCase().includes(q);
     (hit ? matched : rest).push(sup);
   });
 
   const grid = $("#supervisorCards");
-
   if (!SUPERVISORS_DATA.length) {
-    grid.innerHTML = `
-      <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">
-        No supervisors found.
-      </div>`;
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
     return;
   }
 
   grid.innerHTML = [...matched, ...rest].map(sup => {
     const isMatch = q && matched.some(m => m._id === sup._id);
-
     return `
       <div class="entity-card ${isMatch ? "search-match" : ""}">
-      
         <div class="entity-card-head">
           <div class="entity-avatar">${initials(sup.name)}</div>
           <div class="entity-info">
@@ -1467,93 +1193,46 @@ function filterSupervisors(query) {
             <p>${highlightText(sup.email || "", q)}</p>
           </div>
         </div>
-
         <div style="margin-bottom:12px">
           <span class="id-pill">${highlightText(sup.sup_code || "—", q)}</span>
-          <span class="id-pill" style="
-            margin-left:6px;
-            background:${sup.is_chairman ? 'rgba(191,161,74,.15)' : 'rgba(99,102,241,.1)'};
-            color:${sup.is_chairman ? '#9a7e2a' : '#4f46e5'}
-          ">
+          <span class="id-pill" style="margin-left:6px;background:${sup.is_chairman ? "rgba(191,161,74,.15)" : "rgba(99,102,241,.1)"};color:${sup.is_chairman ? "#9a7e2a" : "#4f46e5"}">
             ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
           </span>
         </div>
-
         <div class="entity-stats">
-          <div class="entity-stat-cell">
-            <strong>${sup.teamCount || 0}</strong>
-            <span>Teams</span>
-          </div>
-
-          <div class="entity-stat-cell">
-            <strong>${highlightText(sup.whatsapp || "—", q)}</strong>
-            <span>WhatsApp</span>
-          </div>
+          <div class="entity-stat-cell"><strong>${sup.teamCount || 0}</strong><span>Teams</span></div>
+          <div class="entity-stat-cell"><strong>${highlightText(sup.whatsapp || "—", q)}</strong><span>WhatsApp</span></div>
         </div>
-
-        <!-- ACTION BUTTONS -->
         <div style="display:flex;gap:8px;margin-top:12px">
-
-          <button 
-            class="btn btn-ghost btn-sm"
-            style="flex:1"
-            onclick="openSupDetail('${sup._id}')">
-            View
-          </button>
-
-          <button 
-            class="btn btn-sm"
-            style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
-            onclick="openEditSupModal(
-              '${sup._id}',
-              '${(sup.name || "").replace(/'/g, "\\'")}',
-              '${(sup.email || "").replace(/'/g, "\\'")}',
-              '${(sup.whatsapp || "").replace(/'/g, "\\'")}',
-              '${sup.is_chairman ? "chairman" : "supervisor"}'
-            )">
-            Edit
-          </button>
-
-          <button 
-            class="btn btn-sm"
-            style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
-            onclick="event.stopPropagation(); openDeleteSupModal('${sup._id}', '${(sup.name || "").replace(/'/g, "\\'")}')">
-            Delete
-          </button>
-
+          <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openSupDetail('${sup._id}')">View</button>
+          <button class="btn btn-sm" style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
+            onclick="openEditSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">Edit</button>
+          <button class="btn btn-sm" style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
+            onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}')">Delete</button>
         </div>
-
       </div>`;
   }).join("");
 }
 
 function filterTeams(query) {
   if (!Array.isArray(TEAMS_DATA)) return;
-  const q = (query || "").trim().toLowerCase();
-
+  const q       = (query || "").trim().toLowerCase();
   const matched = [], rest = [];
+
   TEAMS_DATA.forEach(g => {
-    const supName = g.supervisor?.name || "";
-    const supCode = g.supervisor?.sup_code || "";
-    const code    = g.group_code || g.team_code || "";
     const hit = !q
-      || matches(code, q)
+      || matches(g.group_code || g.team_code, q)
       || matches(g.project_title, q)
-      || matches(supName, q)
-      || matches(supCode, q);
+      || matches(g.supervisor?.name, q)
+      || matches(g.supervisor?.sup_code, q);
     (hit ? matched : rest).push(g);
   });
 
   const matchSet = new Set(matched.map(g => g._id));
-  const tbody = $("#teamsTable tbody");
-  if (![...matched, ...rest].length) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-mute)">No teams found.</td></tr>`;
-    return;
-  }
+  const tbody    = $("#teamsTable tbody");
 
   tbody.innerHTML = [...matched, ...rest].map(g => {
-    const sup      = g.supervisor;
-    const supName  = sup ? sup.name : "Unassigned";
+    const supName  = g.supervisor ? g.supervisor.name : "Unassigned";
     const teamCode = g.group_code || g.team_code || "—";
     const isMatch  = q && matchSet.has(g._id);
     return `
@@ -1582,9 +1261,9 @@ function filterTeams(query) {
 
 function filterStudents(query) {
   if (!Array.isArray(STUDENTS_DATA)) return;
-  const q = (query || "").trim().toLowerCase();
-
+  const q       = (query || "").trim().toLowerCase();
   const matched = [], rest = [];
+
   STUDENTS_DATA.forEach(s => {
     const hit = !q
       || matches(s.name, q)
@@ -1598,6 +1277,178 @@ function filterStudents(query) {
 }
 
 /* ════════════════════════════════════
+   ADD SUPERVISOR MODAL
+══════════════════════════════════════ */
+function generateSupId() {
+  const list = SUPERVISORS_DATA || [];
+  const year = new Date().getFullYear();
+  if (!list.length) return `SUP-${year}0001`;
+
+  const numbers = list
+    .map(s => {
+      const match = (s.sup_code || "").match(/SUP-\d{4}(\d+)/);
+      return match ? parseInt(match[1]) : 0;
+    })
+    .filter(n => !isNaN(n));
+
+  const max = numbers.length ? Math.max(...numbers) : 0;
+  return `SUP-${year}${String(max + 1).padStart(4, "0")}`;
+}
+
+function generatePassword() {
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghjkmnpqrstuvwxyz";
+  const nums  = "23456789";
+  const syms  = "!@#$%&*";
+
+  let pwd = "";
+  pwd += upper[Math.floor(Math.random() * upper.length)];
+  pwd += upper[Math.floor(Math.random() * upper.length)];
+  pwd += lower[Math.floor(Math.random() * lower.length)];
+  pwd += lower[Math.floor(Math.random() * lower.length)];
+  pwd += nums[Math.floor(Math.random() * nums.length)];
+  pwd += nums[Math.floor(Math.random() * nums.length)];
+  pwd += syms[Math.floor(Math.random() * syms.length)];
+  pwd += lower[Math.floor(Math.random() * lower.length)];
+  pwd = pwd.split("").sort(() => Math.random() - 0.5).join("");
+
+  $("#supPassword").value   = pwd;
+  $("#pwdHelp").textContent = "✓ Password generated — copy it before saving";
+  $("#pwdHelp").className   = "form-help success";
+}
+
+function openSupervisorModal() {
+  $("#generatedSupId").textContent = generateSupId();
+  $("#supName").value  = "";
+  $("#supEmail").value = "";
+  if ($("#supPassword"))  $("#supPassword").value   = "";
+  if ($("#forceChange"))  $("#forceChange").checked = true;
+  const pwdHelp = $("#pwdHelp");
+  if (pwdHelp) {
+    pwdHelp.textContent = "Minimum 8 characters · Will be sent to supervisor via email";
+    pwdHelp.className   = "form-help";
+  }
+  $("#supervisorModal").classList.add("open");
+}
+
+function closeSupervisorModal() {
+  $("#supervisorModal").classList.remove("open");
+}
+
+async function submitSupervisor() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+
+  const name       = $("#supName").value.trim();
+  const email      = $("#supEmail").value.trim();
+  const pwd        = $("#supPassword").value.trim();
+  const whatsapp   = $("#supWhatsapp")?.value.trim()   || "";
+  const isChairman = $("#supRole")?.value === "chairman";
+
+  if (!name || !email || !pwd) {
+    toast("Missing fields", "Name, email and password are required", "error");
+    return;
+  }
+
+  try {
+    const res  = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
+      body: JSON.stringify({ name, email, password: pwd, whatsapp, is_chairman: isChairman })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    toast("Success", "Supervisor created successfully", "success");
+    closeSupervisorModal();
+    await renderSupervisors();
+    await fetchDashboardStats();
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
+
+/* ════════════════════════════════════
+   EDIT SUPERVISOR
+══════════════════════════════════════ */
+function openEditSupModal(id, name, email, whatsapp, role) {
+  document.getElementById("editSupId").value       = id;
+  document.getElementById("editSupName").value     = name;
+  document.getElementById("editSupEmail").value    = email;
+  document.getElementById("editSupWhatsapp").value = whatsapp;
+  document.getElementById("editSupRole").value     = role;
+  setTimeout(() => document.getElementById("editSupModal").classList.add("open"), 10);
+}
+
+function closeEditSupModal() {
+  document.getElementById("editSupModal").classList.remove("open");
+}
+
+async function submitEditSupervisor() {
+  const id       = document.getElementById("editSupId").value;
+  const name     = document.getElementById("editSupName").value.trim();
+  const email    = document.getElementById("editSupEmail").value.trim();
+  const whatsapp = document.getElementById("editSupWhatsapp").value.trim();
+  const role     = document.getElementById("editSupRole").value;
+
+  if (!name || !email) { toast("Missing fields", "Name and email are required", "error"); return; }
+
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res  = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
+      body: JSON.stringify({ name, email, whatsapp, is_chairman: role === "chairman" })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to update");
+
+    closeEditSupModal();
+    await renderSupervisors();
+    toast("Supervisor updated", `${name} has been updated`, "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
+
+/* ════════════════════════════════════
+   DELETE SUPERVISOR
+══════════════════════════════════════ */
+let deleteSupId = null;
+
+function openDeleteSupModal(supId, supName) {
+  deleteSupId = supId;
+  document.getElementById("deleteSupName").textContent = supName;
+  setTimeout(() => document.getElementById("deleteSupModal").classList.add("open"), 10);
+}
+
+function closeDeleteSupModal() {
+  deleteSupId = null;
+  document.getElementById("deleteSupModal").classList.remove("open");
+}
+
+async function confirmDeleteSupervisor() {
+  if (!deleteSupId) return;
+  const admin   = JSON.parse(localStorage.getItem("admin"));
+  const supName = document.getElementById("deleteSupName").textContent;
+
+  try {
+    const res  = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${deleteSupId}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to delete");
+
+    closeDeleteSupModal();
+    await renderSupervisors();
+    await fetchDashboardStats();
+    toast("Supervisor deleted", `${supName} has been removed`, "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
+
+/* ════════════════════════════════════
    GLOBAL MARK TOGGLES
 ══════════════════════════════════════ */
 let GLOBAL_TOGGLES = {};
@@ -1605,20 +1456,17 @@ let GLOBAL_TOGGLES = {};
 async function loadGlobalToggles() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/admin/mark-toggles", {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      }
+    const res  = await fetch("http://127.0.0.1:5001/api/admin/mark-toggles", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     if (!res.ok) return;
-    const data = await res.json();
+    const data     = await res.json();
     GLOBAL_TOGGLES = data.toggles || {};
   } catch (err) {
     console.error("Failed to load toggles:", err);
     GLOBAL_TOGGLES = {};
   }
-  renderGlobalToggles(); 
+  renderGlobalToggles();
 }
 
 function renderGlobalToggles() {
@@ -1639,13 +1487,14 @@ function renderGlobalToggles() {
                 <div style="font-size:.85rem;font-weight:600;color:var(--text)">${it.label}</div>
                 <div style="font-size:.7rem;color:var(--text-mute);margin-top:2px">
                   Max: ${it.max} marks ·
-                  <span id="gtoggle-status-${it.key}" style="font-weight:700;color:${enabled ? 'var(--success,#15803d)' : '#dc2626'}">
+                  <span id="gtoggle-status-${it.key}" style="font-weight:700;color:${enabled ? "var(--success,#15803d)" : "#dc2626"}">
                     ${enabled ? "Open" : "Locked"}
                   </span>
                 </div>
               </div>
               <label class="mark-toggle">
-                <input type="checkbox" id="gtoggle-${it.key}" ${enabled ? "checked" : ""} onchange="onGlobalToggleChange('${it.key}', this.checked)">
+                <input type="checkbox" id="gtoggle-${it.key}" ${enabled ? "checked" : ""}
+                       onchange="onGlobalToggleChange('${it.key}', this.checked)">
                 <span class="toggle-slider"></span>
               </label>
             </div>`;
@@ -1667,7 +1516,7 @@ function onGlobalToggleChange(key, enabled) {
 async function saveGlobalToggles() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/admin/mark-toggles", {
+    const res  = await fetch("http://127.0.0.1:5001/api/admin/mark-toggles", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ toggles: GLOBAL_TOGGLES })
@@ -1681,148 +1530,10 @@ async function saveGlobalToggles() {
 }
 
 /* ════════════════════════════════════
-   MODAL CLICK-OUTSIDE-TO-CLOSE + ESC + SEARCH WIRING
-══════════════════════════════════════ */
-$$(".modal-overlay").forEach(overlay => {
-  overlay.addEventListener("click", e => {
-    if (e.target === overlay) overlay.classList.remove("open");
-  });
-});
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") $$(".modal-overlay.open").forEach(m => m.classList.remove("open"));
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("searchSupervisors")?.addEventListener("input", e => filterSupervisors(e.target.value));
-  document.getElementById("searchTeams")?.addEventListener("input", e => filterTeams(e.target.value));
-  document.getElementById("searchStudents")?.addEventListener("input", e => filterStudents(e.target.value));
-});
-
-
-// ── DELETE SUPERVISOR ──────────────────────────────────────
- /* ════════════════════════════════════
-   MODAL CLICK-OUTSIDE-TO-CLOSE + ESC
-══════════════════════════════════════ */
-// Register ONCE only — delete the duplicate block above this too
-$$(".modal-overlay").forEach(overlay => {
-  overlay.addEventListener("click", e => {
-    if (e.target === overlay) overlay.classList.remove("open");
-  });
-});
-
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") $$(".modal-overlay.open").forEach(m => m.classList.remove("open"));
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("searchSupervisors")?.addEventListener("input", e => filterSupervisors(e.target.value));
-  document.getElementById("searchTeams")?.addEventListener("input", e => filterTeams(e.target.value));
-  document.getElementById("searchStudents")?.addEventListener("input", e => filterStudents(e.target.value));
-});
-
-/* ════════════════════════════════════
-   DELETE SUPERVISOR
-══════════════════════════════════════ */
-let deleteSupId = null;
-
-function openDeleteSupModal(supId, supName) {
-  deleteSupId = supId;
-  document.getElementById("deleteSupName").textContent = supName;
-  // setTimeout prevents the triggering click from immediately closing the modal
-  setTimeout(() => {
-    document.getElementById("deleteSupModal").classList.add("open");
-  }, 10);
-}
-
-function closeDeleteSupModal() {
-  deleteSupId = null;
-  document.getElementById("deleteSupModal").classList.remove("open");
-}
-
-async function confirmDeleteSupervisor() {
-  if (!deleteSupId) return;
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  const supName = document.getElementById("deleteSupName").textContent;
-
-  try {
-    const res = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${deleteSupId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      }
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed to delete");
-
-    closeDeleteSupModal();
-    await renderSupervisors();
-    await fetchDashboardStats();
-    toast("Supervisor deleted", `${supName} has been removed`, "success");
-
-  } catch (err) {
-    toast("Error", err.message, "error");
-  }
-}
-/* ════════════════════════════════════
-   EDIT SUPERVISOR
-══════════════════════════════════════ */
-function openEditSupModal(id, name, email, whatsapp, role) {
-  document.getElementById("editSupId").value = id;
-  document.getElementById("editSupName").value = name;
-  document.getElementById("editSupEmail").value = email;
-  document.getElementById("editSupWhatsapp").value = whatsapp;
-  document.getElementById("editSupRole").value = role;
-  setTimeout(() => {
-    document.getElementById("editSupModal").classList.add("open");
-  }, 10);
-}
-
-function closeEditSupModal() {
-  document.getElementById("editSupModal").classList.remove("open");
-}
-
-async function submitEditSupervisor() {
-  const id       = document.getElementById("editSupId").value;
-  const name     = document.getElementById("editSupName").value.trim();
-  const email    = document.getElementById("editSupEmail").value.trim();
-  const whatsapp = document.getElementById("editSupWhatsapp").value.trim();
-  const role     = document.getElementById("editSupRole").value;
-
-  if (!name || !email) {
-    toast("Missing fields", "Name and email are required", "error");
-    return;
-  }
-
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  try {
-    const res = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      },
-      body: JSON.stringify({ name, email, whatsapp, is_chairman: role === "chairman" })
-    });
-
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed to update");
-
-    closeEditSupModal();
-    await renderSupervisors();
-    toast("Supervisor updated", `${name} has been updated`, "success");
-
-  } catch (err) {
-    toast("Error", err.message, "error");
-  }
-}
-/* ════════════════════════════════════
    DEADLINES
 ══════════════════════════════════════ */
-let DEADLINES_DATA = [];
-let deleteDeadlineId = null;
+let DEADLINES_DATA    = [];
+let deleteDeadlineId  = null;
 let editingDeadlineId = null;
 
 function getDeadlineLabel(d) {
@@ -1830,13 +1541,13 @@ function getDeadlineLabel(d) {
 }
 
 function getDeadlineStatus(dueDate) {
-  const now = new Date();
-  const due = new Date(dueDate);
-  const diffMs = due - now;
+  const now      = new Date();
+  const due      = new Date(dueDate);
+  const diffMs   = due - now;
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  if (diffMs < 0) return { label: "Expired", color: "#dc2626", bg: "rgba(220,38,38,.1)", days: null };
-  if (diffDays <= 2) return { label: `${diffDays}d left`, color: "#a16207", bg: "rgba(234,179,8,.12)", days: diffDays };
-  return { label: `${diffDays}d left`, color: "#15803d", bg: "rgba(34,197,94,.1)", days: diffDays };
+  if (diffMs < 0)       return { label: "Expired",        color: "#dc2626", bg: "rgba(220,38,38,.1)"   };
+  if (diffDays <= 2)    return { label: `${diffDays}d left`, color: "#a16207", bg: "rgba(234,179,8,.12)" };
+  return                       { label: `${diffDays}d left`, color: "#15803d", bg: "rgba(34,197,94,.1)"  };
 }
 
 async function renderDeadlines() {
@@ -1845,7 +1556,7 @@ async function renderDeadlines() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/deadlines", {
+    const res  = await fetch("http://127.0.0.1:5001/api/deadlines", {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -1859,10 +1570,9 @@ async function renderDeadlines() {
     }
 
     tbody.innerHTML = DEADLINES_DATA.map(d => {
-      const status = getDeadlineStatus(d.dueDate);
-      const label  = getDeadlineLabel(d);
+      const status  = getDeadlineStatus(d.dueDate);
+      const label   = getDeadlineLabel(d);
       const dateStr = new Date(d.dueDate).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" });
-
       return `
         <tr>
           <td><strong>${label}</strong></td>
@@ -1881,7 +1591,8 @@ async function renderDeadlines() {
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
               </button>
-              <button class="icon-action danger" title="Delete" style="color:#dc2626" onclick="openDeleteDeadlineModal('${d._id}', '${label.replace(/'/g,"\\'")}')">
+              <button class="icon-action danger" title="Delete" style="color:#dc2626"
+                      onclick="openDeleteDeadlineModal('${d._id}','${label.replace(/'/g,"\\'")}')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -1904,13 +1615,13 @@ function onDeadlineTypeChange() {
 
 function openDeadlineModal() {
   editingDeadlineId = null;
-  document.getElementById("deadlineModalTitle").textContent = "Create Deadline";
+  document.getElementById("deadlineModalTitle").textContent  = "Create Deadline";
   document.getElementById("deadlineSubmitLabel").textContent = "Create Deadline";
-  document.getElementById("editDeadlineId").value = "";
-  document.getElementById("deadlineType").value = "";
+  document.getElementById("editDeadlineId").value    = "";
+  document.getElementById("deadlineType").value      = "";
   document.getElementById("deadlineCustomName").value = "";
-  document.getElementById("deadlineDesc").value = "";
-  document.getElementById("deadlineDate").value = "";
+  document.getElementById("deadlineDesc").value      = "";
+  document.getElementById("deadlineDate").value      = "";
   document.getElementById("customNameGroup").style.display = "none";
   setTimeout(() => document.getElementById("deadlineModal").classList.add("open"), 50);
 }
@@ -1919,13 +1630,13 @@ function openEditDeadlineModal(id) {
   const d = DEADLINES_DATA.find(x => x._id === id);
   if (!d) return;
   editingDeadlineId = id;
-  document.getElementById("deadlineModalTitle").textContent = "Edit Deadline";
+  document.getElementById("deadlineModalTitle").textContent  = "Edit Deadline";
   document.getElementById("deadlineSubmitLabel").textContent = "Save Changes";
-  document.getElementById("editDeadlineId").value = id;
-  document.getElementById("deadlineType").value = d.type;
+  document.getElementById("editDeadlineId").value    = id;
+  document.getElementById("deadlineType").value      = d.type;
   document.getElementById("deadlineCustomName").value = d.customName || "";
-  document.getElementById("deadlineDesc").value = d.description || "";
-  document.getElementById("deadlineDate").value = new Date(d.dueDate).toISOString().split("T")[0];
+  document.getElementById("deadlineDesc").value      = d.description || "";
+  document.getElementById("deadlineDate").value      = new Date(d.dueDate).toISOString().split("T")[0];
   document.getElementById("customNameGroup").style.display = d.type === "Other" ? "block" : "none";
   setTimeout(() => document.getElementById("deadlineModal").classList.add("open"), 50);
 }
@@ -1935,22 +1646,22 @@ function closeDeadlineModal() {
 }
 
 async function submitDeadline() {
-  const type       = document.getElementById("deadlineType").value;
-  const customName = document.getElementById("deadlineCustomName").value.trim();
+  const type        = document.getElementById("deadlineType").value;
+  const customName  = document.getElementById("deadlineCustomName").value.trim();
   const description = document.getElementById("deadlineDesc").value.trim();
-  const dueDate    = document.getElementById("deadlineDate").value;
+  const dueDate     = document.getElementById("deadlineDate").value;
 
-  if (!type) { toast("Missing field", "Please select a deadline type", "error"); return; }
-  if (type === "Other" && !customName) { toast("Missing field", "Please enter a custom name", "error"); return; }
-  if (!dueDate) { toast("Missing field", "Please select a due date", "error"); return; }
+  if (!type)                          { toast("Missing field", "Please select a deadline type", "error"); return; }
+  if (type === "Other" && !customName){ toast("Missing field", "Please enter a custom name",    "error"); return; }
+  if (!dueDate)                       { toast("Missing field", "Please select a due date",       "error"); return; }
 
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  const id = document.getElementById("editDeadlineId").value;
-  const url = id ? `http://127.0.0.1:5001/api/deadlines/${id}` : "http://127.0.0.1:5001/api/deadlines";
+  const admin  = JSON.parse(localStorage.getItem("admin"));
+  const id     = document.getElementById("editDeadlineId").value;
+  const url    = id ? `http://127.0.0.1:5001/api/deadlines/${id}` : "http://127.0.0.1:5001/api/deadlines";
   const method = id ? "PUT" : "POST";
 
   try {
-    const res = await fetch(url, {
+    const res  = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ type, customName, description, dueDate })
@@ -1979,11 +1690,11 @@ function closeDeleteDeadlineModal() {
 
 async function confirmDeleteDeadline() {
   if (!deleteDeadlineId) return;
-  const name = document.getElementById("deleteDeadlineName").textContent;
+  const name  = document.getElementById("deleteDeadlineName").textContent;
   const admin = JSON.parse(localStorage.getItem("admin"));
 
   try {
-    const res = await fetch(`http://127.0.0.1:5001/api/deadlines/${deleteDeadlineId}`, {
+    const res  = await fetch(`http://127.0.0.1:5001/api/deadlines/${deleteDeadlineId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
@@ -1998,81 +1709,31 @@ async function confirmDeleteDeadline() {
   }
 }
 
-async function updateProposalStatus(groupId, status) {
-  if (!groupId) return;
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  try {
-    const res = await fetch(`http://127.0.0.1:5001/api/groups/${groupId}/proposal-status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ status })
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed");
-    toast(
-      status === "approved" ? "Proposal Approved" : "Proposal Rejected",
-      data.message || "",
-      status === "approved" ? "success" : "warn"
-    );
-    await renderStudents();
-  } catch (err) {
-    toast("Error", err.message, "error");
-  }
-}
-async function renderRecentTeams() {
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  const tbody = document.getElementById("recentTeamsTbody");
-  if (!tbody) return;
+/* ════════════════════════════════════
+   MODAL — CLICK OUTSIDE + ESC
+══════════════════════════════════════ */
+$$(".modal-overlay").forEach(overlay => {
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) overlay.classList.remove("open");
+  });
+});
 
-  tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") $$(".modal-overlay.open").forEach(m => m.classList.remove("open"));
+});
 
-  try {
-    const res = await fetch("http://127.0.0.1:5001/api/groups", {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed");
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("searchSupervisors")?.addEventListener("input", e => filterSupervisors(e.target.value));
+  document.getElementById("searchTeams")?.addEventListener("input",       e => filterTeams(e.target.value));
+  document.getElementById("searchStudents")?.addEventListener("input",    e => filterStudents(e.target.value));
+});
 
-    const teams = (Array.isArray(data) ? data : data.groups || []).slice(0, 5);
-
-    if (!teams.length) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">No teams yet.</td></tr>`;
-      return;
-    }
-
-    tbody.innerHTML = teams.map(g => {
-      const code    = g.group_code || g.team_code || "—";
-      const title   = g.project_title || "—";
-      const supName = g.supervisor?.name || "Unassigned";
-      const abbr    = code.slice(-2).toUpperCase();
-      const members = 1 + (g.members?.length || 0);
-
-      return `
-        <tr>
-          <td>
-            <div class="team-cell">
-              <div class="team-avatar">${abbr}</div>
-              <div class="team-info">
-                <strong>${title.length > 28 ? title.slice(0, 28) + "…" : title}</strong>
-                <span>${members} member${members !== 1 ? "s" : ""}</span>
-              </div>
-            </div>
-          </td>
-          <td><span class="id-pill gold">${code}</span></td>
-          <td>${supName}</td>
-        </tr>`;
-    }).join("");
-
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
-  }
-}
 /* ════════════════════════════════════
    GLOBAL DATA + INIT
 ══════════════════════════════════════ */
 let SUPERVISORS_DATA = [];
-let TEAMS_DATA = [];
-let STUDENTS_DATA = [];
+let TEAMS_DATA       = [];
+let STUDENTS_DATA    = [];
 
 async function initDashboard() {
   displayAdminInfo();
