@@ -1,23 +1,24 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-const sendEmail = async (to, subject, text, html) => {
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
+export async function sendEmail({ to, subject, html }) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  try {
+    const data = await resend.emails.send({
+      from: "FYP Management AWKUM <onboarding@resend.dev>",
+      to,
+      subject,
+      html,
+    });
 
-  const mailOptions = {
-    from: `"FYP System" <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    text,
-    html,
-  };
+    console.log("Email sent:", data);
 
-  await transporter.sendMail(mailOptions);
-};
+    return { success: true, data };
+  } catch (err) {
+    console.error("Email send failed:", err);
 
-export default sendEmail;
+    return {
+      success: false,
+      error: err.message,
+    };
+  }
+}

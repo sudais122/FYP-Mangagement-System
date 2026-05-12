@@ -603,3 +603,10 @@ svg { display: block; flex-shrink: 0; }
   .login-right { padding: 32px 20px; }
   body { padding: 16px; }
 }
+.step {
+  display: none;
+}
+
+.step.active {
+  display: block;
+}

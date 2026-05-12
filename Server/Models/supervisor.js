@@ -5,7 +5,7 @@ const supervisorSchema = new mongoose.Schema({
   sup_code: {
     type: String,
     unique: true,
-    required: true,  
+    required: true,
   },
 
   name: {
@@ -26,6 +26,7 @@ const supervisorSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
   whatsapp: {
     type: String,
     required: false,
@@ -37,6 +38,33 @@ const supervisorSchema = new mongoose.Schema({
   department: {
     type: String,
     default: "Computer Science",
+  },
+
+  designation: {
+    type: String,
+    default: "Lecturer",
+  },
+
+  office: {
+    type: String,
+    default: "",
+    trim: true,
+  },
+
+  office_hours: {
+    type: String,
+    default: "",
+    trim: true,
+  },
+
+  research_areas: [{
+    type: String,
+    trim: true,
+  }],
+
+  max_groups: {
+    type: Number,
+    default: 5,
   },
 
   is_chairman: {
@@ -59,13 +87,22 @@ const supervisorSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  resetPasswordToken: {
+    type: String,
+  },
+
+  resetPasswordExpire: {
+    type: Date,
+  },
 });
 
-// 🔐 HASH PASSWORD + GENERATE CODE
+// 🔐 HASH PASSWORD
 supervisorSchema.pre("save", async function (next) {
   if (this.isModified("password") && !this.password.startsWith("$2")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
+
   next();
 });
 

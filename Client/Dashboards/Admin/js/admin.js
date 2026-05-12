@@ -1162,70 +1162,250 @@ function matches(haystack, query) {
 ══════════════════════════════════════ */
 function renderStudentsTable(list, query = "", matchSet = new Set()) {
   const tbody = $("#studentsTable tbody");
+
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center;padding:40px;color:var(--text-mute)">
+          No students found.
+        </td>
+      </tr>`;
     return;
   }
 
   tbody.innerHTML = list.map(s => {
+
     const isMatch    = query && matchSet.has(s._id);
+
     const supId      = s.group?.supervisor?._id || "";
     const supName    = s.group?.supervisor?.name || "—";
+
     const totalMarks = s.total_marks || 0;
+
     const safeName   = (s.name || "").replace(/'/g, "\\'");
+
     const whatsapp   = s.whatsapp || "—";
 
     const cvUrl            = s.cv_url || "";
+
     const proposalUrl      = s.group?.proposal_url || "";
     const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
     const proposalStatus   = s.group?.proposal_status || "";
 
     return `
       <tr class="${isMatch ? "search-match" : ""}">
+
+        <!-- STUDENT INFO -->
         <td>
           <div class="team-info">
             <strong>${highlightText(s.name, query)}</strong>
-            <span style="display:block">${s.email || ""}</span>
-            <span style="display:block;font-size:.7rem;color:var(--success);font-weight:600">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11" style="display:inline;vertical-align:middle;margin-right:3px">
+
+            <span style="display:block">
+              ${s.email || ""}
+            </span>
+
+            <span style="
+              display:block;
+              font-size:.7rem;
+              color:var(--success);
+              font-weight:600
+            ">
+              <svg viewBox="0 0 24 24"
+                   fill="currentColor"
+                   width="11"
+                   height="11"
+                   style="display:inline;vertical-align:middle;margin-right:3px">
                 <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
-              </svg>${whatsapp}
+              </svg>
+              ${whatsapp}
             </span>
           </div>
         </td>
-        <td><span class="id-pill">${highlightText(s.student_code || "—", query)}</span></td>
-        <td>${highlightText(supName, query)}</td>
+
+        <!-- STUDENT CODE -->
         <td>
-          <strong style="font-family:monospace;color:var(--primary)">
-            ${totalMarks}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span>
+          <span class="id-pill">
+            ${highlightText(s.student_code || "—", query)}
+          </span>
+        </td>
+
+        <!-- SUPERVISOR -->
+        <td>
+          ${highlightText(supName, query)}
+        </td>
+
+        <!-- MARKS -->
+        <td>
+          <strong style="
+            font-family:monospace;
+            color:var(--primary)
+          ">
+            ${totalMarks}
+            <span style="
+              color:var(--text-mute);
+              font-weight:500
+            ">
+              /${MAX_TOTAL}
+            </span>
           </strong>
         </td>
+
+        <!-- DOCUMENTS -->
         <td>
           <div class="doc-cell">
             ${renderDocBadge("CV", cvUrl, true, safeName)}
-            ${renderDocBadge("Proposal", proposalUrl, false, safeName, proposalUploader, proposalStatus)}
+
+            ${renderDocBadge(
+              "Proposal",
+              proposalUrl,
+              false,
+              safeName,
+              proposalUploader,
+              proposalStatus
+            )}
           </div>
         </td>
+
+        <!-- PROPOSAL ACTIONS -->
+        <td>
+
+          ${proposalUrl ? `
+
+            <div style="
+              display:flex;
+              flex-direction:column;
+              gap:5px
+            ">
+
+              <button
+                onclick="updateProposalStatus('${s.group?._id}','approved')"
+
+                style="
+                  padding:4px 10px;
+                  border-radius:6px;
+                  font-size:.68rem;
+                  font-weight:700;
+                  cursor:pointer;
+                  border:none;
+                  background:rgba(21,128,61,.12);
+                  color:#15803d;
+                  transition:all .2s
+                "
+
+                onmouseover="
+                  this.style.background='#15803d';
+                  this.style.color='#fff'
+                "
+
+                onmouseout="
+                  this.style.background='rgba(21,128,61,.12)';
+                  this.style.color='#15803d'
+                "
+              >
+                ✓ Approve
+              </button>
+
+              <button
+                onclick="updateProposalStatus('${s.group?._id}','rejected')"
+
+                style="
+                  padding:4px 10px;
+                  border-radius:6px;
+                  font-size:.68rem;
+                  font-weight:700;
+                  cursor:pointer;
+                  border:none;
+                  background:rgba(220,38,38,.08);
+                  color:#dc2626;
+                  transition:all .2s
+                "
+
+                onmouseover="
+                  this.style.background='#dc2626';
+                  this.style.color='#fff'
+                "
+
+                onmouseout="
+                  this.style.background='rgba(220,38,38,.08)';
+                  this.style.color='#dc2626'
+                "
+              >
+                ✗ Reject
+              </button>
+
+            </div>
+
+          ` : `
+
+            <span style="
+              font-size:.72rem;
+              color:var(--text-mute)
+            ">
+              No proposal
+            </span>
+
+          `}
+        </td>
+
+        <!-- ACTIONS -->
         <td>
           <div class="action-row">
-            <button class="icon-action" title="Edit marks"
-                    onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+            <!-- VIEW SUPERVISOR -->
+            <button
+              class="icon-action"
+              title="View supervisor"
+
+              onclick="${
+                supId
+                  ? `openSupDetail('${supId}')`
+                  : `toast('No supervisor','Student is not in a team yet','warn')`
+              }"
+            >
+              <svg viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
+
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-            <button class="icon-action danger" title="Delete student" style="color:#dc2626"
-                    onclick="deleteStudent('${s._id}', '${safeName}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+            <!-- DELETE -->
+            <button
+              class="icon-action danger"
+              title="Delete student"
+              style="color:#dc2626"
+
+              onclick="deleteStudent('${s._id}', '${safeName}')"
+            >
+              <svg viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
+
                 <polyline points="3 6 5 6 21 6"/>
+
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+
+                <line x1="10" y1="11" x2="10" y2="17"/>
+
+                <line x1="14" y1="11" x2="14" y2="17"/>
               </svg>
             </button>
+
           </div>
         </td>
-      </tr>`;
+
+      </tr>
+    `;
+
   }).join("");
 }
 
@@ -1799,6 +1979,28 @@ async function confirmDeleteDeadline() {
     closeDeleteDeadlineModal();
     await renderDeadlines();
     toast("Deadline deleted", name + " removed", "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
+
+async function updateProposalStatus(groupId, status) {
+  if (!groupId) return;
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/groups/${groupId}/proposal-status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
+      body: JSON.stringify({ status })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+    toast(
+      status === "approved" ? "Proposal Approved" : "Proposal Rejected",
+      data.message || "",
+      status === "approved" ? "success" : "warn"
+    );
+    await renderStudents();
   } catch (err) {
     toast("Error", err.message, "error");
   }

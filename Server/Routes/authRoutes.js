@@ -19,8 +19,7 @@ router.post("/register", uploadCVLocal.single("cv"), registerStudent);   // ← 
 /* ================= PASSWORD RESET ================= */
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
-router.post("/auth/verify-otp", verifyOtp);
-router.post("/auth/forgot-password", forgotPassword);
+router.post("/verify-otp", verifyOtp);
 
 /* ================= PROFILE ================= */
 router.get("/profile", protect, getProfile);

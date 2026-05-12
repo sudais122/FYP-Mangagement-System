@@ -2,25 +2,6 @@ const API_BASE_URL = "http://localhost:5001";
 var cur = 1;
 var rtimer = null;
 
-var topT = [
-  "Forgot password?",
-  "Check your email",
-  "Set new password",
-  "All done!",
-];
-var topS = [
-  "Enter your registered email and we'll send a verification code.",
-  "Enter the 6-digit code sent to your email address.",
-  "Create a strong new password for your account.",
-  "Your password has been successfully updated.",
-];
-var topI = [
-  '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
-  '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
-  '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
-  '<polyline points="20 6 9 17 4 12"/>',
-];
-
 async function doReg() {
   // 1. Collect values from form
   const fn  = document.getElementById("r-fn").value.trim();
@@ -78,32 +59,6 @@ function onWaInput(input) {
     input.value = input.value.slice(0, 11);
   }
   clr("wa");
-}
-// otp send for forgot password
-async function sendOtp(email) {
-  const res = await fetch("/api/auth/forgot-password", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  });
-
-  const data = await res.json();
-  alert(data.message);
-}
-
-async function resetPassword() {
-  const token = new URLSearchParams(window.location.search).get("token");
-  const email = new URLSearchParams(window.location.search).get("email");
-  const newPassword = document.getElementById("password").value;
-
-  const res = await fetch(`${API_BASE_URL}/api/auth/reset-password`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ token, email, newPassword }),
-  });
-
-  const data = await res.json();
-  alert(data.message);
 }
 
 function copyFill(fid, val, el) {
@@ -182,6 +137,7 @@ function otpBack(e, el, pid) {
   if (e.key === "Backspace" && !el.value && pid)
     document.getElementById(pid).focus();
 }
+
 async function step2Submit() {
   const code = ["o1", "o2", "o3", "o4", "o5", "o6"]
     .map((id) => document.getElementById(id).value)
@@ -189,17 +145,26 @@ async function step2Submit() {
 
   const email = localStorage.getItem("resetEmail");
 
-  if (code.length !== 6) {
+  if (!email) {
+    document.getElementById("e-otp").textContent = "Session expired. Please go back and enter your email again.";
     document.getElementById("e-otp").classList.add("show");
     return;
   }
 
+  if (code.length !== 6 || !/^\d{6}$/.test(code)) {
+    document.getElementById("e-otp").textContent = "Please enter all 6 digits.";
+    document.getElementById("e-otp").classList.add("show");
+    return;
+  }
+
+  const btn = document.querySelector("#step2 .btn-primary");
+  btn.disabled = true;
+  btn.textContent = "Verifying...";
+
   try {
     const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, otp: code }),
     });
 
@@ -208,9 +173,13 @@ async function step2Submit() {
     if (!res.ok) throw new Error(data.message);
 
     goStep(3);
+
   } catch (err) {
     document.getElementById("e-otp").textContent = err.message;
     document.getElementById("e-otp").classList.add("show");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Verify Code";
   }
 }
 
@@ -259,15 +228,6 @@ function onPw(v) {
     document.getElementById(["b1", "b2", "b3", "b4"][i]).classList.add(cls);
   lbl.textContent = labels[Math.max(0, s - 1)];
   lbl.style.color = cols[cls] || "#adb5bd";
-}
-
-function togPw(id, eid) {
-  var i = document.getElementById(id);
-  var show = i.type === "password";
-  i.type = show ? "text" : "password";
-  document.getElementById(eid).innerHTML = show
-    ? '<path d="M17.94 17.94A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.06-5.94M9.9 4.24A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
-    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 
 async function step3Submit() {
@@ -500,35 +460,6 @@ function togPw(id, eyeId) {
     : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 
-function onPw(v) {
-  ["b1", "b2", "b3", "b4"].forEach(function (id) {
-    document.getElementById(id).className = "sb";
-  });
-  var lbl = document.getElementById("str-lbl");
-  if (!v) {
-    lbl.textContent = "Enter a password to check strength";
-    lbl.style.color = "#adb5bd";
-    return;
-  }
-  var s = 0;
-  if (v.length >= 8) s++;
-  if (/[A-Z]/.test(v)) s++;
-  if (/[0-9]/.test(v)) s++;
-  if (/[^A-Za-z0-9]/.test(v)) s++;
-  var cls = s <= 1 ? "w" : s === 2 ? "m" : "g";
-  var labels = [
-    "Too short",
-    "Weak — add numbers & uppercase",
-    "Medium — try a special character",
-    "Strong password",
-  ];
-  var cols = { w: "#dc3545", m: "#fd7e14", g: "#198754" };
-  for (var i = 0; i < s; i++)
-    document.getElementById(["b1", "b2", "b3", "b4"][i]).classList.add(cls);
-  lbl.textContent = labels[Math.max(0, s - 1)];
-  lbl.style.color = cols[cls] || "#adb5bd";
-}
-
 function onCV(inp) {
   if (inp.files && inp.files[0]) {
     var f = inp.files[0];
@@ -555,4 +486,48 @@ function showErr(key, msg) {
     m.classList.add("show");
     if (msg) m.textContent = msg;
   }
+}
+
+function goStep(n) {
+  document.querySelectorAll(".step").forEach(s => s.classList.remove("active"));
+  document.getElementById("step" + n)?.classList.add("active");
+
+  // update dots
+  [1,2,3,4].forEach(i => {
+    const dot = document.getElementById("dot" + i);
+    if (!dot) return;
+    dot.classList.remove("act");
+    if (i === n) dot.classList.add("act");
+  });
+
+  // update header
+  const titles = ["Forgot password?","Check your email","Set new password","All done!"];
+  const subs   = [
+    "Enter your registered email and we'll send a verification code.",
+    "Enter the 6-digit code sent to your email address.",
+    "Create a strong new password for your account.",
+    "Your password has been successfully updated.",
+  ];
+  document.getElementById("top-title").textContent = titles[n - 1];
+  document.getElementById("top-sub").textContent   = subs[n - 1];
+}
+
+async function resendOtp() {
+  const email = localStorage.getItem("resetEmail");
+  if (!email) return;
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    startResend();
+  } catch (err) {
+    console.error("Resend failed:", err);
+  }
+}
+
+function clearE(inputId, errId) {
+  document.getElementById(inputId)?.classList.remove("err");
+  document.getElementById(errId)?.classList.remove("show");
 }

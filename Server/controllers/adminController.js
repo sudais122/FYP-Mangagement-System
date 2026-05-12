@@ -6,6 +6,8 @@ import Marks from "../Models/marks.js";
 import Settings from "../Models/Settings.js";
 import generatePassword from "../utils/generatePassword.js";
 import { generateSupCode } from "../utils/generateSupCode.js"; 
+import { sendEmail } from "../utils/sendEmail.js";
+import { supervisorCredentialsTemplate } from "../utils/emailTemplates/supervisorCredentials.js";
 import bcrypt from "bcryptjs"; 
 
 
@@ -31,16 +33,17 @@ export const addSupervisor = async (req, res) => {
 
     // 2. Check duplicate email
     const exists = await Supervisor.findOne({ email });
+
     if (exists) {
       return res.status(400).json({
         message: "Supervisor with this email already exists"
       });
     }
 
-    // 3. Generate unique supervisor code
+    // 3. Generate supervisor code
     const sup_code = await generateSupCode();
 
-    // 4. Hash password (IMPORTANT SECURITY FIX)
+    // 4. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // 5. Create supervisor
@@ -56,7 +59,26 @@ export const addSupervisor = async (req, res) => {
       sup_code
     });
 
-    // 6. Response
+    // 6. Generate professional email template
+    const { subject, html } = supervisorCredentialsTemplate({
+      name,
+      email,
+      sup_code: supervisor.sup_code,
+      password
+    });
+
+    // 7. Send email
+    sendEmail({
+      to: email,
+      subject,
+      html
+    }).then(result => {
+      if (!result.success) {
+        console.warn("Email failed silently:", result.error);
+      }
+    });
+
+    // 8. Response
     res.status(201).json({
       message: "Supervisor created successfully",
       supervisor: {
@@ -66,7 +88,7 @@ export const addSupervisor = async (req, res) => {
         sup_code: supervisor.sup_code,
         designation: supervisor.designation,
         whatsapp: supervisor.whatsapp,
-        is_chairman: supervisor.is_chairman 
+        is_chairman: supervisor.is_chairman
       }
     });
 

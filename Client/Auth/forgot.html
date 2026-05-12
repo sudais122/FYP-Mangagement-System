@@ -1,461 +1,184 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Forgot Password — FYP Management AWKUM</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      :root {
-        --pr: #1e3a8a;
-        --pr-h: #1e40af;
-        --txt: #0f172a;
-        --txt-s: #334155;
-        --txt-m: #64748b;
-        --bg: #f1f5f9;
-        --card: #ffffff;
-        --border: #e2e8f0;
-        --err: #dc2626;
-        --ok: #16a34a;
-        --radius: 14px;
-      }
-      body {
-        font-family: "DM Sans", sans-serif;
-        background: var(--bg);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px 16px;
-      }
-      .card {
-        background: var(--card);
-        border-radius: var(--radius);
-        box-shadow: 0 4px 32px rgba(0, 0, 0, 0.1);
-        width: 100%;
-        max-width: 420px;
-        overflow: hidden;
-      }
-      .card-top {
-        background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-        color: #fff;
-        padding: 28px 28px 24px;
-        text-align: center;
-      }
-      .logo-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 22px;
-      }
-      .lm {
-        width: 36px;
-        height: 36px;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .lm svg {
-        width: 18px;
-        height: 18px;
-        color: #fff;
-      }
-      .logo-txt strong {
-        display: block;
-        font-size: 0.92rem;
-        font-weight: 700;
-        color: #fff;
-      }
-      .logo-txt small {
-        font-size: 0.72rem;
-        opacity: 0.75;
-        color: #fff;
-      }
-      .step-icon {
-        width: 56px;
-        height: 56px;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 14px;
-      }
-      .step-icon svg {
-        width: 26px;
-        height: 26px;
-        color: #fff;
-      }
-      .card-top h2 {
-        font-size: 1.15rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-      }
-      .card-top p {
-        font-size: 0.8rem;
-        opacity: 0.85;
-        line-height: 1.5;
-      }
-      .card-body {
-        padding: 28px;
-      }
-
-      /* form group */
-      .fg {
-        margin-bottom: 18px;
-      }
-      .fg label {
-        display: block;
-        font-size: 0.78rem;
-        font-weight: 600;
-        color: var(--txt-s);
-        margin-bottom: 6px;
-      }
-      .iw {
-        position: relative;
-      }
-      .iw .ic {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 16px;
-        height: 16px;
-        color: var(--txt-m);
-        pointer-events: none;
-      }
-      .iw input {
-        width: 100%;
-        padding: 10px 12px 10px 38px;
-        border: 1.5px solid var(--border);
-        border-radius: 9px;
-        font-size: 0.85rem;
-        font-family: inherit;
-        color: var(--txt);
-        background: #f8fafc;
-        outline: none;
-        transition: border-color 0.18s;
-      }
-      .iw input:focus {
-        border-color: var(--pr);
-        background: #fff;
-      }
-      .iw input.err {
-        border-color: var(--err);
-      }
-
-      .err-msg {
-        font-size: 0.74rem;
-        color: var(--err);
-        margin-top: 5px;
-        display: none;
-      }
-      .err-msg.show {
-        display: block;
-      }
-
-      /* button */
-      .btn {
-        width: 100%;
-        padding: 11px;
-        border: none;
-        border-radius: 9px;
-        font-size: 0.88rem;
-        font-weight: 600;
-        font-family: inherit;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 7px;
-        transition:
-          background 0.18s,
-          opacity 0.18s;
-      }
-      .btn svg {
-        width: 15px;
-        height: 15px;
-        flex-shrink: 0;
-      }
-      .btn-primary {
-        background: var(--pr);
-        color: #fff;
-      }
-      .btn-primary:hover {
-        background: var(--pr-h);
-      }
-      .btn-primary:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      /* success box */
-      .suc-box {
-        display: none;
-        text-align: center;
-        padding: 8px 0;
-      }
-      .suc-box.show {
-        display: block;
-      }
-      .suc-icon {
-        width: 60px;
-        height: 60px;
-        background: #dcfce7;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 16px;
-      }
-      .suc-icon svg {
-        width: 28px;
-        height: 28px;
-        color: var(--ok);
-      }
-      .suc-box h3 {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--ok);
-        margin-bottom: 8px;
-      }
-      .suc-box p {
-        font-size: 0.82rem;
-        color: var(--txt-s);
-        line-height: 1.6;
-      }
-      .suc-box .email-shown {
-        font-weight: 700;
-        color: var(--pr);
-      }
-
-      .note {
-        font-size: 0.74rem;
-        color: var(--txt-m);
-        margin-top: 10px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="card">
-      <div class="card-top">
-        <div class="logo-row">
-          <div class="lm">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-              <path d="M6 12v5c3 3 9 3 12 0v-5" />
-            </svg>
-          </div>
-          <div class="logo-txt">
-            <strong>FYP Management</strong><small>AWKUM · CS Dept</small>
-          </div>
-        </div>
-        <div class="step-icon">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <rect x="3" y="11" width="18" height="11" rx="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Forgot Password — FYP Management AWKUM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../shared/css/theme.css"/>
+  <link rel="stylesheet" href="./css/auth.css"/>
+</head>
+<body>
+  <div class="card">
+    <!-- ── CARD TOP ── -->
+    <div class="card-top">
+      <div class="logo-row">
+        <div class="lm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+            <path d="M6 12v5c3 3 9 3 12 0v-5"/>
           </svg>
         </div>
-        <h2>Forgot password?</h2>
-        <p>Enter your registered email and we'll send you a reset link.</p>
-      </div>
-
-      <div class="card-body">
-        <!-- EMAIL FORM -->
-        <div id="email-form">
-          <div class="fg">
-            <label>Registered Email</label>
-            <div class="iw">
-              <svg
-                class="ic"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-                />
-                <polyline points="22,6 12,13 2,6" />
-              </svg>
-              <input
-                type="email"
-                id="s1-email"
-                placeholder="e.g. ahmed.saeed@awkum.edu.pk"
-                oninput="
-                  this.classList.remove('err');
-                  document.getElementById('e1-email').classList.remove('show');
-                "
-              />
-            </div>
-            <div class="err-msg" id="e1-email"></div>
-          </div>
-
-          <button
-            class="btn btn-primary"
-            id="send-btn"
-            onclick="sendResetLink()"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-              />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
-            Send Reset Link
-          </button>
-
-          <p
-            style="
-              margin-top: 14px;
-              text-align: center;
-              font-size: 0.77rem;
-              color: var(--txt-m);
-            "
-          >
-            Remember it?
-            <a
-              href="login.html"
-              style="color: var(--pr); font-weight: 700; text-decoration: none"
-              >Back to Login</a
-            >
-          </p>
-        </div>
-
-        <!-- SUCCESS STATE -->
-        <div class="suc-box" id="success-box">
-          <div class="suc-icon">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
-              />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
-          </div>
-          <h3>Check your email!</h3>
-          <p>
-            We sent a password reset link to<br /><span
-              class="email-shown"
-              id="shown-email"
-            ></span>
-          </p>
-          <p class="note">
-            Click the link in the email to reset your password.<br />If you
-            don't see it, check your spam folder.
-          </p>
-          <p class="note" style="margin-top: 12px">
-            Wrong email?
-            <a
-              href="forgot.html"
-              style="color: var(--pr); font-weight: 700; text-decoration: none"
-              >Try again</a
-            >
-          </p>
+        <div class="logo-txt">
+          <strong>FYP Management</strong>
+          <small>AWKUM · CS Dept</small>
         </div>
       </div>
+
+      <!-- progress dots -->
+      <div class="prog-dots">
+        <div class="prog-dot act" id="dot1"></div>
+        <div class="prog-dot" id="dot2"></div>
+        <div class="prog-dot" id="dot3"></div>
+        <div class="prog-dot" id="dot4"></div>
+      </div>
+
+      <div class="step-icon">
+        <svg id="top-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <h2 id="top-title">Forgot password?</h2>
+      <p id="top-sub">Enter your registered email and we'll send a verification code.</p>
     </div>
 
-    <script>
-      const API_BASE_URL = "http://localhost:5001";
+    <!-- ── CARD BODY ── -->
+    <div class="card-body">
 
-      async function sendResetLink() {
-        const email = document.getElementById("s1-email").value.trim();
-        const btn = document.getElementById("send-btn");
-        const errEl = document.getElementById("e1-email");
+      <!-- STEP 1 — Email -->
+      <div class="step active" id="step1">
+        <div class="fg">
+          <label>Registered Email</label>
+          <div class="iw">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <input type="email" id="s1-email" placeholder="your@email.com"
+              oninput="clearE('s1-email','e1-email')"/>
+          </div>
+          <div class="err-msg" id="e1-email">Please enter a valid email address.</div>
+        </div>
+        <button class="btn btn-primary" onclick="step1Submit()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Send Verification Code
+        </button>
+      </div>
 
-        // Basic validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!email || !emailRegex.test(email)) {
-          errEl.textContent = "Please enter a valid registered email address.";
-          errEl.classList.add("show");
-          document.getElementById("s1-email").classList.add("err");
-          return;
-        }
+      <!-- STEP 2 — OTP -->
+      <div class="step" id="step2">
+        <div class="info-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <p>A 6-digit code was sent to <strong id="otp-email-display">—</strong>. It expires in 15 minutes.</p>
+        </div>
+        <div class="otp-row">
+          <input class="otp-box" id="o1" maxlength="1" inputmode="numeric" oninput="otpMove(this,'o2')" onkeydown="otpBack(event,this,null)"/>
+          <input class="otp-box" id="o2" maxlength="1" inputmode="numeric" oninput="otpMove(this,'o3')" onkeydown="otpBack(event,this,'o1')"/>
+          <input class="otp-box" id="o3" maxlength="1" inputmode="numeric" oninput="otpMove(this,'o4')" onkeydown="otpBack(event,this,'o2')"/>
+          <input class="otp-box" id="o4" maxlength="1" inputmode="numeric" oninput="otpMove(this,'o5')" onkeydown="otpBack(event,this,'o3')"/>
+          <input class="otp-box" id="o5" maxlength="1" inputmode="numeric" oninput="otpMove(this,'o6')" onkeydown="otpBack(event,this,'o4')"/>
+          <input class="otp-box" id="o6" maxlength="1" inputmode="numeric" oninput="otpMove(this,null)" onkeydown="otpBack(event,this,'o5')"/>
+        </div>
+        <div class="err-msg" id="e-otp" style="text-align:center;margin-bottom:8px">Please enter the 6-digit code.</div>
+        <button class="btn btn-primary" onclick="step2Submit()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Verify Code
+        </button>
+        <div class="resend-row" style="margin-top:12px">
+          Didn't get it?
+          <a id="resend-link" onclick="resendOtp()">Resend code</a>
+        </div>
+      </div>
 
-        btn.disabled = true;
-        btn.innerHTML = `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
-      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-    </svg> Sending…`;
+      <!-- STEP 3 — New Password -->
+      <div class="step" id="step3">
+        <div class="fg">
+          <label>New Password</label>
+          <div class="iw">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="s3-pw" placeholder="Min. 8 characters"
+              oninput="onPw(this.value); this.classList.remove('err'); document.getElementById('e3-pw').classList.remove('show')"/>
+            <button class="pw-tog" onclick="togPw('s3-pw','eye-pw')" type="button">
+              <svg id="eye-pw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="str-bars">
+            <div class="sb" id="b1"></div>
+            <div class="sb" id="b2"></div>
+            <div class="sb" id="b3"></div>
+            <div class="sb" id="b4"></div>
+          </div>
+          <div class="str-lbl" id="str-lbl">Enter a password to check strength</div>
+          <div class="err-msg" id="e3-pw">Password must be at least 8 characters.</div>
+        </div>
+        <div class="fg">
+          <label>Confirm Password</label>
+          <div class="iw">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input type="password" id="s3-cpw" placeholder="Repeat your password"
+              oninput="this.classList.remove('err'); document.getElementById('e3-cpw').classList.remove('show')"/>
+            <button class="pw-tog" onclick="togPw('s3-cpw','eye-cpw')" type="button">
+              <svg id="eye-cpw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="err-msg" id="e3-cpw">Passwords do not match.</div>
+        </div>
+        <button class="btn btn-primary" onclick="step3Submit()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          Reset Password
+        </button>
+      </div>
 
-        try {
-          const res = await fetch(`${API_BASE_URL}/api/auth/forgot-password`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.message || "Request failed");
+      <!-- STEP 4 — Success -->
+      <div class="step" id="step4" style="text-align:center;padding:10px 0">
+        <div class="suc-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h3 style="font-size:1rem;font-weight:700;color:#198754;margin-bottom:8px">Password Reset!</h3>
+        <p style="font-size:.82rem;color:#64748b;line-height:1.6;margin-bottom:18px">
+          Your password has been updated successfully. You can now sign in with your new credentials.
+        </p>
+        <a href="login.html" class="btn btn-primary" style="text-decoration:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Go to Login
+        </a>
+      </div>
 
-          // Hide form, show success
-          document.getElementById("email-form").style.display = "none";
-          document.getElementById("shown-email").textContent = email;
-          document.getElementById("success-box").classList.add("show");
-        } catch (err) {
-          errEl.textContent = err.message;
-          errEl.classList.add("show");
-          document.getElementById("s1-email").classList.add("err");
+    </div>
+  </div>
 
-          btn.disabled = false;
-          btn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
-        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-        <polyline points="22,6 12,13 2,6"/>
-      </svg> Send Reset Link`;
-        }
-      }
-
-      // Allow pressing Enter
-      document
-        .getElementById("s1-email")
-        .addEventListener("keydown", function (e) {
-          if (e.key === "Enter") sendResetLink();
-        });
-    </script>
-  </body>
+  <script src="./js/auth.js"></script>
+</body>
 </html>
