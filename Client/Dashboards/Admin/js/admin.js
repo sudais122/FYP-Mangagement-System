@@ -276,6 +276,8 @@ async function renderRecentTeams() {
 /* ════════════════════════════════════
    SUPERVISORS
 ══════════════════════════════════════ */
+const SUPERVISORS_PAGE = { current: 1, perPage: 8 };
+
 async function renderSupervisors() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const grid  = $("#supervisorCards");
@@ -289,11 +291,36 @@ async function renderSupervisors() {
     if (!res.ok) throw new Error(data.message || "Failed");
 
     SUPERVISORS_DATA = data;
-    renderSupervisorCards(data);
+    renderSupervisorPage(SUPERVISORS_PAGE.current);
   } catch (err) {
     grid.innerHTML = `<div style="padding:40px;color:#dc2626">Failed: ${err.message}</div>`;
   }
 }
+
+function renderSupervisorPage(page) {
+  SUPERVISORS_PAGE.current = page;
+  const { perPage } = SUPERVISORS_PAGE;
+  const slice = SUPERVISORS_DATA.slice((page - 1) * perPage, page * perPage);
+  renderSupervisorCards(slice);
+  renderPagination("supervisorsPagination", SUPERVISORS_DATA.length, page, perPage, "renderSupervisorPage");
+}
+
+function renderTeamsPage(page) {
+  TEAMS_PAGE.current = page;
+  const { perPage } = TEAMS_PAGE;
+  const slice = TEAMS_DATA.slice((page - 1) * perPage, page * perPage);
+  renderTeamsTable(slice);
+  renderPagination("teamsPagination", TEAMS_DATA.length, page, perPage, "renderTeamsPage");
+}
+
+function renderStudentsPage(page) {
+  STUDENTS_PAGE.current = page;
+  const { perPage } = STUDENTS_PAGE;
+  const slice = STUDENTS_DATA.slice((page - 1) * perPage, page * perPage);
+  renderStudentsTable(slice);
+  renderPagination("studentsPagination", STUDENTS_DATA.length, page, perPage, "renderStudentsPage");
+}
+
 
 function renderSupervisorCards(list) {
   const grid = $("#supervisorCards");
@@ -664,10 +691,12 @@ async function saveTeamMarks(groupId) {
 /* ════════════════════════════════════
    TEAMS
 ══════════════════════════════════════ */
+const TEAMS_PAGE = { current: 1, perPage: 20 };
+
 async function renderTeams() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = $("#teamsTable tbody");
-  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
     const res = await fetch("http://127.0.0.1:5001/api/groups", {
@@ -680,10 +709,19 @@ async function renderTeams() {
     if (!res.ok) throw new Error(data.message || "Failed");
 
     TEAMS_DATA = Array.isArray(data) ? data : data.groups || [];
-    renderTeamsTable(TEAMS_DATA);
+    renderTeamsPage(TEAMS_PAGE.current);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#dc2626;padding:30px">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:30px">${err.message}</td></tr>`;
   }
+}
+
+function renderTeamsPage(page) {
+  TEAMS_PAGE.current = page;
+  const perPage = TEAMS_PAGE.perPage;
+  const start   = (page - 1) * perPage;
+  const slice   = TEAMS_DATA.slice(start, start + perPage);
+  renderTeamsTable(slice);
+  renderPagination("teamsPagination", TEAMS_DATA.length, page, perPage, "renderTeamsPage", "changeTeamsPerPage");
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -945,6 +983,8 @@ async function confirmReassign() {
 /* ════════════════════════════════════
    STUDENTS
 ══════════════════════════════════════ */
+const STUDENTS_PAGE = { current: 1, perPage: 30 };
+
 async function renderStudents() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = $("#studentsTable tbody");
@@ -958,10 +998,19 @@ async function renderStudents() {
     if (!res.ok) throw new Error(data.message || "Failed");
 
     STUDENTS_DATA = Array.isArray(data) ? data : data.students || [];
-    renderStudentsTable(STUDENTS_DATA);
+    renderStudentsPage(STUDENTS_PAGE.current);
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#dc2626;padding:30px">${err.message}</td></tr>`;
   }
+}
+
+function renderStudentsPage(page) {
+  STUDENTS_PAGE.current = page;
+  const perPage = STUDENTS_PAGE.perPage;
+  const start   = (page - 1) * perPage;
+  const slice   = STUDENTS_DATA.slice(start, start + perPage);
+  renderStudentsTable(slice);
+  renderPagination("studentsPagination", STUDENTS_DATA.length, page, perPage, "renderStudentsPage", "changeStudentsPerPage");
 }
 
 function renderStudentsTable(list, query = "", matchSet = new Set()) {
@@ -1163,6 +1212,7 @@ async function deleteStudent(studentId, studentName) {
    SEARCH FILTERS
 ══════════════════════════════════════ */
 function filterSupervisors(query) {
+  SUPERVISORS_PAGE.current = 1;
   if (!Array.isArray(SUPERVISORS_DATA)) return;
   const q       = (query || "").trim().toLowerCase();
   const matched = [];
@@ -1176,14 +1226,14 @@ function filterSupervisors(query) {
     (hit ? matched : rest).push(sup);
   });
 
-  const grid = $("#supervisorCards");
-  if (!SUPERVISORS_DATA.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
+  if (!q) {
+    renderSupervisorPage(1);
     return;
   }
 
+  const grid = $("#supervisorCards");
   grid.innerHTML = [...matched, ...rest].map(sup => {
-    const isMatch = q && matched.some(m => m._id === sup._id);
+    const isMatch = matched.some(m => m._id === sup._id);
     return `
       <div class="entity-card ${isMatch ? "search-match" : ""}">
         <div class="entity-card-head">
@@ -1212,61 +1262,55 @@ function filterSupervisors(query) {
         </div>
       </div>`;
   }).join("");
+
+  const pag = document.getElementById("supervisorsPagination");
+  if (pag) pag.innerHTML = matched.length
+    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${matched.length} result${matched.length !== 1 ? "s" : ""} found</div>`
+    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results</div>`;
 }
 
 function filterTeams(query) {
+  TEAMS_PAGE.current = 1;
   if (!Array.isArray(TEAMS_DATA)) return;
-  const q       = (query || "").trim().toLowerCase();
+
+  if (!query || !query.trim()) {
+    renderTeamsPage(1);
+    return;
+  }
+
+  const q       = query.trim().toLowerCase();
   const matched = [], rest = [];
 
   TEAMS_DATA.forEach(g => {
-    const hit = !q
-      || matches(g.group_code || g.team_code, q)
+    const hit = matches(g.group_code || g.team_code, q)
       || matches(g.project_title, q)
       || matches(g.supervisor?.name, q)
       || matches(g.supervisor?.sup_code, q);
     (hit ? matched : rest).push(g);
   });
 
-  const matchSet = new Set(matched.map(g => g._id));
-  const tbody    = $("#teamsTable tbody");
+  renderTeamsTable([...matched, ...rest]);
 
-  tbody.innerHTML = [...matched, ...rest].map(g => {
-    const supName  = g.supervisor ? g.supervisor.name : "Unassigned";
-    const teamCode = g.group_code || g.team_code || "—";
-    const isMatch  = q && matchSet.has(g._id);
-    return `
-      <tr class="${isMatch ? "search-match" : ""}">
-        <td><span class="id-pill gold">${highlightText(teamCode, q)}</span></td>
-        <td>${highlightText(g.project_title || "—", q)}</td>
-        <td><span style="font-weight:600;color:var(--text)">${highlightText(supName, q)}</span></td>
-        <td>
-          <div class="action-row">
-            <button class="icon-action" title="Reassign supervisor" onclick="event.stopPropagation();openReassignModal('${g._id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
-            </button>
-            <button class="icon-action" title="View team details" onclick="event.stopPropagation();openTeamDetail('${g._id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-              </svg>
-            </button>
-          </div>
-        </td>
-      </tr>`;
-  }).join("");
+  const pag = document.getElementById("teamsPagination");
+  if (pag) pag.innerHTML = matched.length
+    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${matched.length} result${matched.length !== 1 ? "s" : ""} found</div>`
+    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results</div>`;
 }
 
 function filterStudents(query) {
+  STUDENTS_PAGE.current = 1;
   if (!Array.isArray(STUDENTS_DATA)) return;
-  const q       = (query || "").trim().toLowerCase();
+
+  if (!query || !query.trim()) {
+    renderStudentsPage(1);
+    return;
+  }
+
+  const q       = query.trim().toLowerCase();
   const matched = [], rest = [];
 
   STUDENTS_DATA.forEach(s => {
-    const hit = !q
-      || matches(s.name, q)
+    const hit = matches(s.name, q)
       || matches(s.email, q)
       || matches(s.student_code, q);
     (hit ? matched : rest).push(s);
@@ -1274,6 +1318,11 @@ function filterStudents(query) {
 
   const matchSet = new Set(matched.map(s => s._id));
   renderStudentsTable([...matched, ...rest], q, matchSet);
+
+  const pag = document.getElementById("studentsPagination");
+  if (pag) pag.innerHTML = matched.length
+    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${matched.length} result${matched.length !== 1 ? "s" : ""} found</div>`
+    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results</div>`;
 }
 
 /* ════════════════════════════════════
@@ -1728,6 +1777,76 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("searchStudents")?.addEventListener("input",    e => filterStudents(e.target.value));
 });
 
+/* ════════════════════════════════════
+   PAGINATION HELPER
+══════════════════════════════════════ */
+function renderPagination(containerId, totalItems, currentPage, perPage, onPageChange) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const totalPages = Math.ceil(totalItems / perPage);
+  const start      = Math.min((currentPage - 1) * perPage + 1, totalItems);
+  const end        = Math.min(currentPage * perPage, totalItems);
+
+  if (totalPages <= 1) {
+    container.innerHTML = totalItems > 0
+      ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">Showing all ${totalItems}</div>`
+      : "";
+    return;
+  }
+
+  // Build visible page numbers with ellipsis
+  const visiblePages = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) visiblePages.push(i);
+  } else {
+    visiblePages.push(1);
+    if (currentPage > 3) visiblePages.push("...");
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      visiblePages.push(i);
+    }
+    if (currentPage < totalPages - 2) visiblePages.push("...");
+    visiblePages.push(totalPages);
+  }
+
+  const btnStyle = (active) => `
+    width:32px;height:32px;border-radius:7px;
+    border:1px solid ${active ? "var(--primary)" : "var(--border)"};
+    background:${active ? "var(--primary)" : "var(--surface)"};
+    color:${active ? "#fff" : "var(--text)"};
+    font-size:.78rem;font-weight:${active ? "700" : "600"};
+    cursor:pointer;transition:background .15s
+  `;
+
+  const numbersHtml = visiblePages.map(p => {
+    if (p === "...") return `<span style="width:32px;height:32px;display:grid;place-items:center;color:var(--text-mute);font-size:.82rem">…</span>`;
+    return `<button onclick="${onPageChange}(${p})" style="${btnStyle(p === currentPage)}">${p}</button>`;
+  }).join("");
+
+  container.innerHTML = `
+    <div style="
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 20px;border-top:1px solid var(--border-soft);
+      flex-wrap:wrap;gap:10px;background:var(--surface)
+    ">
+      <span style="font-size:.76rem;color:var(--text-mute);font-weight:600">
+        Showing <strong style="color:var(--text)">${start}–${end}</strong> of <strong style="color:var(--text)">${totalItems}</strong>
+      </span>
+      <div style="display:flex;gap:4px;align-items:center">
+        <button onclick="${onPageChange}(${currentPage - 1})"
+          ${currentPage === 1 ? "disabled" : ""}
+          style="${btnStyle(false)}opacity:${currentPage === 1 ? ".4" : "1"};cursor:${currentPage === 1 ? "not-allowed" : "pointer"}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        ${numbersHtml}
+        <button onclick="${onPageChange}(${currentPage + 1})"
+          ${currentPage === totalPages ? "disabled" : ""}
+          style="${btnStyle(false)}opacity:${currentPage === totalPages ? ".4" : "1"};cursor:${currentPage === totalPages ? "not-allowed" : "pointer"}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="13" height="13"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>`;
+}
 /* ════════════════════════════════════
    GLOBAL DATA + INIT
 ══════════════════════════════════════ */

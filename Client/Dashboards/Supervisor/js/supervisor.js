@@ -77,6 +77,44 @@ const navCode = document.getElementById("nav-sup-code");
 if (navName) navName.textContent = sup.name     || "Supervisor";
 if (navCode) navCode.textContent = sup.sup_code || "";
 
+
+function getSupGreeting(name) {
+  const hour = new Date().getHours();
+  let greeting, icon;
+  if      (hour >= 5  && hour < 12) { greeting = "Good Morning";   icon = "☀️"; }
+  else if (hour >= 12 && hour < 17) { greeting = "Good Afternoon"; icon = "🌤️"; }
+  else if (hour >= 17 && hour < 21) { greeting = "Good Evening";   icon = "🌆"; }
+  else                              { greeting = "Good Night";     icon = "🌙"; }
+  return `${greeting}, ${name} ${icon}`;
+}
+
+function startSupClock() {
+  function update() {
+    const el = document.getElementById("sup-datetime");
+    if (!el) return;
+    const now    = new Date();
+    const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const day    = days[now.getDay()];
+    const date   = now.getDate();
+    const month  = months[now.getMonth()];
+    const year   = now.getFullYear();
+    let hours    = now.getHours();
+    const mins   = String(now.getMinutes()).padStart(2, "0");
+    const ampm   = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+    el.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+       Today is ${day}, ${date} ${month} ${year} &nbsp;·&nbsp; ${hours}:${mins} ${ampm}`;
+  }
+  update();
+  setInterval(update, 1000);
+}
+
 /* ═══════════════════════════════════
    ADMIN MARK LOCKS (single source of truth)
 ═══════════════════════════════════ */
@@ -121,42 +159,7 @@ async function refreshMarkLocks() {
   await loadMarkToggles();
   applyMarkLocks();
 }
-function getSupGreeting(name) {
-  const hour = new Date().getHours();
-  let greeting, icon;
-  if (hour >= 5 && hour < 12)       { greeting = "Good Morning";   icon = "☀️"; }
-  else if (hour >= 12 && hour < 17) { greeting = "Good Afternoon"; icon = "🌤️"; }
-  else if (hour >= 17 && hour < 21) { greeting = "Good Evening";   icon = "🌆"; }
-  else                              { greeting = "Good Night";     icon = "🌙"; }
-  return `${greeting}, ${name} ${icon}`;
-}
 
-function startSupClock() {
-  function update() {
-    const el = document.getElementById("sup-datetime");
-    if (!el) return;
-    const now    = new Date();
-    const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const day    = days[now.getDay()];
-    const date   = now.getDate();
-    const month  = months[now.getMonth()];
-    const year   = now.getFullYear();
-    let hours    = now.getHours();
-    const mins   = String(now.getMinutes()).padStart(2, "0");
-    const ampm   = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12 || 12;
-    el.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      ${day}, ${date} ${month} ${year} &nbsp;·&nbsp; ${hours}:${mins} ${ampm}`;
-  }
-  update();
-  setInterval(update, 1000);
-}
 /* ═══════════════════════════════════
    FETCH TEAMS FROM BACKEND
 ═══════════════════════════════════ */
@@ -357,26 +360,26 @@ function showTab(tab) {
   document.querySelectorAll(".sb-btn:not(.logout)").forEach((b) => b.classList.remove("active"));
   document.getElementById("sb-" + tab)?.classList.add("active");
 
-  const titles = {
-    "dashboard":     ["Dashboard",            "Overview of your assigned groups and students"],
-    "groups":        ["My Groups",            "View groups, students, and assign marks"],
-    "overview":      ["Department Overview",  "Department-wide statistics — Chairman view"],
-    "workload":      ["Supervisor Workload",  "Teams & students assigned to each supervisor"],
-    "all-teams":     ["All Teams",            "Read-only view of every team in the department"],
-    "all-students":  ["All Students",         "Read-only view of every student in the department"],
-    "deadlines": ["Academic Deadlines", "Upcoming submission and evaluation deadlines"],
-  };
+const titles = {
+  "dashboard":     ["Dashboard",            "Overview of your assigned groups and students"],
+  "groups":        ["My Groups",            "View groups, students, and assign marks"],
+  "overview":      ["Department Overview",  "Department-wide statistics — Chairman view"],
+  "workload":      ["Supervisor Workload",  "Teams & students assigned to each supervisor"],
+  "all-teams":     ["All Teams",            "Read-only view of every team in the department"],
+  "all-students":  ["All Students",         "Read-only view of every student in the department"],
+  "deadlines":     ["Academic Deadlines",   "Upcoming submission and evaluation deadlines"],
+};
   const t = titles[tab] || [tab, ""];
   document.getElementById("page-title").textContent = t[0];
   document.getElementById("page-sub").textContent   = t[1];
 
-  if (tab === "dashboard")    renderDashboard();
-  if (tab === "groups")       showGroupsList();
-  if (tab === "overview")     loadDepartmentOverview();
-  if (tab === "workload")     loadWorkload();
-  if (tab === "all-teams")    loadAllTeams();
-  if (tab === "all-students") loadAllStudents();
-  if (tab === "deadlines") renderTabDeadlines();
+if (tab === "dashboard")    renderDashboard();
+if (tab === "groups")       showGroupsList();
+if (tab === "overview")     loadDepartmentOverview();
+if (tab === "workload")     loadWorkload();
+if (tab === "all-teams")    loadAllTeams();
+if (tab === "all-students") loadAllStudents();
+if (tab === "deadlines")    renderTabDeadlines();
 }
 
 /* ═══════════════════════════════════
@@ -1140,109 +1143,39 @@ async function loadAllStudents() {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
   }
 }
-async function loadSupDeadlines() {
-  const container = document.getElementById("sup-deadlines-container");
-  if (!container) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/deadlines`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` }
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message);
-
-    if (!data.length) {
-      container.innerHTML = `<p style="color:var(--text-mute);font-size:.82rem">No deadlines posted yet.</p>`;
-      return;
-    }
-
-    container.innerHTML = `
-      <p style="font-size:.68rem;font-weight:700;color:var(--text-mute);text-transform:uppercase;
-         letter-spacing:.08em;margin-bottom:14px;padding-bottom:10px;
-         border-bottom:2px solid var(--border-soft)"></p>` +
-      data.map(d => {
-        const due = new Date(d.dueDate);
-        const diffMs = due - new Date();
-        const diffDays = Math.ceil(diffMs / 86400000);
-        const expired = diffMs < 0;
-        const near = !expired && diffDays <= 2;
-        const label = d.type === "Other" && d.customName ? d.customName : d.type;
-        const day = due.getDate().toString().padStart(2, "0");
-        const mo = due.toLocaleString("en-PK", { month: "short" });
-        const tagText = expired ? "Expired" : diffDays === 0 ? "Today!" : `${diffDays} days`;
-        const bgColor = expired ? "#dc2626" : near ? "var(--gold)" : "var(--primary)";
-        const tagColor = expired ? "#dc2626" : near ? "#a16207" : "var(--secondary)";
-        const tagBg = expired ? "rgba(220,38,38,.08)" : near ? "rgba(234,179,8,.1)" : "rgba(0,75,45,.08)";
-
-        return `
-          <div style="display:flex;gap:14px;align-items:center;padding:11px 0;
-                      border-bottom:1px solid var(--border-soft)">
-            <div style="background:${bgColor};color:#fff;border-radius:9px;padding:7px 10px;
-                        text-align:center;flex-shrink:0;min-width:46px">
-              <span style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;
-                           line-height:1;display:block">${day}</span>
-              <span style="font-size:.58rem;font-weight:600;opacity:.7;text-transform:uppercase;
-                           letter-spacing:.06em">${mo}</span>
-            </div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:2px">${label}</div>
-              <div style="font-size:.74rem;color:var(--text-mute)">${d.description || "Submission deadline — 11:59 PM"}</div>
-            </div>
-            <span style="margin-left:auto;flex-shrink:0;padding:3px 9px;border-radius:20px;
-                         font-size:.68rem;font-weight:700;background:${tagBg};color:${tagColor}">
-              ${tagText}
-            </span>
-          </div>`;
-      }).join("") +
-      `<div style="border-bottom:none"></div>`;
-
-  } catch (err) {
-    container.innerHTML = `<p style="color:#dc2626;font-size:.82rem">Failed to load: ${err.message}</p>`;
-  }
-}
-
-/* ═══════════════════════════════════
-   DEADLINES
-═══════════════════════════════════ */
-function deadlineRowsHtml(data) {
-  if (!data.length) return `<p style="color:var(--text-mute);font-size:.82rem">No deadlines posted yet.</p>`;
+function deadlineRowHtml(d) {
+  const due      = new Date(d.dueDate);
+  const diffMs   = due - new Date();
+  const diffDays = Math.ceil(diffMs / 86400000);
+  const expired  = diffMs < 0;
+  const near     = !expired && diffDays <= 2;
+  const label    = d.type === "Other" && d.customName ? d.customName : d.type;
+  const day      = due.getDate().toString().padStart(2, "0");
+  const mo       = due.toLocaleString("en-PK", { month: "short" });
+  const tagText  = expired ? "Expired" : diffDays === 0 ? "Today!" : `${diffDays} days`;
+  const bgColor  = expired ? "#dc2626" : near ? "var(--gold)" : "var(--primary)";
+  const tagColor = expired ? "#dc2626" : near ? "#a16207" : "var(--secondary)";
+  const tagBg    = expired ? "rgba(220,38,38,.08)" : near ? "rgba(234,179,8,.1)" : "rgba(0,75,45,.08)";
 
   return `
-    ` +
-    data.map(d => {
-      const due      = new Date(d.dueDate);
-      const diffMs   = due - new Date();
-      const diffDays = Math.ceil(diffMs / 86400000);
-      const expired  = diffMs < 0;
-      const near     = !expired && diffDays <= 2;
-      const label    = d.type === "Other" && d.customName ? d.customName : d.type;
-      const day      = due.getDate().toString().padStart(2, "0");
-      const mo       = due.toLocaleString("en-PK", { month: "short" });
-      const tagText  = expired ? "Expired" : diffDays === 0 ? "Today!" : `${diffDays} days`;
-      const bgColor  = expired ? "#dc2626" : near ? "var(--gold)" : "var(--primary)";
-      const tagColor = expired ? "#dc2626" : near ? "#a16207" : "var(--secondary)";
-      const tagBg    = expired ? "rgba(220,38,38,.08)" : near ? "rgba(234,179,8,.1)" : "rgba(0,75,45,.08)";
-
-      return `
-        <div style="display:flex;gap:14px;align-items:center;padding:11px 0;
-                    border-bottom:1px solid var(--border-soft)">
-          <div style="background:${bgColor};color:#fff;border-radius:9px;padding:7px 10px;
-                      text-align:center;flex-shrink:0;min-width:46px">
-            <span style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;
-                         line-height:1;display:block">${day}</span>
-            <span style="font-size:.58rem;font-weight:600;opacity:.7;
-                         text-transform:uppercase;letter-spacing:.06em">${mo}</span>
-          </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:2px">${label}</div>
-            <div style="font-size:.74rem;color:var(--text-mute)">${d.description || "Submission deadline — 11:59 PM"}</div>
-          </div>
-          <span style="margin-left:auto;flex-shrink:0;padding:3px 9px;border-radius:20px;
-                       font-size:.68rem;font-weight:700;background:${tagBg};color:${tagColor}">
-            ${tagText}
-          </span>
-        </div>`;
-    }).join("");
+    <div style="display:flex;gap:14px;align-items:center;padding:11px 0;
+                border-bottom:1px solid var(--border-soft)">
+      <div style="background:${bgColor};color:#fff;border-radius:9px;padding:7px 10px;
+                  text-align:center;flex-shrink:0;min-width:46px">
+        <span style="font-family:var(--font-display);font-size:1.2rem;font-weight:700;
+                     line-height:1;display:block">${day}</span>
+        <span style="font-size:.58rem;font-weight:600;opacity:.7;
+                     text-transform:uppercase;letter-spacing:.06em">${mo}</span>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.84rem;font-weight:700;color:var(--text);margin-bottom:2px">${label}</div>
+        <div style="font-size:.74rem;color:var(--text-mute)">${d.description || "Submission deadline — 11:59 PM"}</div>
+      </div>
+      <span style="margin-left:auto;flex-shrink:0;padding:3px 9px;border-radius:20px;
+                   font-size:.68rem;font-weight:700;background:${tagBg};color:${tagColor}">
+        ${tagText}
+      </span>
+    </div>`;
 }
 
 let DEADLINES_CACHE = null;
@@ -1262,22 +1195,20 @@ async function loadDeadlines() {
   }
 }
 
-async function renderDashDeadlines() {
-  const container = document.getElementById("dash-deadlines-container");
-  if (!container) return;
-  const data = await loadDeadlines();
-  container.innerHTML = deadlineRowsHtml(data);
-}
-
 async function renderTabDeadlines() {
   const container = document.getElementById("tab-deadlines-container");
   if (!container) return;
   container.innerHTML = `<p style="color:var(--text-mute);font-size:.82rem">Loading…</p>`;
   const data = await loadDeadlines();
-  container.innerHTML = deadlineRowsHtml(data);
+  if (!data.length) {
+    container.innerHTML = `<p style="color:var(--text-mute);font-size:.82rem">No deadlines posted yet.</p>`;
+    return;
+  }
+  container.innerHTML = data.map(d => deadlineRowHtml(d)).join("");
 }
+
+// add this at the very bottom alongside loadTeams()
 /* ═══════════════════════════════════
-INIT — load real data
+   INIT — load real data
 ═══════════════════════════════════ */
-loadSupDeadlines();
 loadTeams();
