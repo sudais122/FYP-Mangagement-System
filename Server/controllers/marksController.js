@@ -2,19 +2,18 @@ import Marks from "../Models/marks.js";
 import Group from "../Models/group.js";
 import Settings from "../Models/Settings.js";
 
-/**
- * 📌 Save / Update Marks
- */
+
+// Save / Update Marks
+
 export const saveMarks = async (req, res) => {
-
   const Supervisor = (await import("../Models/supervisor.js")).default;
-    const caller = await Supervisor.findById(req.user.id);
+  const caller = await Supervisor.findById(req.user.id);
 
-    if (caller && caller.is_chairman) {
-      return res.status(403).json({ 
-        message: "Chairman has read-only access. Only the assigned supervisor can save marks." 
-      });
-    }
+  if (caller && caller.is_chairman) {
+    return res.status(403).json({
+      message: "Chairman has read-only access. Only the assigned supervisor can save marks."
+    });
+  }
 
   const { student_id, monthly, submissions, viva, documentation } = req.body;
 
@@ -25,27 +24,71 @@ export const saveMarks = async (req, res) => {
       return res.status(404).json({ message: "Marks record not found for this student" });
     }
 
+    // Track which fields actually changed
+    const updatedSections = [];
+
+    const LABELS = {
+      monthly: {
+        oct: { label: "October Meeting",  max: 10 },
+        nov: { label: "November Meeting", max: 10 },
+        dec: { label: "December Meeting", max: 10 },
+        feb: { label: "February Meeting", max: 10 },
+        mar: { label: "March Meeting",    max: 10 },
+      },
+      submissions: {
+        proposal:  { label: "Proposal Submission",   max: 10 },
+        progress:  { label: "Progress Report",       max: 20 },
+        code:      { label: "Code / Practical Work", max: 10 },
+        prog_sim:  { label: "Progress Similarity",   max: 5  },
+        thesis_sim:{ label: "Thesis Similarity",     max: 5  },
+      },
+      documentation: {
+        final: { label: "Thesis / Final Report", max: 20 },
+      },
+      viva: {
+        internal1: { label: "Internal Viva 1", max: 25 },
+        internal2: { label: "Internal Viva 2", max: 25 },
+        external:  { label: "External Viva",   max: 30 },
+      },
+    };
+
     if (monthly) {
       Object.entries(monthly).forEach(([key, val]) => {
-        if (val !== null && val !== undefined) marks.monthly[key] = val;
+        if (val !== null && val !== undefined) {
+          marks.monthly[key] = val;
+          const info = LABELS.monthly[key];
+          if (info) updatedSections.push({ label: info.label, value: val, max: info.max });
+        }
       });
     }
 
     if (submissions) {
       Object.entries(submissions).forEach(([key, val]) => {
-        if (val !== null && val !== undefined) marks.submissions[key] = val;
+        if (val !== null && val !== undefined) {
+          marks.submissions[key] = val;
+          const info = LABELS.submissions[key];
+          if (info) updatedSections.push({ label: info.label, value: val, max: info.max });
+        }
       });
     }
 
     if (viva) {
       Object.entries(viva).forEach(([key, val]) => {
-        if (val !== null && val !== undefined) marks.viva[key] = val;
+        if (val !== null && val !== undefined) {
+          marks.viva[key] = val;
+          const info = LABELS.viva[key];
+          if (info) updatedSections.push({ label: info.label, value: val, max: info.max });
+        }
       });
     }
 
     if (documentation) {
       Object.entries(documentation).forEach(([key, val]) => {
-        if (val !== null && val !== undefined) marks.documentation[key] = val;
+        if (val !== null && val !== undefined) {
+          marks.documentation[key] = val;
+          const info = LABELS.documentation[key];
+          if (info) updatedSections.push({ label: info.label, value: val, max: info.max });
+        }
       });
     }
 
@@ -57,10 +100,37 @@ export const saveMarks = async (req, res) => {
     marks.markModified("documentation");
 
     await marks.save();
+    if (updatedSections.length > 0) {
+      try {
+        const Student    = (await import("../Models/student.js")).default;
+        const { marksUpdatedTemplate } = await import("../utils/emailTemplates/marksUpdated.js");
+        const { sendEmail } = await import("../utils/sendEmail.js");
+
+        const student = await Student.findById(student_id);
+        const group   = await (await import("../Models/group.js")).default
+          .findOne({ $or: [{ leader: student_id }, { members: student_id }] });
+
+        if (student?.email) {
+          const { subject, html } = marksUpdatedTemplate({
+            studentName:     student.name,
+            supervisorName:  caller?.name || "Your Supervisor",
+            groupCode:       group?.group_code || "—",
+            updatedSections,
+            total:           marks.total,
+          });
+
+          sendEmail({ to: student.email, subject, html }).then(r => {
+            if (!r.success) console.warn(`Marks email failed for ${student.email}:`, r.error);
+          });
+        }
+      } catch (emailErr) {
+        console.warn("Marks email error:", emailErr.message);
+      }
+    }
 
     res.json({
       message: "Marks saved successfully",
-      total: marks.total,
+      total:   marks.total,
       marks
     });
 
@@ -70,9 +140,7 @@ export const saveMarks = async (req, res) => {
   }
 };
 
-/**
- * 📌 Get Marks for ONE Student
- */
+//  Get Marks for ONE Student
 export const getStudentMarks = async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -92,9 +160,8 @@ export const getStudentMarks = async (req, res) => {
   }
 };
 
-/**
- * 📌 Get Marks for GROUP
- */
+
+//  Get Marks for GROUP
 export const getGroupMarks = async (req, res) => {
 
   try {

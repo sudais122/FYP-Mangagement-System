@@ -804,9 +804,15 @@ async function saveMarks(teamMongoId, studentMongoId) {
   if (hasError) { toast("Fix invalid marks (red fields)", "red"); return; }
 
   const monthly       = { oct: marks.oct, nov: marks.nov, dec: marks.dec, feb: marks.feb, mar: marks.mar };
-  const submissions   = { proposal: marks.proposal, progress: marks.progress_report, code: marks.code, prog_sim: marks.prog_sim, thesis_sim: marks.thesis_sim };
+  const submissions = {
+    proposal:   marks.proposal        ?? null,
+    progress:   marks.progress_report ?? null,
+    code:       marks.code            ?? null,
+    prog_sim:   marks.prog_sim        ?? null,
+    thesis_sim: marks.thesis_sim      ?? null,
+  };
   const viva          = { internal1: marks.iv1, internal2: marks.iv2, external: marks.ext };
-  const documentation = { final: marks.thesis };
+  const documentation = { final: marks.thesis ?? null };
 
   try {
     const res = await fetch(`${API_BASE}/marks/save`, {
@@ -817,9 +823,13 @@ async function saveMarks(teamMongoId, studentMongoId) {
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
-
-    Object.keys(marks).forEach(k => {
-      if (marks[k] !== null) student.marks[k] = marks[k];
+      
+    MARK_COMPONENTS.forEach(sec => {
+      sec.items.forEach(item => {
+        if (marks[item.key] !== null && marks[item.key] !== undefined) {
+          student.marks[item.key] = marks[item.key];
+        }
+      });
     });
 
     const newTotal = data.total || studentTotal(student);

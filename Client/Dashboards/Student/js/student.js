@@ -379,7 +379,7 @@ function switchTab(tab, el) {
       }
     }, 150); 
   }
-  if (tab === "project") setProposalState(STATE.proposalState);
+  if (tab === "project") loadProposalSection();
   if (tab === "supervisor") renderSupervisorTab();
 
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -519,18 +519,18 @@ async function handleProposalUpload(files) {
     return;
   }
 
-  // Update STATE from real backend response
   const group = result.data?.group;
   if (group) {
     STATE.groupData.proposal_url         = group.proposal_url;
-    STATE.groupData.proposal_status      = group.proposal_status;
+    STATE.groupData.proposal_status      = group.proposal_status || "pending";
     STATE.groupData.proposal_uploaded_by = group.proposal_uploaded_by;
     STATE.groupData.proposal_uploaded_at = group.proposal_uploaded_at;
+    STATE.proposalFile = group.proposal_url;
   }
 
   STATE.proposalState = "pending";
   setProposalState("pending");
-  toast("Proposal uploaded successfully ✓", "gold");
+  toast("Proposal submitted — awaiting review", "gold");
 }
 
 function handleProposalDrop(e) {
@@ -1683,7 +1683,6 @@ async function uploadCV(file) {
   }
 }
 
-/* Upload proposal to backend */
 async function uploadProposalAPI(file) {
   const formData = new FormData();
   formData.append("proposal", file);
@@ -1702,29 +1701,6 @@ async function uploadProposalAPI(file) {
   }
 }
 
-/* Replace your existing handleProposalUpload */
-async function uploadProposalAPI(file) {
-  const groupId = STATE.groupData?._id;
-  if (!groupId) {
-    return { error: "You are not in a team yet" };
-  }
-
-  const formData = new FormData();
-  formData.append("proposal", file);
-
-  try {
-    const res = await fetch(`${API_BASE}/groups/${groupId}/proposal`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${user.token}` },
-      body: formData,
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Upload failed");
-    return { success: true, data };
-  } catch (err) {
-    return { error: err.message };
-  }
-}
 async function loadStudentDeadlines() {
   const user = JSON.parse(localStorage.getItem("user"));
   const container = document.getElementById("student-deadlines-container");
@@ -1786,6 +1762,52 @@ function getGreeting(name) {
   }
 
   return `${greeting}, ${name} ${icon}`;
+}
+
+async function loadProposalSection() {
+  // If we already have groupData, use it directly
+  if (STATE.groupData) {
+    const proposalUrl    = STATE.groupData.proposal_url    || null;
+    const proposalStatus = STATE.groupData.proposal_status || null;
+
+    if (!proposalUrl) {
+      STATE.proposalState = "idle";
+    } else {
+      STATE.proposalState = proposalStatus || "pending";
+    }
+
+    setProposalState(STATE.proposalState);
+    return;
+  }
+
+  // No groupData yet — fetch fresh from backend
+  try {
+    const res  = await fetch(`${API_BASE}/students/dashboard`, {
+      headers: API_HEADERS
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    if (data.hasGroup) {
+      STATE.groupData = data.group;
+      const proposalUrl    = data.group.proposal_url    || null;
+      const proposalStatus = data.group.proposal_status || null;
+
+      if (!proposalUrl) {
+        STATE.proposalState = "idle";
+      } else {
+        STATE.proposalState = proposalStatus || "pending";
+        STATE.proposalFile  = data.group.proposal_filename || data.group.proposal_url;
+      }
+    } else {
+      STATE.proposalState = "idle";
+    }
+  } catch (err) {
+    console.error("Proposal load error:", err);
+    STATE.proposalState = "idle";
+  }
+
+  setProposalState(STATE.proposalState);
 }
 /* ══════════════════════════════════
    INIT
