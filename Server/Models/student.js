@@ -28,7 +28,11 @@ const studentSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
-
+    gender: {
+      type: String,
+      enum: ["male", "female"],
+      required: true
+    },
     whatsapp: {
       type: String,
       required: [true, "WhatsApp number is required"],

@@ -82,36 +82,45 @@ if (role === "supervisor" || role === "chairman") {
 // ── STUDENT REGISTER ─────────────────────────────────
 export const registerStudent = async (req, res) => {
   try {
-    const { name, email, whatsapp, password } = req.body;
+    const { name, email, whatsapp, password, gender } = req.body;
 
+    // 1. CV required
     if (!req.file) {
       return res.status(400).json({ message: "CV is required" });
     }
 
+    // 2. Duplicate email check
     const existing = await Student.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
+    // 3. Password hash
     const hashedPassword = await bcrypt.hash(password, 10);
-    const student_code   = await generateStudentId();
 
+    // 4. Student ID
+    const student_code = await generateStudentId();
+
+    // 5. Create student
     const student = await Student.create({
       name,
       email,
       whatsapp,
-      password:     hashedPassword,
+      gender, 
+      password: hashedPassword,
       student_code,
-      cv_url:       `/uploads/cvs/${req.file.filename}`,
+      cv_url: `/uploads/cvs/${req.file.filename}`,
       cv_public_id: req.file.filename,
     });
 
+    // 6. Response
     res.status(201).json({
       message: "Student registered successfully",
       student: {
-        _id:          student._id,
-        name:         student.name,
-        email:        student.email,
+        _id: student._id,
+        name: student.name,
+        email: student.email,
+        gender: student.gender, 
         student_code: student.student_code,
       },
     });

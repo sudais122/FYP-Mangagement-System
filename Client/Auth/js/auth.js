@@ -3,50 +3,47 @@ var cur = 1;
 var rtimer = null;
 
 async function doReg() {
-  // 1. Collect values from form
-  const fn  = document.getElementById("r-fn").value.trim();
-  const ln  = document.getElementById("r-ln").value.trim();
-  const em  = document.getElementById("r-em").value.trim();
-  const wa  = document.getElementById("r-wa").value.trim();
-  const pw  = document.getElementById("r-pw").value;
-  const cpw = document.getElementById("r-cpw").value;
-  const cv  = document.getElementById("r-cv").files[0];
+  const fn     = document.getElementById("r-fn").value.trim();
+  const ln     = document.getElementById("r-ln").value.trim();
+  const em     = document.getElementById("r-em").value.trim();
+  const wa     = document.getElementById("r-wa").value.trim();
+  const gender = document.getElementById("r-gender").value;
+  const pw     = document.getElementById("r-pw").value;
+  const cpw    = document.getElementById("r-cpw").value;
+  const cv     = document.getElementById("r-cv").files[0];
 
-  // 2. Validate (your existing validation logic)
   if (!fn) return showErr("fn");
   if (!ln) return showErr("ln");
   if (!em || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return showErr("em");
   if (!/^[0-9]{11}$/.test(wa)) return showErr("wa");
+  if (!gender) return showErr("gender");
   if (pw.length < 8) return showErr("pw");
   if (pw !== cpw) return showErr("cpw");
   if (!cv) return showErr("cv");
 
-  // 3. Build FormData (NOT JSON — because we have a file)
   const formData = new FormData();
   formData.append("name", `${fn} ${ln}`);
   formData.append("email", em);
   formData.append("whatsapp", wa);
+  formData.append("gender", gender);
   formData.append("password", pw);
-  formData.append("cv", cv);  // ← the file
+  formData.append("cv", cv);
 
-  // 4. Submit
   const btn = document.getElementById("rbtn");
   btn.disabled = true;
   btn.innerHTML = "Creating account...";
-try {
+
+  try {
     const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
       method: "POST",
       body: formData,
     });
-
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Registration failed");
 
     document.getElementById("form-area").style.display = "none";
     document.getElementById("success-area").style.display = "block";
-
   } catch (err) {
-    console.error("Register error:", err);
     Swal.fire({ icon: "error", title: "Registration failed", text: err.message });
     btn.disabled = false;
     btn.innerHTML = "Register";
@@ -359,6 +356,7 @@ async function handleLogin(e) {
         name: data.name,
         student_code: data.student_code,
         email: data.email,
+        gender: data.gender,   
         token: data.token,
       }));
 

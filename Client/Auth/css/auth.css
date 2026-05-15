@@ -610,3 +610,57 @@ svg { display: block; flex-shrink: 0; }
 .step.active {
   display: block;
 }
+/* ── Gender Selector ── */
+.gender-opt {
+  flex: 1;
+  cursor: pointer;
+}
+.gender-opt input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.gender-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border: 1.5px solid var(--bdr);
+  border-radius: 10px;
+  background: #f8faf8;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--txt-m);
+  transition: var(--tr);
+  user-select: none;
+}
+.gender-card svg {
+  width: 18px;
+  height: 18px;
+  color: #adb5bd;
+  transition: var(--tr);
+}
+.gender-opt:hover .gender-card {
+  border-color: var(--pr);
+  background: #f0f7f3;
+  color: var(--pr);
+}
+.gender-opt:hover .gender-card svg {
+  color: var(--pr);
+}
+.gender-opt input:checked + .gender-card {
+  border-color: var(--pr);
+  background: linear-gradient(135deg, rgba(0,75,45,0.06), rgba(0,75,45,0.02));
+  color: var(--pr);
+  box-shadow: 0 0 0 3px rgba(0,75,45,0.08);
+}
+.gender-opt input:checked + .gender-card svg {
+  color: var(--pr);
+}
+.gender-err .gender-card {
+  border-color: #dc3545;
+  background: #fff8f8;
+}

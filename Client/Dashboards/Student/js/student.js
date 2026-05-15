@@ -1099,11 +1099,14 @@ async function finishSetup() {
     return;
   }
 
-  STATE.teamCreated = true;
-STATE.teamId = result.group.group_code;
+STATE.teamCreated = true;
+STATE.teamId = result.group.group_code || result.group.team_code;
 
 // Reset marks for new team
 STUDENT_MARKS = {};
+
+updateDashboardUI();
+updateBannerForTeam();
 
 
 const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
@@ -1363,20 +1366,24 @@ function renderTeamTab() {
     })),
   ];
 
-  display.innerHTML = allMembers
-    .map(
-      (m) => `
+  // Replace the allMembers map inside renderTeamTab:
+display.innerHTML = allMembers.map(m => {
+  const avatarContent = m.isYou
+    ? `<img src="${user.gender === "female" ? "../../avatar/female.jpg" : "../../avatar/male.jpg"}"
+            alt="avatar"
+            style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`
+    : m.initials;
+
+  return `
     <div class="tm-item" style="margin-bottom:8px">
-      <div class="tm-av">${m.initials}</div>
+      <div class="tm-av" style="${m.isYou ? "padding:0;overflow:hidden" : ""}">${avatarContent}</div>
       <div>
         <div class="tm-name">${m.name}${m.isYou ? " (You)" : ""}</div>
         <div class="tm-id">${m.student_code}</div>
       </div>
       <span class="tm-role ${m.role === "Team Leader" || m.role === "Leader" ? "tm-lead" : "tm-member"}">${m.role}</span>
-    </div>`,
-    )
-    .join("");
-
+    </div>`;
+}).join("");
     const totalMembers = 1 + STATE.members.length; // leader + members
     if (totalMembers < 3 && STATE.teamRole === "Leader") {
 display.innerHTML += `
@@ -1751,21 +1758,17 @@ container.innerHTML = data.map(d => {
     container.innerHTML = `<p style="color:#dc2626">Failed to load: ${err.message}</p>`;
   }
 }
-function getGreeting(name) {
+function getGreeting(name, gender) {
   const hour = new Date().getHours();
   let greeting, icon;
 
-  if (hour >= 5 && hour < 12) {
-    greeting = "Good Morning"; icon = "☀️";
-  } else if (hour >= 12 && hour < 17) {
-    greeting = "Good Afternoon"; icon = "🌤️";
-  } else if (hour >= 17 && hour < 21) {
-    greeting = "Good Evening"; icon = "🌆";
-  } else {
-    greeting = "Good Night"; icon = "🌙";
-  }
+  if      (hour >= 5  && hour < 12) { greeting = "Good Morning";   icon = "☀️"; }
+  else if (hour >= 12 && hour < 17) { greeting = "Good Afternoon"; icon = "🌤️"; }
+  else if (hour >= 17 && hour < 21) { greeting = "Good Evening";   icon = "🌆"; }
+  else                               { greeting = "Good Night";     icon = "🌙"; }
 
-  return `${greeting}, ${name} ${icon}`;
+  const title = gender === "female" ? "Ms" : "Mr";
+  return `${greeting}, ${title}. ${name} ${icon}`;
 }
 
 async function loadProposalSection() {
@@ -1817,21 +1820,35 @@ async function loadProposalSection() {
    INIT
 ══════════════════════════════════ */
 function initDashboard() {
-  // Set user info
-  const navStdId = document.getElementById("nav-std-id");
-  const navName = document.getElementById("nav-name");
+  const navStdId   = document.getElementById("nav-std-id");
+  const navName    = document.getElementById("nav-name");
   const navInitials = document.getElementById("nav-initials");
   const bannerName = document.getElementById("banner-name");
-  const studentId = document.getElementById("student-id");
+  const studentId  = document.getElementById("student-id");
 
-  if (navStdId) navStdId.textContent = STATE.studentId;
-  if (navName) navName.textContent = STATE.studentName;
-  if (navInitials) navInitials.textContent = initials(STATE.studentName);
-  if (bannerName) bannerName.textContent = getGreeting(STATE.studentName);
-  startBannerClock();
+  if (navStdId)  navStdId.textContent  = STATE.studentId;
+  if (navName)   navName.textContent   = STATE.studentName;
+
+  if (navInitials) {
+    const gender    = user.gender || "male";
+    const avatarSrc = gender === "female"
+      ? "../../images/avatar/female.jpg"
+      : "../../images/Avatars/male.jpg";
+
+    navInitials.textContent = "";
+    navInitials.style.padding = "0";
+    navInitials.style.overflow = "hidden";
+    navInitials.innerHTML = `<img src="${avatarSrc}"
+      alt="${gender}"
+      style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+  }
+
+  // ── Pass gender to greeting ──
+  if (bannerName) bannerName.textContent = getGreeting(STATE.studentName, user.gender);
+
   if (studentId) studentId.textContent = STATE.studentId;
 
-  // Load dashboard data from backend
+  startBannerClock();
   loadDashboard();
   loadStudentDeadlines();
 }

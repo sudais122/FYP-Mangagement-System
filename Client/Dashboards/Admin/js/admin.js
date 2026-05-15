@@ -386,133 +386,62 @@ function renderStudentsPage(page) {
 function renderSupervisorCards(list) {
   const grid = $("#supervisorCards");
 
-  // Helper
-  function withPrefix(supervisor) {
-    if (!supervisor) return "Unassigned";
-
-    return `${supervisor.prefix || "Mr"} ${supervisor.name}`;
-  }
-
   if (!list?.length) {
-    grid.innerHTML = `
-      <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">
-        No supervisors found.
-      </div>
-    `;
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
     return;
   }
 
   grid.innerHTML = list.map(sup => `
     <div class="entity-card" data-chairman="${sup.is_chairman === true}">
-      
-      <div class="entity-card-head">
-        <div class="entity-avatar">
-          ${initials(sup.name)}
-        </div>
 
+      <div class="entity-card-head">
+        <div class="entity-avatar"
+             style="${sup.avatar_url ? "padding:0;overflow:hidden;background:none" : ""}">
+          ${supAvatar(sup)}
+        </div>
         <div class="entity-info">
-        <strong>${formatName(sup.prefix, sup.name)}</strong>
+          <strong>${formatName(sup.prefix, sup.name)}</strong>
           <p>${sup.email || "—"}</p>
         </div>
       </div>
 
       <div style="margin-bottom:12px">
-        <span class="id-pill">
-          ${sup.sup_code || "—"}
-        </span>
-
+        <span class="id-pill">${sup.sup_code || "—"}</span>
         <span class="id-pill" style="
           margin-left:6px;
-          background:${sup.is_chairman
-            ? "rgba(191,161,74,.15)"
-            : "rgba(99,102,241,.1)"};
-
-          color:${sup.is_chairman
-            ? "#9a7e2a"
-            : "#4f46e5"}
-        ">
-          ${sup.is_chairman
-            ? "Chairman / HOD"
-            : (sup.designation || "Supervisor")}
+          background:${sup.is_chairman ? "rgba(191,161,74,.15)" : "rgba(99,102,241,.1)"};
+          color:${sup.is_chairman ? "#9a7e2a" : "#4f46e5"}">
+          ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
         </span>
       </div>
 
       <div class="entity-stats">
-
         <div class="entity-stat-cell">
           <strong>${sup.teamCount || 0}</strong>
           <span>Teams</span>
         </div>
-
         <div class="entity-stat-cell">
           <strong>${sup.whatsapp || "—"}</strong>
           <span>WhatsApp</span>
         </div>
-
       </div>
 
       <div style="display:flex;gap:8px;margin-top:12px">
-
-        <!-- VIEW -->
-        <button
-          class="btn btn-ghost btn-sm"
-          style="flex:1"
-          onclick="openSupDetail('${sup._id}')"
-        >
-          View
-        </button>
-
-        <!-- EDIT -->
-        <button
-          class="btn btn-sm"
-          style="
-            flex:1;
-            background:rgba(59,130,246,.08);
-            color:#2563eb;
-            border:1px solid rgba(59,130,246,.2)
-          "
-
-          onclick="
-            openEditSupModal(
-              '${sup._id}',
-              '${(sup.prefix || "Mr").replace(/'/g, "\\'")}',
-              '${(sup.name || "").replace(/'/g, "\\'")}',
-              '${(sup.email || "").replace(/'/g, "\\'")}',
-              '${(sup.whatsapp || "").replace(/'/g, "\\'")}',
-              '${sup.is_chairman ? "chairman" : "supervisor"}'
-            )
-          "
-        >
+        <button class="btn btn-ghost btn-sm" style="flex:1"
+          onclick="openSupDetail('${sup._id}')">View</button>
+        <button class="btn btn-sm"
+          style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
+          onclick="openEditSupModal('${sup._id}','${(sup.prefix||"Mr").replace(/'/g,"\\'")}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">
           Edit
         </button>
-
-        <!-- DELETE -->
-        <button
-          class="btn btn-sm"
-          style="
-            flex:1;
-            background:rgba(220,38,38,.08);
-            color:#dc2626;
-            border:1px solid rgba(220,38,38,.2)
-          "
-
-          onclick="
-            event.stopPropagation();
-
-            openDeleteSupModal(
-              '${sup._id}',
-              '${withPrefix(sup).replace(/'/g, "\\'")}'
-            )
-          "
-        >
+        <button class="btn btn-sm"
+          style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
+          onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${formatName(sup.prefix,sup.name).replace(/'/g,"\\'")}')">
           Delete
         </button>
-
       </div>
     </div>
   `).join("");
-
-  console.log("SUPERVISOR SAMPLE:", list[0]);
 }
 
 /* ════════════════════════════════════
@@ -584,23 +513,44 @@ async function openSupDetail(supId) {
       }
     }
 
-    const totalStudents = groups.reduce((sum, g) =>
+const totalStudents = groups.reduce((sum, g) =>
       sum + (g.members?.length || 0) + (g.leader ? 1 : 0), 0);
 
-    let html = `
-      <div class="sup-detail-header">
-        <div class="sup-detail-avatar">${initials(sup.name)}</div>
-        <div class="sup-detail-info">
-          <h2>${formatName(sup.prefix, sup.name)}</h2>
-          <p>${sup.email}</p>
-          <div class="sup-detail-stats">
-            <div class="sup-detail-stat"><strong>${sup.sup_code || "—"}</strong><span>SUP ID</span></div>
-            <div class="sup-detail-stat"><strong>${sup.designation || "Lecturer"}</strong><span>Designation</span></div>
-            <div class="sup-detail-stat">📋 <strong>${groups.length}</strong> Teams</div>
-            <div class="sup-detail-stat">👥 <strong>${totalStudents}</strong> Students</div>
-          </div>
-        </div>
-      </div>`;
+    // ── Build avatar HTML ──
+    const avatarHtml = (() => {
+      if (!sup.avatar_url) {
+        return `<div class="sup-detail-avatar">${initials(sup.name)}</div>`;
+      }
+      const fullUrl = sup.avatar_url.startsWith("http")
+        ? sup.avatar_url
+        : `http://127.0.0.1:5001${sup.avatar_url}`;
+      return `
+        <div class="sup-detail-avatar" style="padding:0;overflow:hidden;background:none;border:3px solid rgba(255,255,255,.25)">
+          <img src="${fullUrl}" alt="${escapeHtml(sup.name)}"
+               style="width:100%;height:100%;object-fit:cover;border-radius:18px;display:block"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+          <span style="display:none;width:100%;height:100%;border-radius:18px;
+                       background:linear-gradient(135deg,var(--gold),var(--gold-lt));
+                       color:var(--primary-dark);font-weight:800;font-size:1.6rem;
+                       place-items:center;font-family:var(--font-display)">
+            ${initials(sup.name)}
+          </span>
+        </div>`;
+    })();
+let html = `
+  <div class="sup-detail-header">
+    ${avatarHtml}
+    <div class="sup-detail-info">
+      <h2>${formatName(sup.prefix, sup.name)}</h2>
+      <p>${sup.email}</p>
+      <div class="sup-detail-stats">
+        <div class="sup-detail-stat"><strong>${sup.sup_code || "—"}</strong><span>SUP ID</span></div>
+        <div class="sup-detail-stat"><strong>${sup.designation || "Lecturer"}</strong><span>Designation</span></div>
+        <div class="sup-detail-stat">📋 <strong>${groups.length}</strong> Teams</div>
+        <div class="sup-detail-stat">👥 <strong>${totalStudents}</strong> Students</div>
+      </div>
+    </div>
+  </div>`;
 
     html += groups.length === 0
       ? `<div class="dash-panel"><div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">No teams assigned yet.</div></div>`
@@ -1523,22 +1473,20 @@ async function deleteStudent(studentId, studentName) {
 function filterSupervisors(query) {
   SUPERVISORS_PAGE.current = 1;
   if (!Array.isArray(SUPERVISORS_DATA)) return;
+
   const q       = (query || "").trim().toLowerCase();
   const matched = [];
   const rest    = [];
 
   SUPERVISORS_DATA.forEach(sup => {
     const hit = !q
-      || (sup.name    || "").toLowerCase().includes(q)
-      || (sup.sup_code|| "").toLowerCase().includes(q)
-      || (sup.email   || "").toLowerCase().includes(q);
+      || (sup.name     || "").toLowerCase().includes(q)
+      || (sup.sup_code || "").toLowerCase().includes(q)
+      || (sup.email    || "").toLowerCase().includes(q);
     (hit ? matched : rest).push(sup);
   });
 
-  if (!q) {
-    renderSupervisorPage(1);
-    return;
-  }
+  if (!q) { renderSupervisorPage(1); return; }
 
   const grid = $("#supervisorCards");
   grid.innerHTML = [...matched, ...rest].map(sup => {
@@ -1546,15 +1494,20 @@ function filterSupervisors(query) {
     return `
       <div class="entity-card ${isMatch ? "search-match" : ""}">
         <div class="entity-card-head">
-          <div class="entity-avatar">${initials(sup.name)}</div>
+          <div class="entity-avatar"
+               style="${sup.avatar_url ? "padding:0;overflow:hidden;background:none" : ""}">
+            ${supAvatar(sup)}
+          </div>
           <div class="entity-info">
-              <strong>${highlightText(withPrefix(sup.name, sup.is_chairman), q)}</strong>
+            <strong>${highlightText(formatName(sup.prefix, sup.name), q)}</strong>
             <p>${highlightText(sup.email || "", q)}</p>
           </div>
         </div>
         <div style="margin-bottom:12px">
           <span class="id-pill">${highlightText(sup.sup_code || "—", q)}</span>
-          <span class="id-pill" style="margin-left:6px;background:${sup.is_chairman ? "rgba(191,161,74,.15)" : "rgba(99,102,241,.1)"};color:${sup.is_chairman ? "#9a7e2a" : "#4f46e5"}">
+          <span class="id-pill" style="margin-left:6px;
+            background:${sup.is_chairman ? "rgba(191,161,74,.15)" : "rgba(99,102,241,.1)"};
+            color:${sup.is_chairman ? "#9a7e2a" : "#4f46e5"}">
             ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
           </span>
         </div>
@@ -1563,11 +1516,18 @@ function filterSupervisors(query) {
           <div class="entity-stat-cell"><strong>${highlightText(sup.whatsapp || "—", q)}</strong><span>WhatsApp</span></div>
         </div>
         <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openSupDetail('${sup._id}')">View</button>
-          <button class="btn btn-sm" style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
-            onclick="openEditSupModal('${sup._id}','${(sup.prefix||"").replace(/'/g,"\\'")}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">Edit</button>
-          <button class="btn btn-sm" style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
-            onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}')">Delete</button>
+          <button class="btn btn-ghost btn-sm" style="flex:1"
+            onclick="openSupDetail('${sup._id}')">View</button>
+          <button class="btn btn-sm"
+            style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
+            onclick="openEditSupModal('${sup._id}','${(sup.prefix||"Mr").replace(/'/g,"\\'")}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">
+            Edit
+          </button>
+          <button class="btn btn-sm"
+            style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
+            onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${formatName(sup.prefix,sup.name).replace(/'/g,"\\'")}')">
+            Delete
+          </button>
         </div>
       </div>`;
   }).join("");
@@ -2185,6 +2145,8 @@ function renderPagination(containerId, totalItems, currentPage, perPage, onPageC
 /* ════════════════════════════════════
    ADMIN AVATAR UPLOAD
 ════════════════════════════════════ */
+
+
 const API_BASE = "http://127.0.0.1:5001";
 let adminAvatarFileToUpload = null;
 
@@ -2333,6 +2295,28 @@ function setAdminNavAvatar(url) {
     if (init) init.style.display = "";
   };
   testImg.src = fullUrl;
+}
+
+/* ════════════════════════════════════
+   SUPERVISOR AVATAR HELPER
+══════════════════════════════════════ */
+function supAvatar(sup, size = 48, radius = 12) {
+  if (!sup.avatar_url) return initials(sup.name);
+  const fullUrl = sup.avatar_url.startsWith("http")
+    ? sup.avatar_url
+    : `http://127.0.0.1:5001${sup.avatar_url}`;
+  return `
+    <img src="${fullUrl}" alt="${escapeHtml(sup.name)}"
+         style="width:${size}px;height:${size}px;object-fit:cover;
+                border-radius:${radius}px;display:block"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+    <span style="display:none;width:${size}px;height:${size}px;
+                 border-radius:${radius}px;
+                 background:linear-gradient(135deg,var(--primary),var(--secondary));
+                 color:#fff;font-weight:700;font-size:${Math.round(size * 0.33)}px;
+                 place-items:center">
+      ${initials(sup.name)}
+    </span>`;
 }
 /* ════════════════════════════════════
    GLOBAL DATA + INIT

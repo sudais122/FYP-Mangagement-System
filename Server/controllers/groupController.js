@@ -120,10 +120,10 @@ export const getMyGroup = async (req, res) => {
     }
 
     const group = await Group.findById(student.group)
-      .populate("leader", "name student_code email")
-      .populate("members", "name student_code email")
-      .populate("supervisor", "name sup_code email office office_hours research_areas")
-      .populate("proposal_uploaded_by", "name student_code");  // ← add this
+      .populate("leader",   "name student_code email whatsapp")
+      .populate("members",  "name student_code email whatsapp")
+      .populate("supervisor", "name prefix sup_code email designation office office_hours research_areas whatsapp")
+      .populate("proposal_uploaded_by", "name student_code");
 
     res.json({ hasGroup: true, group });
   } catch (error) {
