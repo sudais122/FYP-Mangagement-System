@@ -1654,21 +1654,17 @@ async function addMember(studentCode, name, ini) {
 
 async function uploadCV(file) {
   const user = JSON.parse(localStorage.getItem("user"));
-
-  // FormData is required for file uploads — DON'T set Content-Type manually,
-  // the browser sets the correct multipart boundary automatically
   const formData = new FormData();
   formData.append("cv", file);  // "cv" must match upload.single("cv") in the route
 
   try {
-    const res = await fetch(`${API_BASE}/students/upload-cv`, {
-      method: "POST",
-      headers: {
-        // ONLY Authorization here — no Content-Type!
-        "Authorization": `Bearer ${user.token}`,
-      },
-      body: formData,
-    });
+      const res = await fetch(`${API_BASE}/uploads/student/cv`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${user.token}`,
+        },
+        body: formData,
+      });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Upload failed");
@@ -1684,18 +1680,21 @@ async function uploadCV(file) {
 }
 
 async function uploadProposalAPI(file) {
+  const groupId = STATE.groupData?._id;
+  if (!groupId) return { error: "You are not in a team yet" };
+
   const formData = new FormData();
   formData.append("proposal", file);
 
   try {
-    const res = await fetch(`${API_BASE}/groups/proposal`, {
+    const res = await fetch(`${API_BASE}/uploads/group/${groupId}/proposal`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${user.token}` }, // NO Content-Type
+      headers: { "Authorization": `Bearer ${user.token}` },
       body: formData,
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Upload failed");
-    return { success: true, proposal: data.proposal };
+    return { success: true, data };
   } catch (err) {
     return { error: err.message };
   }

@@ -42,35 +42,22 @@ export const searchStudent = async (req, res) => {
 
 export const uploadStudentCV = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
+    const Student = (await import("../Models/student.js")).default;
     const student = await Student.findById(req.user.id);
+    if (!student) return res.status(404).json({ message: "Student not found" });
 
-    if (!student) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    if (student.cv_url) await deleteFromS3(student.cv_url);
 
-    if (student.cv_public_id) {
-      await cloudinary.uploader.destroy(student.cv_public_id, {
-        resource_type: "raw",
-      });
-    }
-
-    student.cv_url = req.file.path;
-    student.cv_public_id = req.file.filename;
-
+    // req.file.location is the full S3 URL from multer-s3
+    student.cv_url = req.file.location;
     await student.save();
 
-    res.json({
-      message: "CV uploaded successfully",
-      cv_url: student.cv_url,
-    });
-
-  } catch (error) {
-    console.error("CV upload error:", error);
-    res.status(500).json({ message: error.message });
+    res.json({ message: "CV uploaded successfully", cv_url: student.cv_url });
+  } catch (err) {
+    console.error("CV upload error:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 

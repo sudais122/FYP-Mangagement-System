@@ -1508,3 +1508,46 @@ button {
   font-weight: 800;
   margin-bottom: 2px;
 }
+/* ═══ NAV AVATAR ═══ */
+.nav-avatar-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,.2);
+  flex-shrink: 0;
+  transition: border-color .2s;
+}
+.nav-avatar-wrap:hover { border-color: var(--gold); }
+.nav-avatar-wrap:hover .nav-avatar-overlay { opacity: 1; }
+
+#nav-avatar-initials {
+  font-family: var(--font-display);
+  font-size: .7rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: .02em;
+}
+
+.nav-avatar-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity .2s;
+  color: #fff;
+}
+
+/* Drop zone hover */
+#avatar-drop-zone:hover,
+#avatar-drop-zone.av-drag {
+  border-color: var(--secondary);
+  background: rgba(31,122,92,.04);
+}

@@ -1,54 +1,65 @@
-// import multer from "multer";
-// import { CloudinaryStorage } from "multer-storage-cloudinary";
+import multer    from "multer";
+import multerS3  from "multer-s3";
+import path      from "path";
+import { createS3Client } from "../config/s3.js";
 
+const MIME_TYPES = {
+  avatar:   ["image/jpeg", "image/png", "image/webp"],
+  cv:       ["application/pdf"],
+  proposal: [
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ],
+};
 
-// // Storage for proposals (PDF/DOCX only)
-// const proposalStorage = new CloudinaryStorage({
-//   cloudinary,
-//   params: {
-//     folder: "fyp-management/proposals",
-//     allowed_formats: ["pdf", "docx", "doc"],
-//     resource_type: "raw",
-//   },
-// });
+const FILE_SIZE_LIMITS = {
+  avatar:   3  * 1024 * 1024,
+  cv:       5  * 1024 * 1024,
+  proposal: 10 * 1024 * 1024,
+};
 
-// // Storage for general files (reports, code, docs)
-// const fileStorage = new CloudinaryStorage({
-//   cloudinary,
-//   params: async (req, file) => {
-//     const ext = file.originalname.split(".").pop().toLowerCase();
-//     const imageTypes = ["png", "jpg", "jpeg", "gif", "webp"];
-//     return {
-//       folder: "fyp-management/files",
-//       resource_type: imageTypes.includes(ext) ? "image" : "raw",
-//       allowed_formats: [
-//         "pdf", "docx", "doc", "zip", "rar",
-//         "png", "jpg", "jpeg", "gif", "webp",
-//         "py", "js", "ts", "html", "css", "txt",
-//         "xlsx", "pptx", "csv",
-//       ],
-//     };
-//   },
-// });
+function makeUploader(folder, fieldName) {
+  const BUCKET = process.env.AWS_BUCKET_NAME;
+  if (!BUCKET) throw new Error("AWS_BUCKET_NAME is not set in .env");
 
-// const fileSizeLimit = 20 * 1024 * 1024; // 20MB
+  // Create S3 client here — dotenv is loaded by this point
+  const s3 = createS3Client();
 
-// export const uploadProposal = multer({
-//   storage: proposalStorage,
-//   limits: { fileSize: fileSizeLimit },
-//   fileFilter: (req, file, cb) => {
-//     const allowed = ["application/pdf",
-//       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-//       "application/msword"];
-//     if (allowed.includes(file.mimetype)) {
-//       cb(null, true);
-//     } else {
-//       cb(new Error("Only PDF and DOCX files are accepted"), false);
-//     }
-//   },
-// }).single("proposal");
+  return multer({
+    storage: multerS3({
+      s3,
+      bucket:      BUCKET,
+      contentType: multerS3.AUTO_CONTENT_TYPE,
+      key: (req, file, cb) => {
+        const ext  = path.extname(file.originalname).toLowerCase();
+        const name = `${folder}/${Date.now()}-${req.user?.id || "anon"}${ext}`;
+        cb(null, name);
+      },
+    }),
+    limits: {
+      fileSize: FILE_SIZE_LIMITS[folder] || 10 * 1024 * 1024,
+    },
+    fileFilter: (req, file, cb) => {
+      const allowed = MIME_TYPES[folder] || [];
+      allowed.includes(file.mimetype)
+        ? cb(null, true)
+        : cb(new Error(`Invalid file type for ${folder}`));
+    },
+  }).single(fieldName);
+}
 
-// export const uploadFile = multer({
-//   storage: fileStorage,
-//   limits: { fileSize: fileSizeLimit },
-// }).single("file");
+export function handleUpload(folder, fieldName) {
+  return (req, res, next) => {
+    const uploader = makeUploader(folder, fieldName);
+    uploader(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ message: `Upload error: ${err.message}` });
+      }
+      if (err) {
+        return res.status(400).json({ message: err.message });
+      }
+      next();
+    });
+  };
+}
