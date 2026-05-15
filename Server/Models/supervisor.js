@@ -95,9 +95,14 @@ const supervisorSchema = new mongoose.Schema({
   resetPasswordExpire: {
     type: Date,
   },
+  prefix: {
+  type: String,
+  enum: ["Mr", "Ms", "Mrs", "Dr", "Prof", "Lect", "Engr"],
+  default: "Mr",
+  required: true
+}
 });
 
-// 🔐 HASH PASSWORD
 supervisorSchema.pre("save", async function (next) {
   if (this.isModified("password") && !this.password.startsWith("$2")) {
     this.password = await bcrypt.hash(this.password, 10);

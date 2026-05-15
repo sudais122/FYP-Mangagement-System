@@ -17,8 +17,22 @@ if (IS_CHAIRMAN) {
     chairmanNav.style.display = "";
   }
 }
-const SUPERVISOR = { id: sup.sup_code, name: sup.name };
+const SUPERVISOR = { id: sup.sup_code, name: sup.name, prefix: sup.prefix };
 const API_BASE = "http://127.0.0.1:5001/api";
+
+function initials(name) {
+  return (name || "")
+    .split(" ")
+    .filter(p => p && /[A-Za-z]/.test(p[0]))
+    .slice(-2)
+    .map(p => p[0].toUpperCase())
+    .join("");
+}
+
+function formatName(prefix, name) {
+  if (!prefix || !name) return name || "";
+  return `${prefix}. ${name}`;
+}
 
 const MARK_COMPONENTS = [
   {
@@ -67,16 +81,21 @@ let MARK_TOGGLES = {};
 const welcomeName = document.getElementById("welcome-name");
 const welcomeDes  = document.getElementById("welcome-designation");
 const welcomeId   = document.getElementById("welcome-sup-id");
-if (welcomeName) welcomeName.textContent = getSupGreeting(sup.name);
+if (welcomeName) welcomeName.textContent = getSupGreeting(formatName(sup.prefix, sup.name));
+
 startSupClock();
 if (welcomeDes)  welcomeDes.textContent  = `${sup.designation || "Faculty Member"} · CS Department`;
 if (welcomeId)   welcomeId.textContent   = sup.sup_code || "—";
 
 const navName = document.getElementById("nav-sup-name");
 const navCode = document.getElementById("nav-sup-code");
-if (navName) navName.textContent = sup.name     || "Supervisor";
+if (navName) navName.textContent = formatName(sup.prefix, sup.name) || "Supervisor";
 if (navCode) navCode.textContent = sup.sup_code || "";
 
+const navInitialsEl = document.getElementById("nav-avatar-initials");
+if (navInitialsEl) navInitialsEl.textContent = initials(sup.name || "");
+
+if (sup.avatar_url) setNavAvatar(sup.avatar_url);
 
 function getSupGreeting(name) {
   const hour = new Date().getHours();
@@ -643,28 +662,83 @@ function previewAvatar(file) {
 
 async function uploadAvatar() {
   if (!avatarFileToUpload) return;
-  const btn   = document.getElementById("avatar-save-btn");
+
+  const btn = document.getElementById("avatar-save-btn");
   const errEl = document.getElementById("avatar-error");
-  if (btn)   { btn.textContent = "Uploading…"; btn.disabled = true; btn.style.opacity = ".6"; }
+
+  if (btn) {
+    btn.textContent = "Uploading…";
+    btn.disabled = true;
+    btn.style.opacity = ".6";
+  }
+
   if (errEl) errEl.style.display = "none";
+
   const formData = new FormData();
   formData.append("avatar", avatarFileToUpload);
+
   try {
-    const res  = await fetch(`${API_BASE}/uploads/supervisor/avatar`, {
+    const res = await fetch(`${API_BASE}/uploads/supervisor/avatar`, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${sup.token}` },
+      headers: {
+        Authorization: `Bearer ${sup.token}`,
+      },
       body: formData,
     });
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Upload failed");
-    setNavAvatar(data.avatar_url);
-    const stored = JSON.parse(localStorage.getItem("supervisor"));
-    if (stored) { stored.avatar_url = data.avatar_url; localStorage.setItem("supervisor", JSON.stringify(stored)); }
+
+    // S3 returns full public URL
+    const avatarUrl = data.avatar_url;
+    console.log("Avatar URL from server:", avatarUrl);
+
+    // Update navbar avatar
+    setNavAvatar(avatarUrl);
+
+    // Update modal preview
+    const modalImg = document.getElementById("modal-avatar-img");
+    const modalInit = document.getElementById("modal-avatar-initials");
+
+    if (modalImg) {
+      modalImg.src = avatarUrl;
+      modalImg.style.display = "block";
+    }
+
+    if (modalInit) {
+      modalInit.style.display = "none";
+    }
+
+    // Update localStorage safely
+    try {
+      const stored = JSON.parse(localStorage.getItem("supervisor"));
+
+      if (stored) {
+        stored.avatar_url = avatarUrl;
+        localStorage.setItem("supervisor", JSON.stringify(stored));
+      }
+    } catch (e) {
+      console.warn("localStorage error:", e);
+    }
+
+    // Update global state safely
+    if (typeof sup !== "undefined" && sup) {
+      sup.avatar_url = avatarUrl;
+    }
+
     closeAvatarModal();
     toast("Profile picture updated ✓", "green");
   } catch (err) {
-    if (errEl) { errEl.textContent = err.message; errEl.style.display = "block"; }
-    if (btn)   { btn.textContent = "Save Photo"; btn.disabled = false; btn.style.opacity = "1"; }
+    if (errEl) {
+      errEl.textContent = err.message;
+      errEl.style.display = "block";
+    }
+
+    if (btn) {
+      btn.textContent = "Save Photo";
+      btn.disabled = false;
+      btn.style.opacity = "1";
+    }
   }
 }
 
@@ -672,14 +746,27 @@ function setNavAvatar(url) {
   const img  = document.getElementById("nav-avatar-img");
   const init = document.getElementById("nav-avatar-initials");
   if (!img) return;
-  if (url) {
-    img.src = url;
-    img.style.display  = "block";
-    if (init) init.style.display = "none";
-  } else {
+
+  if (!url) {
     img.style.display = "none";
     if (init) init.style.display = "";
+    return;
   }
+
+  // Test if image loads
+  const testImg = new Image();
+  testImg.onload = () => {
+    img.src            = url;
+    img.style.display  = "block";
+    if (init) init.style.display = "none";
+  };
+  testImg.onerror = () => {
+    // URL broken — show initials instead
+    img.style.display = "none";
+    if (init) init.style.display = "";
+    console.warn("Avatar failed to load:", url);
+  };
+  testImg.src = url;
 }
 
 // Load avatar on page start
@@ -962,7 +1049,7 @@ async function openGroupDetail(teamMongoId) {
       <div class="gh-info">
         <div class="gh-tid">${t.teamId}</div>
         <div class="gh-proj">${t.projectTitle}</div>
-        <div class="gh-sup">Category: ${t.category} · Supervisor: ${SUPERVISOR.name} (${SUPERVISOR.id})</div>
+        <div class="gh-sup">Category: ${t.category} · Supervisor: ${formatName(sup.prefix, SUPERVISOR.name)} (${SUPERVISOR.id})</div>
       </div>
       <div class="gh-stat-box">
         <div class="st-label">Students</div>

@@ -35,10 +35,14 @@ const adminSchema = new mongoose.Schema(
     resetPasswordExpire: {
       type: Date,
     },
+    avatar_url: {
+      type: String,
+      default: null
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // ── HASH PASSWORD BEFORE SAVE ─────────────────────

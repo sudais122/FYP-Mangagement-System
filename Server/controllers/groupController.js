@@ -87,7 +87,7 @@ export const createGroup = async (req, res) => {
     const populated = await Group.findById(group._id)
       .populate("leader",   "name student_code")
       .populate("members",  "name student_code")
-      .populate("supervisor", "name sup_code email office office_hours research_areas designation whatsapp")
+      .populate("supervisor", "name prefix sup_code email office office_hours research_areas designation whatsapp")
     res.status(201).json({
       message: "Group created successfully",
       group: populated,
@@ -197,8 +197,9 @@ export const uploadProposal = async (req, res) => {
 export const getGroupsBySupervisor = async (req, res) => {
   try {
     const groups = await Group.find({ supervisor: req.user.id })
-      .populate("leader",  "name student_code email whatsapp")   
-      .populate("members", "name student_code email whatsapp");   
+      .populate("leader",     "name student_code email whatsapp")   
+      .populate("members",    "name student_code email whatsapp")
+      .populate("supervisor", "name prefix sup_code email designation whatsapp");
     res.json(groups);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -269,7 +270,7 @@ export const addMemberToGroup = async (req, res) => {
     const populated = await Group.findById(group._id)
       .populate("leader",     "name student_code email whatsapp")
       .populate("members",    "name student_code email whatsapp")
-      .populate("supervisor", "name sup_code email designation");
+      .populate("supervisor", "name prefix sup_code email designation whatsapp");
 
     res.json({
       message: `${newMember.name} added to team successfully`,
@@ -288,7 +289,7 @@ export const getAllGroups = async (req, res) => {
     const groups = await Group.find()
       .populate("leader", "name student_code")
       .populate("members", "name student_code")
-      .populate("supervisor", "name sup_code");
+      .populate("supervisor", "name prefix sup_code is_chairman designation whatsapp");
 
     res.json(groups);
 
@@ -303,7 +304,7 @@ export const getGroupById = async (req, res) => {
     const group = await Group.findById(req.params.id)
       .populate("leader", "name student_code email")
       .populate("members", "name student_code email")
-      .populate("supervisor", "name sup_code email");
+      .populate("supervisor", "name prefix sup_code email designation whatsapp");
 
     if (!group) {
       return res.status(404).json({ message: "Group not found" });
@@ -326,16 +327,18 @@ export const reassignSupervisor = async (req, res) => {
   }
 
   try {
-    // 1. Update the group's supervisor reference
+    // 1. Update group supervisor
     const group = await Group.findByIdAndUpdate(
       req.params.id,
       { supervisor: supervisor_id },
       { new: true }
-    ).populate("supervisor", "name sup_code");
+    ).populate("supervisor", "name email prefix sup_code designation");
 
     if (!group) {
       return res.status(404).json({ message: "Group not found" });
     }
+
+    // 2. Update marks
     const result = await Marks.updateMany(
       { group: req.params.id },
       { $set: { supervisor: supervisor_id } }

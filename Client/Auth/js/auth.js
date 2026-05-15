@@ -376,17 +376,21 @@ async function handleLogin(e) {
       data.role === "chairman"
     ) {
 
-        localStorage.setItem("supervisor", JSON.stringify({
-    id: data._id,
-    name: data.name,
-    email: data.email,
-    sup_code: data.sup_code,
-    department: data.department,
-    role: data.role,
-    is_chairman: data.is_chairman,
-    token: data.token,
-    force_password_change: data.force_password_change,
-  }));
+localStorage.setItem("supervisor", JSON.stringify({
+  id: data._id,
+  name: data.name,
+  prefix: data.prefix,                              
+  email: data.email,
+  sup_code: data.sup_code,
+  department: data.department,
+  designation: data.designation,                    
+  whatsapp: data.whatsapp,                          
+  avatar_url: data.avatar_url,                      
+  role: data.role,
+  is_chairman: data.is_chairman,
+  token: data.token,
+  force_password_change: data.force_password_change,
+}));
 
   setTimeout(() => {
     if (data.force_password_change) {

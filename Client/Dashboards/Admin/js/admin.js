@@ -55,6 +55,18 @@ function escapeHtml(s) {
   );
 }
 
+/* Add proper prefix to supervisor names if missing */
+function withPrefix(name, isChairman = false) {
+  if (!name) return "—";
+  const trimmed = String(name).trim();
+
+  if (/^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?|Engr\.?|Sir|Madam)\s/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return isChairman ? `Prof. ${trimmed}` : `Dr. ${trimmed}`;
+}
+
 function highlightText(text, query) {
   const safe = escapeHtml(text);
   if (!query) return safe;
@@ -96,19 +108,17 @@ function toast(message, subtitle, type = "success") {
 ══════════════════════════════════════ */
 function displayAdminInfo() {
   const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin) { window.location.href = "./login.html"; return; }
 
-  if (!admin) {
-    window.location.href = "./login.html";
-    return;
-  }
+  const navName     = document.getElementById("nav-admin-name");
+  const navInitials = document.getElementById("nav-admin-avatar-initials");
+  const greeting    = document.getElementById("admin-banner-greeting");
 
-  const navName   = document.getElementById("nav-admin-name");
-  const navAvatar = document.getElementById("nav-admin-avatar");
-  const greeting  = document.getElementById("admin-banner-greeting");
+if (navName)     navName.textContent     = formatName(admin.prefix, admin.name);
+if (navInitials) navInitials.textContent = initials(admin.name);
+if (greeting)    greeting.textContent    = getAdminGreeting(formatName(admin.prefix, admin.name));
 
-  if (navName)   navName.textContent   = admin.name;
-  if (navAvatar) navAvatar.textContent = initials(admin.name);
-  if (greeting)  greeting.textContent  = getAdminGreeting(admin.name);
+  if (admin.avatar_url) setAdminNavAvatar(admin.avatar_url);
 
   startAdminClock();
 }
@@ -155,7 +165,10 @@ function logout() {
   localStorage.removeItem("admin");
   window.location.href = "./login.html";
 }
-
+function formatName(prefix, name) {
+  if (!prefix || !name) return name || "";
+  return `${prefix}. ${name}`;
+}
 /* ════════════════════════════════════
    VIEW ROUTING
 ══════════════════════════════════════ */
@@ -227,29 +240,58 @@ function updateSidebarBadges(stats) {
 async function renderRecentTeams() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = document.getElementById("recentTeamsTbody");
+
   if (!tbody) return;
 
-  tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
+  // Helper for supervisor display
+  function withPrefix(supervisor) {
+    if (!supervisor) return "Unassigned";
+
+    return `${supervisor.prefix || "Mr"} ${supervisor.name}`;
+  }
+
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">
+        Loading…
+      </td>
+    </tr>
+  `;
 
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/groups", {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch("http://127.0.0.1:5001/api/groups", {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
     });
+
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed");
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed");
+    }
 
     const teams = (Array.isArray(data) ? data : data.groups || []).slice(0, 5);
 
     if (!teams.length) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">No teams yet.</td></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">
+            No teams yet.
+          </td>
+        </tr>
+      `;
       return;
     }
 
     tbody.innerHTML = teams.map(g => {
-      const code    = g.group_code || g.team_code || "—";
-      const title   = g.project_title || "—";
-      const supName = g.supervisor?.name || "Unassigned";
-      const abbr    = code.slice(-2).toUpperCase();
+      const code = g.group_code || g.team_code || "—";
+      const title = g.project_title || "—";
+
+      const supName = withPrefix(g.supervisor);
+
+      const abbr = code.slice(-2).toUpperCase();
       const members = 1 + (g.members?.length || 0);
 
       return `
@@ -257,22 +299,41 @@ async function renderRecentTeams() {
           <td>
             <div class="team-cell">
               <div class="team-avatar">${abbr}</div>
+
               <div class="team-info">
-                <strong>${title.length > 28 ? title.slice(0, 28) + "…" : title}</strong>
-                <span>${members} member${members !== 1 ? "s" : ""}</span>
+                <strong>
+                  ${title.length > 28
+                    ? title.slice(0, 28) + "…"
+                    : title}
+                </strong>
+
+                <span>
+                  ${members} member${members !== 1 ? "s" : ""}
+                </span>
               </div>
             </div>
           </td>
-          <td><span class="id-pill gold">${code}</span></td>
+
+          <td>
+            <span class="id-pill gold">${code}</span>
+          </td>
+
           <td>${supName}</td>
-        </tr>`;
+        </tr>
+      `;
     }).join("");
 
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="3"
+            style="text-align:center;color:#dc2626;padding:20px">
+          ${err.message}
+        </td>
+      </tr>
+    `;
   }
 }
-
 /* ════════════════════════════════════
    SUPERVISORS
 ══════════════════════════════════════ */
@@ -325,61 +386,133 @@ function renderStudentsPage(page) {
 function renderSupervisorCards(list) {
   const grid = $("#supervisorCards");
 
+  // Helper
+  function withPrefix(supervisor) {
+    if (!supervisor) return "Unassigned";
+
+    return `${supervisor.prefix || "Mr"} ${supervisor.name}`;
+  }
+
   if (!list?.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">No supervisors found.</div>`;
+    grid.innerHTML = `
+      <div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-mute)">
+        No supervisors found.
+      </div>
+    `;
     return;
   }
 
   grid.innerHTML = list.map(sup => `
     <div class="entity-card" data-chairman="${sup.is_chairman === true}">
+      
       <div class="entity-card-head">
-        <div class="entity-avatar">${initials(sup.name)}</div>
+        <div class="entity-avatar">
+          ${initials(sup.name)}
+        </div>
+
         <div class="entity-info">
-          <strong>${sup.name}</strong>
-          <p>${sup.email}</p>
+        <strong>${formatName(sup.prefix, sup.name)}</strong>
+          <p>${sup.email || "—"}</p>
         </div>
       </div>
 
       <div style="margin-bottom:12px">
-        <span class="id-pill">${sup.sup_code || "—"}</span>
+        <span class="id-pill">
+          ${sup.sup_code || "—"}
+        </span>
+
         <span class="id-pill" style="
           margin-left:6px;
-          background:${sup.is_chairman ? "rgba(191,161,74,.15)" : "rgba(99,102,241,.1)"};
-          color:${sup.is_chairman ? "#9a7e2a" : "#4f46e5"}
+          background:${sup.is_chairman
+            ? "rgba(191,161,74,.15)"
+            : "rgba(99,102,241,.1)"};
+
+          color:${sup.is_chairman
+            ? "#9a7e2a"
+            : "#4f46e5"}
         ">
-          ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
+          ${sup.is_chairman
+            ? "Chairman / HOD"
+            : (sup.designation || "Supervisor")}
         </span>
       </div>
 
       <div class="entity-stats">
+
         <div class="entity-stat-cell">
           <strong>${sup.teamCount || 0}</strong>
           <span>Teams</span>
         </div>
+
         <div class="entity-stat-cell">
           <strong>${sup.whatsapp || "—"}</strong>
           <span>WhatsApp</span>
         </div>
+
       </div>
 
       <div style="display:flex;gap:8px;margin-top:12px">
-        <button class="btn btn-ghost btn-sm" style="flex:1"
-          onclick="openSupDetail('${sup._id}')">View</button>
 
-        <button class="btn btn-sm"
-          style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
-          onclick="openEditSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">
+        <!-- VIEW -->
+        <button
+          class="btn btn-ghost btn-sm"
+          style="flex:1"
+          onclick="openSupDetail('${sup._id}')"
+        >
+          View
+        </button>
+
+        <!-- EDIT -->
+        <button
+          class="btn btn-sm"
+          style="
+            flex:1;
+            background:rgba(59,130,246,.08);
+            color:#2563eb;
+            border:1px solid rgba(59,130,246,.2)
+          "
+
+          onclick="
+            openEditSupModal(
+              '${sup._id}',
+              '${(sup.prefix || "Mr").replace(/'/g, "\\'")}',
+              '${(sup.name || "").replace(/'/g, "\\'")}',
+              '${(sup.email || "").replace(/'/g, "\\'")}',
+              '${(sup.whatsapp || "").replace(/'/g, "\\'")}',
+              '${sup.is_chairman ? "chairman" : "supervisor"}'
+            )
+          "
+        >
           Edit
         </button>
 
-        <button class="btn btn-sm"
-          style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
-          onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}')">
+        <!-- DELETE -->
+        <button
+          class="btn btn-sm"
+          style="
+            flex:1;
+            background:rgba(220,38,38,.08);
+            color:#dc2626;
+            border:1px solid rgba(220,38,38,.2)
+          "
+
+          onclick="
+            event.stopPropagation();
+
+            openDeleteSupModal(
+              '${sup._id}',
+              '${withPrefix(sup).replace(/'/g, "\\'")}'
+            )
+          "
+        >
           Delete
         </button>
+
       </div>
     </div>
   `).join("");
+
+  console.log("SUPERVISOR SAMPLE:", list[0]);
 }
 
 /* ════════════════════════════════════
@@ -458,7 +591,7 @@ async function openSupDetail(supId) {
       <div class="sup-detail-header">
         <div class="sup-detail-avatar">${initials(sup.name)}</div>
         <div class="sup-detail-info">
-          <h2>${sup.name}</h2>
+          <h2>${formatName(sup.prefix, sup.name)}</h2>
           <p>${sup.email}</p>
           <div class="sup-detail-stats">
             <div class="sup-detail-stat"><strong>${sup.sup_code || "—"}</strong><span>SUP ID</span></div>
@@ -724,149 +857,290 @@ function renderTeamsPage(page) {
   renderPagination("teamsPagination", TEAMS_DATA.length, page, perPage, "renderTeamsPage", "changeTeamsPerPage");
 }
 
-/* ══════════════════════════════════════════════════════════════
-   PASTE THESE TWO FUNCTIONS into your admin.js
-   replacing the existing renderTeamsTable and renderStudentsTable
-══════════════════════════════════════════════════════════════ */
-
-/* ────────────────────────────────────────────────────────────
-   TEAMS TABLE — now includes Proposal status + approve/reject
-──────────────────────────────────────────────────────────────*/
+//TEAMS TABLE — now includes Proposal status + approve/reject
 function renderTeamsTable(list) {
   const tbody = $("#teamsTable tbody");
+
+  // Helper
+  function withPrefix(supervisor) {
+    if (!supervisor) return "Unassigned";
+
+    return `${supervisor.prefix || "Mr"} ${supervisor.name}`;
+  }
+
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">No teams found.</td></tr>`;
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="5"
+            style="text-align:center;padding:40px;color:var(--text-mute)">
+          No teams found.
+        </td>
+      </tr>
+    `;
     return;
   }
 
   tbody.innerHTML = list.map(g => {
-    const supName    = g.supervisor ? g.supervisor.name : "Unassigned";
-    const teamCode   = g.group_code || g.team_code || "—";
-    const proposalUrl    = g.proposal_url    || "";
-    const proposalStatus = g.proposal_status || "";
 
-    // Proposal badge
+    // ✅ FIXED PREFIX DISPLAY
+    const supName = withPrefix(g.supervisor);
+
+    const teamCode = g.team_code || "—";
+
+    const proposalUrl = g.proposal_url || "";
+    const proposalStatus = g.proposal_status || "pending";
+    const attempt = g.proposal_attempt || 1;
+
+    // ─────────────────────────────
+    // ATTEMPT BADGE
+    // ─────────────────────────────
+    const attemptBadge = attempt > 1
+      ? `
+        <span style="
+          display:inline-block;
+          margin-left:6px;
+          padding:2px 7px;
+          border-radius:5px;
+          font-size:.62rem;
+          font-weight:800;
+          background:rgba(99,102,241,.12);
+          color:#4f46e5
+        ">
+          🔁 Attempt ${attempt}
+        </span>
+      `
+      : "";
+
+    const secondAttemptWarning = attempt > 1
+      ? `
+        <div style="
+          margin-top:5px;
+          font-size:.65rem;
+          color:#a16207;
+          background:rgba(234,179,8,.08);
+          padding:4px 8px;
+          border-radius:5px;
+          border:1px solid rgba(234,179,8,.2)
+        ">
+          ⚠ Previously rejected proposal exists
+        </div>
+      `
+      : "";
+
+    // ─────────────────────────────
+    // PROPOSAL BADGE
+    // ─────────────────────────────
     let proposalBadge = "";
-    if (!proposalUrl) {
-      proposalBadge = `<span style="font-size:.72rem;color:var(--text-mute);font-style:italic">Not submitted</span>`;
-    } else if (proposalStatus === "approved") {
-      proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(21,128,61,.1);color:#15803d">✓ Approved</span>`;
+
+    if (proposalStatus === "approved") {
+
+      proposalBadge = `
+        <span style="
+          display:inline-flex;
+          align-items:center;
+          gap:4px;
+          padding:3px 9px;
+          border-radius:6px;
+          font-size:.7rem;
+          font-weight:700;
+          background:rgba(21,128,61,.1);
+          color:#15803d
+        ">
+          ✓ Approved
+        </span>
+
+        ${attemptBadge}
+      `;
+
     } else if (proposalStatus === "rejected") {
-      proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(220,38,38,.08);color:#dc2626">✗ Rejected</span>`;
+
+      proposalBadge = `
+        <span style="
+          display:inline-flex;
+          align-items:center;
+          gap:4px;
+          padding:3px 9px;
+          border-radius:6px;
+          font-size:.7rem;
+          font-weight:700;
+          background:rgba(220,38,38,.08);
+          color:#dc2626
+        ">
+          ✗ Rejected (File Deleted)
+        </span>
+
+        ${attemptBadge}
+      `;
+
     } else {
-      proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(234,179,8,.1);color:#a16207">⏳ Pending</span>`;
+
+      proposalBadge = `
+        <span style="
+          display:inline-flex;
+          align-items:center;
+          gap:4px;
+          padding:3px 9px;
+          border-radius:6px;
+          font-size:.7rem;
+          font-weight:700;
+          background:rgba(234,179,8,.1);
+          color:#a16207
+        ">
+          ⏳ Pending
+        </span>
+
+        ${attemptBadge}
+      `;
     }
 
-    // Proposal action buttons (only show if submitted)
+    // ─────────────────────────────
+    // ACTION BUTTONS
+    // ─────────────────────────────
     let proposalActions = "";
-    if (proposalUrl) {
+
+    if (proposalUrl && proposalStatus === "pending") {
+
       proposalActions = `
         <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
-          <button onclick="viewDoc('${proposalUrl}')"
-            style="padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);color:var(--primary);transition:all .2s"
-            onmouseover="this.style.background='var(--primary)';this.style.color='#fff'"
-            onmouseout="this.style.background='rgba(0,75,45,.06)';this.style.color='var(--primary)'">
+
+          <button
+            onclick="viewDoc('${proposalUrl}')"
+            style="
+              padding:3px 8px;
+              border-radius:5px;
+              font-size:.66rem;
+              font-weight:700;
+              cursor:pointer;
+              border:1px solid rgba(0,75,45,.2);
+              background:rgba(0,75,45,.06);
+              color:var(--primary)
+            "
+          >
             View
           </button>
-          <button onclick="updateProposalStatus('${g._id}','approved')"
-            style="padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(21,128,61,.2);background:rgba(21,128,61,.06);color:#15803d;transition:all .2s"
-            onmouseover="this.style.background='#15803d';this.style.color='#fff'"
-            onmouseout="this.style.background='rgba(21,128,61,.06)';this.style.color='#15803d'">
-            ✓ Approve
+
+          <button
+            onclick="updateProposalStatus('${g._id}','approved')"
+            style="
+              padding:3px 8px;
+              border-radius:5px;
+              font-size:.66rem;
+              font-weight:700;
+              cursor:pointer;
+              border:1px solid rgba(21,128,61,.2);
+              background:rgba(21,128,61,.06);
+              color:#15803d
+            "
+          >
+            ✓ Accept
           </button>
-          <button onclick="updateProposalStatus('${g._id}','rejected')"
-            style="padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:#dc2626;transition:all .2s"
-            onmouseover="this.style.background='#dc2626';this.style.color='#fff'"
-            onmouseout="this.style.background='rgba(220,38,38,.05)';this.style.color='#dc2626'">
+
+          <button
+            onclick="updateProposalStatus('${g._id}','rejected')"
+            style="
+              padding:3px 8px;
+              border-radius:5px;
+              font-size:.66rem;
+              font-weight:700;
+              cursor:pointer;
+              border:1px solid rgba(220,38,38,.2);
+              background:rgba(220,38,38,.05);
+              color:#dc2626
+            "
+          >
             ✗ Reject
           </button>
-        </div>`;
+
+        </div>
+
+        ${secondAttemptWarning}
+      `;
     }
 
+    // ─────────────────────────────
+    // TABLE ROW
+    // ─────────────────────────────
     return `
       <tr>
-        <td><span class="id-pill gold">${teamCode}</span></td>
-        <td>${g.project_title || "—"}</td>
-        <td><span style="font-weight:600;color:var(--text)">${supName}</span></td>
+
+        <td>
+          <span class="id-pill gold">
+            ${teamCode}
+          </span>
+        </td>
+
+        <td>
+          ${g.project_title || "—"}
+        </td>
+
+        <td>
+          <span style="font-weight:600;color:var(--text)">
+            ${supName}
+          </span>
+        </td>
+
         <td>
           ${proposalBadge}
           ${proposalActions}
         </td>
+
         <td>
           <div class="action-row">
-            <button class="icon-action" title="Reassign supervisor"
-                    onclick="event.stopPropagation();openReassignModal('${g._id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="23 4 23 10 17 10"/>
-                <polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
+
+            <button
+              class="icon-action"
+              title="Reassign supervisor"
+              onclick="event.stopPropagation();openReassignModal('${g._id}')"
+            >
+              🔄
             </button>
-            <button class="icon-action" title="View team details"
-                    onclick="event.stopPropagation();openTeamDetail('${g._id}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
+
+            <button
+              class="icon-action"
+              title="View team"
+              onclick="event.stopPropagation();openTeamDetail('${g._id}')"
+            >
+              👁
             </button>
+
           </div>
         </td>
-      </tr>`;
+
+      </tr>
+    `;
   }).join("");
 }
 
-/* ────────────────────────────────────────────────────────────
-   STUDENTS TABLE — proposal column removed
-──────────────────────────────────────────────────────────────*/
-/* ══════════════════════════════════════════════════════════════
-   Replace your existing renderStudentsTable in admin.js
-   with this fixed version
-══════════════════════════════════════════════════════════════ */
 
 function renderStudentsTable(list, query = "", matchSet = new Set()) {
   const tbody = $("#studentsTable tbody");
 
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = list.map(s => {
-    const isMatch    = query && matchSet.has(s._id);
-    const supId      = s.group?.supervisor?._id || "";
-    const supName    = s.group?.supervisor?.name || "—";
-    const totalMarks = s.total_marks || 0;
-    const safeName   = (s.name || "").replace(/'/g, "\\'");
-    const whatsapp   = s.whatsapp || "—";
-    const cvUrl      = s.cv_url || "";
-
-    // CV badge only — no proposal anything
-    const cvBadge = cvUrl
-      ? `<div class="doc-badge available" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;font-size:.72rem;font-weight:600;background:rgba(0,75,45,.08);color:var(--primary);border:1px solid rgba(0,75,45,.15)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-          CV
-          <button class="doc-btn" title="View CV" onclick="viewDoc('${cvUrl}')" style="background:none;border:none;cursor:pointer;padding:0;display:inline-flex;color:inherit">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
-        </div>`
-      : `<span style="font-size:.72rem;color:var(--text-mute);font-style:italic">No CV</span>`;
+    const isMatch          = query && matchSet.has(s._id);
+    const supId            = s.group?.supervisor?._id || "";
+    const supName = s.group?.supervisor
+    ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
+    : "—";
+    const totalMarks       = s.total_marks || 0;
+    const safeName         = (s.name || "").replace(/'/g, "\\'");
+    const whatsapp         = s.whatsapp || "—";
+    const cvUrl            = s.cv_url || "";
+    const proposalUrl      = s.group?.proposal_url || "";
+    const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
+    const proposalStatus   = s.group?.proposal_status || "";
 
     return `
       <tr class="${isMatch ? "search-match" : ""}">
-
         <td>
           <div class="team-info">
             <strong>${highlightText(s.name, query)}</strong>
-            <span style="display:block;font-size:.8rem;color:var(--text-mute)">${s.email || ""}</span>
-            <span style="display:block;font-size:.7rem;color:#15803d;font-weight:600;margin-top:2px">
+            <span style="display:block">${s.email || ""}</span>
+            <span style="display:block;font-size:.7rem;color:var(--success);font-weight:600">
               <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"
                    style="display:inline;vertical-align:middle;margin-right:3px">
                 <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
@@ -875,32 +1149,30 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
             </span>
           </div>
         </td>
-
         <td><span class="id-pill">${highlightText(s.student_code || "—", query)}</span></td>
-
-        <td style="font-weight:600;color:var(--text)">${highlightText(supName, query)}</td>
-
+        <td>${highlightText(supName, query)}</td>
         <td>
           <strong style="font-family:monospace;color:var(--primary)">
             ${totalMarks}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span>
           </strong>
         </td>
-
-        <td>${cvBadge}</td>
-
         <td>
-          <div style="display:flex;flex-direction:row;gap:6px;align-items:center">
-            <button class="icon-action" title="View marks"
-              onclick="${supId
-                ? `openSupDetail('${supId}')`
-                : `toast('No supervisor','Student is not in a team yet','warn')`}">
+          <div class="doc-cell">
+            ${renderDocBadge("CV", cvUrl, true, safeName)}
+            ${renderDocBadge("Proposal", proposalUrl, false, safeName, proposalUploader, proposalStatus)}
+          </div>
+        </td>
+        <td>
+          <div class="action-row">
+            <button class="icon-action" title="View supervisor"
+              onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                    stroke-linecap="round" stroke-linejoin="round">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
               </svg>
             </button>
-            <button class="icon-action" title="Delete student" style="color:#dc2626"
+            <button class="icon-action danger" title="Delete student" style="color:#dc2626"
               onclick="deleteStudent('${s._id}','${safeName}')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                    stroke-linecap="round" stroke-linejoin="round">
@@ -912,11 +1184,9 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
             </button>
           </div>
         </td>
-
       </tr>`;
   }).join("");
 }
-
 async function openTeamDetail(teamId) {
   const team = TEAMS_DATA.find(t => t._id === teamId);
   if (!team) { toast("Error", "Team not found", "error"); return; }
@@ -938,16 +1208,19 @@ function openReassignModal(teamId) {
   if (!team) return;
 
   const currentSup = team.supervisor;
+
   $("#reassignTeamName").textContent = team.group_code || team.team_code;
+
   $("#currentSup").value = currentSup
-    ? `${currentSup.name} (${currentSup.sup_code})`
-    : "Unassigned";
+  ? `${withPrefix(currentSup.name, currentSup.is_chairman)} (${currentSup.sup_code})`
+  : "Unassigned";
 
   const select = $("#newSup");
-  select.innerHTML = '<option value="">— Choose a supervisor —</option>' +
+
+  select.innerHTML =
+    '<option value="">— Choose a supervisor —</option>' +
     SUPERVISORS_DATA
-      .filter(s => s._id !== currentSup?._id)
-      .map(s => `<option value="${s._id}">${s.name} · ${s.sup_code}</option>`)
+    .map(s => `<option value="${s._id}">${withPrefix(s.name, s.is_chairman)} · ${s.sup_code}</option>`)
       .join("");
 
   $("#reassignModal").classList.add("open");
@@ -1024,7 +1297,9 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
   tbody.innerHTML = list.map(s => {
     const isMatch          = query && matchSet.has(s._id);
     const supId            = s.group?.supervisor?._id || "";
-    const supName          = s.group?.supervisor?.name || "—";
+    const supName = s.group?.supervisor
+      ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
+      : "—";
     const totalMarks       = s.total_marks || 0;
     const safeName         = (s.name || "").replace(/'/g, "\\'");
     const whatsapp         = s.whatsapp || "—";
@@ -1093,9 +1368,7 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
   }).join("");
 }
 
-/* ════════════════════════════════════
-   DOCUMENT BADGES
-══════════════════════════════════════ */
+//   DOCUMENT BADGES
 function renderDocBadge(label, url, required, studentName, uploaderName = "", status = "") {
   if (!url) {
     return `
@@ -1150,39 +1423,75 @@ function downloadDoc(url, filename) {
   document.body.removeChild(a);
 }
 
-/* ════════════════════════════════════
-   PROPOSAL STATUS
-══════════════════════════════════════ */
-async function updateProposalStatus(groupId, status) {
-  if (!groupId) return;
 
-  let reason = "";
-  if (status === "rejected") {
-    reason = prompt("Enter rejection reason (optional):");
-    if (reason === null) return; // cancelled
-  }
+//   PROPOSAL STATUS
+let pendingRejectGroupId = null;
+
+function openRejectConfirmModal(groupId) {
+  pendingRejectGroupId = groupId;
+  document.getElementById("rejectConfirmModal").classList.add("open");
+  document.getElementById("rejectReason").value = "";
+}
+
+function closeRejectConfirmModal() {
+  pendingRejectGroupId = null;
+  document.getElementById("rejectConfirmModal").classList.remove("open");
+}
+
+async function confirmRejectProposal() {
+  if (!pendingRejectGroupId) return;
+  const reason = document.getElementById("rejectReason").value.trim();
 
   const admin = JSON.parse(localStorage.getItem("admin"));
+  const btn = document.getElementById("confirmRejectBtn");
+  if (btn) { btn.disabled = true; btn.textContent = "Deleting…"; }
+
   try {
-    const res  = await fetch(`http://127.0.0.1:5001/api/groups/${groupId}/proposal-status`, {
+    const res = await fetch(`http://127.0.0.1:5001/api/groups/${pendingRejectGroupId}/proposal-status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ status, reason })
+      body: JSON.stringify({ status: "rejected", reason })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
-    toast(
-      status === "approved" ? "Proposal Approved ✓" : "Proposal Rejected",
-      data.message || "",
-      status === "approved" ? "success" : "warn"
-    );
+    closeRejectConfirmModal();
+    toast("Proposal Rejected", "File permanently deleted from S3", "warn");
+    await renderTeams();
+    await renderStudents();
+  } catch (err) {
+    toast("Error", err.message, "error");
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = "Confirm Reject"; }
+  }
+}
+
+async function approveProposal(groupId) {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/groups/${groupId}/proposal-status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
+      body: JSON.stringify({ status: "approved" })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    toast("Proposal Approved ✓", "Student notified", "success");
+    await renderTeams();
     await renderStudents();
   } catch (err) {
     toast("Error", err.message, "error");
   }
 }
 
+function updateProposalStatus(groupId, status) {
+  if (status === "approved") {
+    approveProposal(groupId);
+  } else if (status === "rejected") {
+    openRejectConfirmModal(groupId);
+  }
+}
 /* ════════════════════════════════════
    DELETE STUDENT
 ══════════════════════════════════════ */
@@ -1239,7 +1548,7 @@ function filterSupervisors(query) {
         <div class="entity-card-head">
           <div class="entity-avatar">${initials(sup.name)}</div>
           <div class="entity-info">
-            <strong>${highlightText(sup.name || "", q)}</strong>
+              <strong>${highlightText(withPrefix(sup.name, sup.is_chairman), q)}</strong>
             <p>${highlightText(sup.email || "", q)}</p>
           </div>
         </div>
@@ -1256,7 +1565,7 @@ function filterSupervisors(query) {
         <div style="display:flex;gap:8px;margin-top:12px">
           <button class="btn btn-ghost btn-sm" style="flex:1" onclick="openSupDetail('${sup._id}')">View</button>
           <button class="btn btn-sm" style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
-            onclick="openEditSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">Edit</button>
+            onclick="openEditSupModal('${sup._id}','${(sup.prefix||"").replace(/'/g,"\\'")}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">Edit</button>
           <button class="btn btn-sm" style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
             onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${(sup.name||"").replace(/'/g,"\\'")}')">Delete</button>
         </div>
@@ -1368,8 +1677,11 @@ function generatePassword() {
 
 function openSupervisorModal() {
   $("#generatedSupId").textContent = generateSupId();
-  $("#supName").value  = "";
-  $("#supEmail").value = "";
+  $("#supPrefix").value  = "";           
+  $("#supName").value    = "";
+  $("#supEmail").value   = "";
+  const preview = $("#supNamePreview");
+  if (preview) preview.textContent = ""; 
   if ($("#supPassword"))  $("#supPassword").value   = "";
   if ($("#forceChange"))  $("#forceChange").checked = true;
   const pwdHelp = $("#pwdHelp");
@@ -1387,27 +1699,29 @@ function closeSupervisorModal() {
 async function submitSupervisor() {
   const admin = JSON.parse(localStorage.getItem("admin"));
 
+  const prefix     = $("#supPrefix").value.trim();       // ← ADD
   const name       = $("#supName").value.trim();
   const email      = $("#supEmail").value.trim();
   const pwd        = $("#supPassword").value.trim();
-  const whatsapp   = $("#supWhatsapp")?.value.trim()   || "";
+  const whatsapp   = $("#supWhatsapp")?.value.trim() || "";
   const isChairman = $("#supRole")?.value === "chairman";
 
+  if (!prefix) { toast("Missing field", "Please select a title/prefix", "error"); return; } // ← ADD
   if (!name || !email || !pwd) {
     toast("Missing fields", "Name, email and password are required", "error");
     return;
   }
 
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
+    const res = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ name, email, password: pwd, whatsapp, is_chairman: isChairman })
+      body: JSON.stringify({ prefix, name, email, password: pwd, whatsapp, is_chairman: isChairman }) // ← prefix added
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    toast("Success", "Supervisor created successfully", "success");
+    toast("Success", `${formatName(prefix, name)} added successfully`, "success"); // ← formatted
     closeSupervisorModal();
     await renderSupervisors();
     await fetchDashboardStats();
@@ -1419,12 +1733,14 @@ async function submitSupervisor() {
 /* ════════════════════════════════════
    EDIT SUPERVISOR
 ══════════════════════════════════════ */
-function openEditSupModal(id, name, email, whatsapp, role) {
-  document.getElementById("editSupId").value       = id;
-  document.getElementById("editSupName").value     = name;
-  document.getElementById("editSupEmail").value    = email;
-  document.getElementById("editSupWhatsapp").value = whatsapp;
-  document.getElementById("editSupRole").value     = role;
+// Change signature to include prefix
+function openEditSupModal(id, prefix, name, email, whatsapp, role) {
+  document.getElementById("editSupId").value        = id;
+  document.getElementById("editSupPrefix").value    = prefix || "";  
+  document.getElementById("editSupName").value      = name;
+  document.getElementById("editSupEmail").value     = email;
+  document.getElementById("editSupWhatsapp").value  = whatsapp;
+  document.getElementById("editSupRole").value      = role;
   setTimeout(() => document.getElementById("editSupModal").classList.add("open"), 10);
 }
 
@@ -1434,26 +1750,28 @@ function closeEditSupModal() {
 
 async function submitEditSupervisor() {
   const id       = document.getElementById("editSupId").value;
+  const prefix   = document.getElementById("editSupPrefix").value.trim(); // ← ADD
   const name     = document.getElementById("editSupName").value.trim();
   const email    = document.getElementById("editSupEmail").value.trim();
   const whatsapp = document.getElementById("editSupWhatsapp").value.trim();
   const role     = document.getElementById("editSupRole").value;
 
+  if (!prefix) { toast("Missing field", "Please select a prefix", "error"); return; } // ← ADD
   if (!name || !email) { toast("Missing fields", "Name and email are required", "error"); return; }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${id}`, {
+    const res = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ name, email, whatsapp, is_chairman: role === "chairman" })
+      body: JSON.stringify({ prefix, name, email, whatsapp, is_chairman: role === "chairman" }) // ← prefix added
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to update");
 
     closeEditSupModal();
     await renderSupervisors();
-    toast("Supervisor updated", `${name} has been updated`, "success");
+    toast("Supervisor updated", `${formatName(prefix, name)} has been updated`, "success"); // ← formatted
   } catch (err) {
     toast("Error", err.message, "error");
   }
@@ -1775,6 +2093,23 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("searchSupervisors")?.addEventListener("input", e => filterSupervisors(e.target.value));
   document.getElementById("searchTeams")?.addEventListener("input",       e => filterTeams(e.target.value));
   document.getElementById("searchStudents")?.addEventListener("input",    e => filterStudents(e.target.value));
+
+  document.getElementById("supPrefix")?.addEventListener("change", updateSupNamePreview);
+  document.getElementById("supName")?.addEventListener("input", updateSupNamePreview);
+
+  function updateSupNamePreview() {
+  const prefix  = document.getElementById("supPrefix")?.value;
+  const name    = document.getElementById("supName")?.value.trim();
+  const preview = document.getElementById("supNamePreview");
+  if (!preview) return;
+  if (prefix && name) {
+    preview.textContent    = `Will appear as: ${formatName(prefix, name)}`;
+    preview.style.display  = "block";
+  } else {
+    preview.textContent    = "";
+    preview.style.display  = "none";
+  }
+}
 });
 
 /* ════════════════════════════════════
@@ -1846,6 +2181,158 @@ function renderPagination(containerId, totalItems, currentPage, perPage, onPageC
         </button>
       </div>
     </div>`;
+}
+/* ════════════════════════════════════
+   ADMIN AVATAR UPLOAD
+════════════════════════════════════ */
+const API_BASE = "http://127.0.0.1:5001";
+let adminAvatarFileToUpload = null;
+
+function openAdminAvatarModal() {
+  const modal   = document.getElementById("adminAvatarModal");
+  const modalImg  = document.getElementById("admin-modal-avatar-img");
+  const modalInit = document.getElementById("admin-modal-avatar-initials");
+  const navImg    = document.getElementById("nav-admin-avatar-img");
+  const navInit   = document.getElementById("nav-admin-avatar-initials");
+
+  if (!modal) return;
+
+  // Reset state
+  adminAvatarFileToUpload = null;
+  const btn   = document.getElementById("admin-avatar-save-btn");
+  const errEl = document.getElementById("admin-avatar-error");
+  if (btn)   { btn.disabled = true; btn.style.opacity = ".5"; btn.textContent = ""; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Save Photo'; }
+  if (errEl) errEl.style.display = "none";
+
+  // Sync preview with current nav avatar
+  const hasRealImage = navImg && navImg.style.display === "block" && navImg.src && !navImg.src.endsWith(window.location.href);
+  if (hasRealImage) {
+    modalImg.src            = navImg.src;
+    modalImg.style.display  = "block";
+    modalInit.style.display = "none";
+  } else {
+    modalImg.src            = "";
+    modalImg.style.display  = "none";
+    modalInit.style.display = "";
+    modalInit.textContent   = navInit ? navInit.textContent : "";
+  }
+
+  // Reset file input
+  const fileInput = document.getElementById("admin-avatar-file-input");
+  if (fileInput) fileInput.value = "";
+
+  modal.classList.add("open");
+}
+
+function closeAdminAvatarModal() {
+  const modal = document.getElementById("adminAvatarModal");
+  if (modal) modal.classList.remove("open");
+  adminAvatarFileToUpload = null;
+}
+
+function handleAdminAvatarDrop(e) {
+  e.preventDefault();
+  const dz = document.getElementById("admin-avatar-dropzone");
+  if (dz) { dz.style.borderColor = "var(--border)"; dz.style.background = ""; }
+  const file = e.dataTransfer?.files?.[0];
+  if (file) previewAdminAvatar(file);
+}
+
+function previewAdminAvatar(file) {
+  const errEl = document.getElementById("admin-avatar-error");
+  if (errEl) errEl.style.display = "none";
+  if (!file) return;
+
+  const allowed = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowed.includes(file.type)) {
+    if (errEl) { errEl.textContent = "Only JPG, PNG or WEBP files are allowed."; errEl.style.display = "block"; }
+    return;
+  }
+  if (file.size > 3 * 1024 * 1024) {
+    if (errEl) { errEl.textContent = "File must be under 3 MB."; errEl.style.display = "block"; }
+    return;
+  }
+
+  adminAvatarFileToUpload = file;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const modalImg  = document.getElementById("admin-modal-avatar-img");
+    const modalInit = document.getElementById("admin-modal-avatar-initials");
+    if (modalImg)  { modalImg.src = ev.target.result; modalImg.style.display = "block"; }
+    if (modalInit) modalInit.style.display = "none";
+  };
+  reader.readAsDataURL(file);
+
+  const btn = document.getElementById("admin-avatar-save-btn");
+  if (btn) { btn.disabled = false; btn.style.opacity = "1"; }
+}
+
+async function uploadAdminAvatar() {
+  if (!adminAvatarFileToUpload) return;
+
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const btn   = document.getElementById("admin-avatar-save-btn");
+  const errEl = document.getElementById("admin-avatar-error");
+
+  if (btn)   { btn.innerHTML = "Uploading…"; btn.disabled = true; btn.style.opacity = ".6"; }
+  if (errEl) errEl.style.display = "none";
+
+  const formData = new FormData();
+  formData.append("avatar", adminAvatarFileToUpload);
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/uploads/admin/avatar`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${admin.token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+
+    const fullUrl = data.avatar_url.startsWith("http")
+      ? data.avatar_url
+      : `${API_BASE}${data.avatar_url}`;
+
+    setAdminNavAvatar(fullUrl);
+
+    const stored = JSON.parse(localStorage.getItem("admin")) || {};
+    stored.avatar_url = fullUrl;
+    localStorage.setItem("admin", JSON.stringify(stored));
+
+    closeAdminAvatarModal();
+    toast("Profile picture updated ✓", "", "success");
+  } catch (err) {
+    if (errEl) { errEl.textContent = err.message; errEl.style.display = "block"; }
+    if (btn)   { btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Save Photo'; btn.disabled = false; btn.style.opacity = "1"; }
+  }
+}
+
+function setAdminNavAvatar(url) {
+  const img  = document.getElementById("nav-admin-avatar-img");
+  const init = document.getElementById("nav-admin-avatar-initials");
+  if (!img) return;
+
+  if (!url) {
+    img.style.display = "none";
+    if (init) init.style.display = "";
+    return;
+  }
+
+  // Resolve relative URLs from the API
+  const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
+
+  const testImg   = new Image();
+  testImg.onload  = () => {
+    img.src            = fullUrl;
+    img.style.display  = "block";
+    if (init) init.style.display = "none";
+  };
+  testImg.onerror = () => {
+    img.style.display = "none";
+    if (init) init.style.display = "";
+  };
+  testImg.src = fullUrl;
 }
 /* ════════════════════════════════════
    GLOBAL DATA + INIT

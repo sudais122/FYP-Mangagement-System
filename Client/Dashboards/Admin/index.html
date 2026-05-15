@@ -9,38 +9,68 @@
   </head>
   <body>
     <!-- ═══ NAVBAR ═══ -->
-    <nav class="dash-nav">
-<div class="nav-inner">
-  <button class="nav-icon-btn nav-mobile-btn" id="mobileMenuBtn" aria-label="Toggle menu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-      <line x1="3" y1="6" x2="21" y2="6"/>
-      <line x1="3" y1="12" x2="21" y2="12"/>
-      <line x1="3" y1="18" x2="21" y2="18"/>
-    </svg>
-  </button>
-  <div class="nav-brand">
-    <div class="nav-logo" id="nav-admin-avatar">A</div>
-    <div class="nav-title">
-      <h1>FYP Management</h1>
-      <p>Admin Portal · AWKUM</p>
-    </div>
-  </div>
-  <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
-    <div style="text-align:right;line-height:1.2">
-      <div style="font-size:.78rem;font-weight:700;color:var(--primary-dark)" id="nav-admin-name">—</div>
-      <div style="font-size:.65rem;color:var(--text-mute);font-weight:600">Administrator</div>
-    </div>
-    <button class="nav-logout-btn" onclick="logout()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-        <polyline points="16 17 21 12 16 7"/>
-        <line x1="21" y1="12" x2="9" y2="12"/>
+<nav class="dash-nav">
+  <div class="nav-inner">
+
+    <!-- Mobile menu button -->
+    <button class="nav-icon-btn nav-mobile-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <line x1="3" y1="12" x2="21" y2="12"/>
+        <line x1="3" y1="18" x2="21" y2="18"/>
       </svg>
-      <span>Logout</span>
     </button>
+
+    <!-- Brand (no avatar here) -->
+    <div class="nav-brand">
+      <div class="nav-title">
+        <h1>FYP Management</h1>
+        <p>Admin Portal · AWKUM</p>
+      </div>
+    </div>
+
+    <!-- Right side: avatar | name | divider | logout -->
+    <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+
+      <!-- Avatar -->
+      <div class="nav-avatar-wrap" id="nav-admin-avatar"
+           onclick="openAdminAvatarModal()" title="Change profile picture">
+        <img id="nav-admin-avatar-img" src="" alt=""
+             style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+        <span id="nav-admin-avatar-initials"></span>
+        <div class="nav-avatar-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Admin name + role -->
+      <div style="line-height:1.2">
+        <div style="font-size:.78rem;font-weight:700;color:var(--primary-dark)"
+             id="nav-admin-name">—</div>
+        <div style="font-size:.65rem;color:var(--text-mute);font-weight:600">Administrator</div>
+      </div>
+
+      <!-- Vertical divider -->
+      <div style="width:1px;height:26px;background:var(--border);opacity:.5;flex-shrink:0"></div>
+
+      <!-- Logout -->
+      <button class="nav-logout-btn" onclick="logout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span>Logout</span>
+      </button>
+
+    </div>
   </div>
-</div>
-    </nav>
+</nav>
 
     <!-- ═══ SIDEBAR ═══ -->
     <aside class="dash-sidebar" id="sidebar">
@@ -522,161 +552,69 @@
 </section>
     </main>
     <!-- ═══ ADD SUPERVISOR MODAL ═══ -->
-    <div class="modal-overlay" id="supervisorModal">
-      <div class="modal-box">
-        <div class="modal-head">
-          <div class="modal-head-text">
-            <h3>Add New Supervisor</h3>
-            <p>Create a supervisor account with limited initial access</p>
-          </div>
-          <button
-            class="modal-close"
-            onclick="closeSupervisorModal()"
-            aria-label="Close"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-        <div class="modal-body">
-          <form id="supervisorForm" onsubmit="return false;">
-            <!-- Auto-generated ID -->
-            <div class="form-group">
-              <label class="form-label">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.2"
-                  stroke-linecap="round"
-                >
-                  <rect x="3" y="11" width="18" height="11" rx="2" />
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                </svg>
-                Supervisor ID
-                <span class="opt">Auto</span>
-              </label>
-              <div class="id-display">
-                <div class="id-display-icon">
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect x="2" y="4" width="20" height="16" rx="2" />
-                    <path d="M2 8h20" />
-                    <path d="M6 14h2" />
-                  </svg>
-                </div>
-                <div class="id-display-text">
-                  <strong id="generatedSupId">SUP-20261284</strong>
-                  <span>System-generated · Cannot be modified</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Name & Email -->
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label"
-                  >Full Name <span class="req">*</span></label
-                >
-                <input
-                  type="text"
-                  class="form-input"
-                  id="supName"
-                  placeholder="e.g. Dr. Naila Khan"
-                  required
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label"
-                  >Institutional Email <span class="req">*</span></label
-                >
-                <input
-                  type="email"
-                  class="form-input"
-                  id="supEmail"
-                  placeholder="naila.khan@awkum.edu.pk"
-                  required
-                />
-              </div>
-            </div>
-
-            <!-- Password -->
-            <!-- Role + WhatsApp row -->
-<div class="form-row">
-  <div class="form-group">
-    <label class="form-label">Role <span class="req">*</span></label>
-    <select class="form-select" id="supRole">
-      <option value="supervisor">Supervisor</option>
-      <option value="chairman">Chairman / HOD</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label class="form-label">WhatsApp Number</label>
-    <input type="text" class="form-input" id="supWhatsapp" placeholder="e.g. 03001234567" />
-  </div>
-</div>
-
-<!-- Password -->
-<div class="form-group">
-  <label class="form-label">Temporary Password <span class="req">*</span></label>
-  <div style="display:flex;gap:8px">
-    <input type="text" class="form-input" id="supPassword"
-           placeholder="Min. 8 characters" style="flex:1" />
-    <button type="button" class="btn btn-ghost" onclick="generatePassword()">
-      Generate
-    </button>
-  </div>
-  <span class="form-help" id="pwdHelp">
-    Minimum 8 characters · Will be sent to supervisor via email
-  </span>
-            <!-- Force change -->
-            <label class="checkbox-row" for="forceChange">
-              <input type="checkbox" id="forceChange" checked />
-              <div class="checkbox-row-text">
-                <span
-                  >Recommended — supervisor will be required to set their own
-                  password the first time they sign in</span
-                >
-              </div>
-            </label>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-ghost" onclick="closeSupervisorModal()">
-            Cancel
-          </button>
-          <button class="btn btn-primary" onclick="submitSupervisor()">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.2"
-              stroke-linecap="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-            Create Supervisor
-          </button>
+<!-- ═══ ADMIN AVATAR MODAL ═══ -->
+<div class="modal-overlay" id="adminAvatarModal" onclick="if(event.target===this)closeAdminAvatarModal()">
+  <div class="modal-box" style="max-width:400px" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <h3>Profile Picture</h3>
+        <p>JPG, PNG or WEBP · Max 3 MB</p>
+      </div>
+      <button class="modal-close" onclick="closeAdminAvatarModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Preview -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px">
+        <div style="width:90px;height:90px;border-radius:50%;background:var(--primary);
+             display:grid;place-items:center;overflow:hidden;border:3px solid var(--border);flex-shrink:0">
+          <img id="admin-modal-avatar-img" src="" alt=""
+               style="display:none;width:100%;height:100%;object-fit:cover">
+          <span id="admin-modal-avatar-initials"
+                style="font-family:var(--font-display);font-size:1.8rem;font-weight:800;color:#fff"></span>
         </div>
       </div>
+
+      <!-- Drop zone -->
+      <div id="admin-avatar-dropzone"
+           onclick="document.getElementById('admin-avatar-file-input').click()"
+           ondragover="event.preventDefault();this.style.borderColor='var(--primary)';this.style.background='rgba(0,75,45,.04)'"
+           ondragleave="this.style.borderColor='var(--border)';this.style.background=''"
+           ondrop="handleAdminAvatarDrop(event)"
+           style="border:2px dashed var(--border);border-radius:12px;padding:24px;
+                  text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-linecap="round" width="32" height="32"
+             style="color:var(--text-mute);margin:0 auto 8px;display:block">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        <p style="font-size:.8rem;font-weight:600;color:var(--text-soft);margin-bottom:4px">Click to browse or drag & drop</p>
+        <p style="font-size:.7rem;color:var(--text-mute)">JPG, PNG or WEBP · Max 3 MB</p>
+        <input type="file" id="admin-avatar-file-input" hidden
+               accept="image/jpeg,image/png,image/webp"
+               onchange="previewAdminAvatar(this.files[0])">
+      </div>
+
+      <p id="admin-avatar-error" style="color:#dc2626;font-size:.74rem;margin-bottom:8px;display:none"></p>
     </div>
 
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeAdminAvatarModal()">Cancel</button>
+      <button id="admin-avatar-save-btn" onclick="uploadAdminAvatar()" disabled
+              style="opacity:.5;transition:opacity .2s" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Save Photo
+      </button>
+    </div>
+  </div>
+</div>
     <!-- ═══ REASSIGN SUPERVISOR MODAL ═══ -->
     <div class="modal-overlay" id="reassignModal">
       <div class="modal-box" style="max-width: 460px">
@@ -917,6 +855,214 @@
     <div class="modal-footer" style="justify-content:center;gap:12px">
       <button class="btn btn-ghost" onclick="closeDeleteDeadlineModal()" style="min-width:100px">Cancel</button>
       <button class="btn btn-sm" onclick="confirmDeleteDeadline()" style="background:#dc2626;color:#fff;min-width:100px">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+<!-- ═══ ADMIN AVATAR MODAL ═══ -->
+<div id="adminAvatarModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+     z-index:9999;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:18px;padding:32px;max-width:400px;
+              width:90%;box-shadow:0 8px 40px rgba(0,0,0,.18);position:relative">
+    <button onclick="closeAdminAvatarModal()" style="position:absolute;top:14px;right:14px;
+      background:none;border:none;cursor:pointer;color:var(--text-mute);padding:4px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" width="18" height="18">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <h3 style="font-family:var(--font-display);font-size:1rem;font-weight:800;
+               color:var(--primary-dark);margin-bottom:20px">Profile Picture</h3>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;margin-bottom:24px">
+      <div style="width:100px;height:100px;border-radius:50%;background:var(--primary);
+           display:grid;place-items:center;overflow:hidden;border:3px solid var(--border)">
+        <img id="admin-modal-avatar-img" src="" alt=""
+             style="display:none;width:100%;height:100%;object-fit:cover">
+        <span id="admin-modal-avatar-initials"
+              style="font-family:var(--font-display);font-size:1.8rem;font-weight:800;color:#fff"></span>
+      </div>
+      <p style="font-size:.74rem;color:var(--text-mute);text-align:center">JPG, PNG or WEBP · Max 3 MB</p>
+    </div>
+    <div onclick="document.getElementById('admin-avatar-file-input').click()"
+         ondragover="event.preventDefault();this.style.borderColor='var(--primary)'"
+         ondragleave="this.style.borderColor='var(--border)'"
+         ondrop="handleAdminAvatarDrop(event)"
+         style="border:2px dashed var(--border);border-radius:12px;padding:20px;
+                text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+           stroke-linecap="round" width="32" height="32"
+           style="color:var(--text-mute);margin:0 auto 8px;display:block">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <p style="font-size:.78rem;font-weight:600;color:var(--text-soft)">Click to browse or drag & drop</p>
+      <input type="file" id="admin-avatar-file-input" hidden
+             accept="image/jpeg,image/png,image/webp"
+             onchange="previewAdminAvatar(this.files[0])">
+    </div>
+    <p id="admin-avatar-error" style="color:#dc2626;font-size:.74rem;margin-bottom:12px;display:none"></p>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeAdminAvatarModal()"
+        style="flex:1;padding:9px;border:1.5px solid var(--border);border-radius:10px;
+               background:none;cursor:pointer;font-weight:600;font-size:.8rem">Cancel</button>
+      <button id="admin-avatar-save-btn" onclick="uploadAdminAvatar()" disabled
+        style="flex:1;padding:9px;background:var(--primary);color:#fff;border:none;
+               border-radius:10px;cursor:pointer;font-weight:700;font-size:.8rem;
+               opacity:.5;transition:all .2s">Save Photo</button>
+    </div>
+  </div>
+</div>
+<!-- ═══ REJECT PROPOSAL CONFIRMATION ═══ -->
+<div class="modal-overlay" id="rejectConfirmModal">
+  <div class="modal-box" style="max-width:460px" onclick="event.stopPropagation()">
+    <div class="modal-head" style="background:rgba(220,38,38,.04);border-bottom-color:rgba(220,38,38,.15)">
+      <div class="modal-head-text">
+        <h3 style="color:#dc2626">Reject Proposal?</h3>
+        <p>This action cannot be undone</p>
+      </div>
+      <button class="modal-close" onclick="closeRejectConfirmModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:14px;align-items:flex-start;padding:14px;background:rgba(220,38,38,.05);border-radius:10px;margin-bottom:18px;border-left:3px solid #dc2626">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" width="22" height="22" style="flex-shrink:0;margin-top:2px">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div>
+          <strong style="display:block;font-size:.88rem;color:#dc2626;margin-bottom:4px">Permanent action</strong>
+          <span style="font-size:.78rem;color:var(--text-soft);line-height:1.5">
+            The proposal file will be <b>permanently deleted from AWS S3</b>. The student will need to resubmit, and their attempt counter will increment.
+          </span>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">Rejection Reason <span class="opt">Optional</span></label>
+        <textarea id="rejectReason" class="form-input" rows="3" placeholder="e.g. Methodology unclear, please revise section 3…" style="resize:vertical"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px">
+      <button class="btn btn-ghost" onclick="closeRejectConfirmModal()" style="min-width:110px">Cancel</button>
+      <button id="confirmRejectBtn" class="btn btn-sm" onclick="confirmRejectProposal()" style="background:#dc2626;color:#fff;min-width:140px">
+        Confirm Reject
+      </button>
+    </div>
+  </div>
+</div>
+<!-- ═══ ADD SUPERVISOR MODAL ═══ -->
+<div class="modal-overlay" id="supervisorModal" onclick="if(event.target===this)closeSupervisorModal()">
+  <div class="modal-box" style="max-width:520px" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <h3>Add Supervisor</h3>
+        <p>Create a new supervisor account</p>
+      </div>
+      <button class="modal-close" onclick="closeSupervisorModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Auto-generated ID display -->
+      <div class="id-display" style="margin-bottom:18px">
+        <div class="id-display-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+          </svg>
+        </div>
+        <div class="id-display-text">
+          <strong id="generatedSupId">—</strong>
+          <span>Auto-generated Supervisor ID</span>
+        </div>
+      </div>
+
+      <!-- Prefix + Name row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Title / Prefix <span class="req">*</span></label>
+          <select class="form-select" id="supPrefix">
+            <option value="">— Select —</option>
+            <option value="Dr">Dr</option>
+            <option value="Prof">Prof</option>
+            <option value="Mr">Mr</option>
+            <option value="Ms">Ms</option>
+            <option value="Mrs">Mrs</option>
+            <option value="Engr">Engr</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Full Name <span class="req">*</span></label>
+          <input type="text" class="form-input" id="supName" placeholder="e.g. Naila Khan" />
+        </div>
+      </div>
+
+      <!-- Name preview -->
+      <div id="supNamePreview" style="
+        font-size:.75rem;font-weight:600;color:var(--secondary,#1f7a5c);
+        margin-top:-10px;margin-bottom:14px;padding:6px 10px;
+        background:rgba(31,122,92,.07);border-radius:7px;
+        display:none
+      "></div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label">Email <span class="req">*</span></label>
+        <input type="email" class="form-input" id="supEmail" placeholder="naila.khan@awkum.edu.pk" />
+      </div>
+
+      <!-- WhatsApp -->
+      <div class="form-group">
+        <label class="form-label">WhatsApp Number <span class="opt">Optional</span></label>
+        <input type="text" class="form-input" id="supWhatsapp" placeholder="e.g. 03001234567" />
+      </div>
+
+      <!-- Role -->
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select class="form-select" id="supRole">
+          <option value="supervisor">Supervisor</option>
+          <option value="chairman">Chairman / HOD</option>
+        </select>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label class="form-label">Password <span class="req">*</span></label>
+        <div class="input-group">
+          <input type="text" class="form-input" id="supPassword" placeholder="Min 8 characters" />
+          <button class="input-group-btn" onclick="generatePassword()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" width="14" height="14">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+            Generate
+          </button>
+        </div>
+        <span class="form-help" id="pwdHelp">Minimum 8 characters · Will be sent to supervisor via email</span>
+      </div>
+
+      <!-- Force password change -->
+      <label class="checkbox-row">
+        <input type="checkbox" id="forceChange" checked />
+        <div class="checkbox-row-text">
+          <strong>Force password change on first login</strong>
+          <span>Supervisor must set a new password when they first sign in</span>
+        </div>
+      </label>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeSupervisorModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitSupervisor()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Add Supervisor
+      </button>
     </div>
   </div>
 </div>

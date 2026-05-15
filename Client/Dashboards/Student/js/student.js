@@ -176,11 +176,11 @@ async function loadDashboard() {
       }
 
       // Populate supervisor
-      // Populate supervisor
 if (data.group.supervisor) {
   STATE.selectedSupervisor = data.group.supervisor._id;
   STATE.supervisorData = {
     _id:            data.group.supervisor._id,
+    prefix:         data.group.supervisor.prefix || "",
     name:           data.group.supervisor.name,
     email:          data.group.supervisor.email,
     designation:    data.group.supervisor.designation || "Faculty Member",
@@ -188,6 +188,7 @@ if (data.group.supervisor) {
     office:         data.group.supervisor.office || "CS Department",
     office_hours:   data.group.supervisor.office_hours || "Contact supervisor",
     sup_code:       data.group.supervisor.sup_code,
+    whatsapp:       data.group.supervisor.whatsapp || "",
   };
 }
       // Update UI
@@ -1032,7 +1033,7 @@ function goStep3() {
           ? ` — ${sup.research_areas.slice(0, 3).join(", ")}`
           : "";
         
-        return `<option value="${sup.id}">${sup.name}${researchAreas}</option>`;
+        return `<option value="${sup.id}">${formatName(sup.prefix, sup.name)}${researchAreas}</option>`;
       }).join("");
     
     // Set previously selected supervisor if exists
@@ -1070,7 +1071,7 @@ function updateSupPreview(id) {
   const supPreviewName = document.getElementById("sup-preview-name");
   const supPreviewDept = document.getElementById("sup-preview-dept");
 
-  if (supPreviewName) supPreviewName.textContent = sup.name;
+  if (supPreviewName) supPreviewName.textContent = formatName(sup.prefix, sup.name);
   if (supPreviewDept) {
     const deptText = sup.designation || "Faculty Member";
     const researchText = sup.research_areas && sup.research_areas.length > 0
@@ -1106,10 +1107,11 @@ STUDENT_MARKS = {};
 
 
 const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
-  if (result.group?.supervisor) {
+if (result.group?.supervisor) {
   const sup = result.group.supervisor;
   STATE.supervisorData = {
     _id:            sup._id,
+    prefix:         sup.prefix || "",
     name:           sup.name,
     email:          sup.email,
     designation:    sup.designation || "Faculty Member",
@@ -1138,7 +1140,7 @@ const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
         (STATE.members.length !== 0 ? "s" : ""),
     },
   ];
-  if (selSup) chips.push({ icon: "sup", text: selSup.name });
+if (selSup) chips.push({ icon: "sup", text: formatName(selSup.prefix, selSup.name) });
 
   const svgMap = {
     id: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/></svg>`,
@@ -1448,7 +1450,7 @@ function renderSupervisorTab() {
     <div class="sup-card">
       <div class="sup-avatar">${initials(sup.name || "")}</div>
       <div class="sup-info">
-        <strong>${sup.name || "—"}</strong>
+        <strong>${formatName(sup.prefix, sup.name) || "—"}</strong>
         <span>${sup.designation || "Faculty Member"} · Dept. of Computer Science</span>
       </div>
     </div>
@@ -1543,8 +1545,8 @@ function updateDashboardUI() {
     "proj-tab-team-id": STATE.teamId,   
     "proj-tab-title": STATE.projectTitle,    
     "proj-tab-category": STATE.category,  
-    "stat-supervisor-name":  STATE.supervisorData?.name || "Not assigned",
-    "proj-supervisor-name":  STATE.supervisorData?.name || "Not assigned",
+    "stat-supervisor-name":  STATE.supervisorData ? formatName(STATE.supervisorData.prefix, STATE.supervisorData.name) : "Not assigned",
+    "proj-supervisor-name":  STATE.supervisorData ? formatName(STATE.supervisorData.prefix, STATE.supervisorData.name) : "Not assigned",
   };
 
   Object.entries(elements).forEach(([id, value]) => {
@@ -1553,12 +1555,12 @@ function updateDashboardUI() {
   });
 
   // Update supervisor info if available
-  if (STATE.supervisorData) {
-    const supNameElements = document.querySelectorAll(".supervisor-name");
-    supNameElements.forEach((el) => {
-      if (el) el.textContent = STATE.supervisorData.name;
-    });
-  }
+if (STATE.supervisorData) {
+  const supNameElements = document.querySelectorAll(".supervisor-name");
+  supNameElements.forEach((el) => {
+    if (el) el.textContent = formatName(STATE.supervisorData.prefix, STATE.supervisorData.name);
+  });
+}
 }
 
 /* ══════════════════════════════════
@@ -1573,7 +1575,10 @@ function initials(name) {
     .slice(0, 2)
     .toUpperCase();
 }
-
+function formatName(prefix, name) {
+  if (!prefix || !name) return name || "";
+  return `${prefix}. ${name}`;
+}
 let toastTimer;
 function toast(msg, type) {
   const t = document.getElementById("toast");

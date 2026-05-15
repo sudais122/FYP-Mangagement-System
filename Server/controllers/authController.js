@@ -58,11 +58,18 @@ export const login = async (req, res) => {
       userData.group        = user.group;
     }
 
-    if (role === "supervisor" || role === "chairman") {
-      userData.sup_code              = user.sup_code;
-      userData.force_password_change = user.force_password_change;
-      userData.is_chairman           = user.is_chairman;
-    }
+if (role === "supervisor" || role === "chairman") {
+  userData.sup_code              = user.sup_code;
+  userData.prefix                = user.prefix;
+  userData.designation           = user.designation;   // ← ADD
+  userData.force_password_change = user.force_password_change;
+  userData.is_chairman           = user.is_chairman;
+  userData.whatsapp              = user.whatsapp;
+  userData.avatar_url            = user.avatar_url;
+  userData.office                = user.office;        // ← ADD (optional)
+  userData.office_hours          = user.office_hours;  // ← ADD (optional)
+  userData.research_areas        = user.research_areas;// ← ADD (optional)
+}
 
     res.json(userData);
 

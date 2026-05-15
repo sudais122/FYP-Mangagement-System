@@ -20,7 +20,8 @@ export const addSupervisor = async (req, res) => {
     designation,
     office,
     whatsapp,
-    is_chairman
+    is_chairman,
+    prefix   
   } = req.body;
 
   try {
@@ -46,7 +47,7 @@ export const addSupervisor = async (req, res) => {
     // 4. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 5. Create supervisor
+    // 5. Create supervisor (FIXED: prefix included)
     const supervisor = await Supervisor.create({
       name,
       email,
@@ -54,6 +55,7 @@ export const addSupervisor = async (req, res) => {
       designation: designation || "Lecturer",
       office: office || "",
       whatsapp: whatsapp || "",
+      prefix: prefix || "Mr", // ✅ FIX: store prefix properly
       is_chairman: is_chairman === true,
       role: is_chairman === true ? "chairman" : "supervisor",
       sup_code
@@ -88,6 +90,7 @@ export const addSupervisor = async (req, res) => {
         sup_code: supervisor.sup_code,
         designation: supervisor.designation,
         whatsapp: supervisor.whatsapp,
+        prefix: supervisor.prefix, // ✅ FIX: return prefix
         is_chairman: supervisor.is_chairman
       }
     });
@@ -219,7 +222,7 @@ export const getAllStudents = async (req, res) => {
 export const getAllSupervisors = async (req, res) => {
   try {
     const supervisors = await Supervisor.find()
-      .select("name email sup_code designation whatsapp office is_chairman role")
+    .select("name email prefix sup_code designation whatsapp office is_chairman role")
       .lean();
 
     const result = await Promise.all(

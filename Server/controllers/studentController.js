@@ -72,7 +72,7 @@ export const getMyDashboard = async (req, res) => {
         populate: [
           { path: "leader",     select: "name student_code" },
           { path: "members",    select: "name student_code" },
-          { path: "supervisor", select: "name sup_code email office office_hours research_areas designation whatsapp" },
+{ path: "supervisor", select: "name prefix sup_code email office office_hours research_areas designation whatsapp" },
         ],
       });
 
@@ -163,7 +163,7 @@ export const getMyProfile = async (req, res) => {
           { path: "members", select: "name student_code" },
           { 
             path: "supervisor", 
-            select: "name sup_code email office office_hours research_areas whatsapp designation" 
+            select: "name prefix sup_code email office office_hours research_areas whatsapp designation" 
           },
         ],
       });

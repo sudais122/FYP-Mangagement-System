@@ -1,11 +1,28 @@
 import mongoose from "mongoose";
 
+const proposalHistorySchema = new mongoose.Schema(
+  {
+    attempt: { type: Number, required: true },
+
+    proposal_url: { type: String, default: null },
+    filename: { type: String, default: null },
+
+    uploaded_at: { type: Date, default: null },
+
+    rejected_at: { type: Date, default: null },
+    rejection_reason: { type: String, default: null },
+
+    file_deleted: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
+
 const groupSchema = new mongoose.Schema(
   {
     team_code: {
       type: String,
       unique: true,
-      required: true, // ← now required, must come from generateTeamId
+      required: true,
     },
 
     project_title: {
@@ -58,14 +75,7 @@ const groupSchema = new mongoose.Schema(
       type: String,
     },
 
-    // ── PROPOSAL FIELDS ──────────────────────────────────────
-
     proposal_url: {
-      type: String,
-      default: null,
-    },
-
-    proposal_public_id: {
       type: String,
       default: null,
     },
@@ -81,14 +91,24 @@ const groupSchema = new mongoose.Schema(
       default: null,
     },
 
+    proposal_uploaded_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+      default: null,
+    },
+
     proposal_uploaded_at: {
       type: Date,
       default: null,
     },
 
-    proposal_uploaded_by: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
+    proposal_attempt: {
+      type: Number,
+      default: 1,
+    },
+
+    proposal_rejected_at: {
+      type: Date,
       default: null,
     },
 
@@ -96,6 +116,13 @@ const groupSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+
+    proposal_file_deleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    proposal_history: [proposalHistorySchema],
   },
   {
     timestamps: true,
