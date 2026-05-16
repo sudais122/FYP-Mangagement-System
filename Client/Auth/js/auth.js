@@ -21,6 +21,30 @@ async function doReg() {
   if (pw !== cpw) return showErr("cpw");
   if (!cv) return showErr("cv");
 
+  // ── PDF-only check ──
+  const isPdf =
+    cv.type === "application/pdf" ||
+    cv.name.toLowerCase().endsWith(".pdf");
+
+  if (!isPdf) {
+    Swal.fire({
+      icon: "error",
+      title: "Invalid file type",
+      text: "CV must be a PDF file (.pdf)",
+    });
+    return;
+  }
+
+  // ── Size check (5 MB max) ──
+  if (cv.size > 5 * 1024 * 1024) {
+    Swal.fire({
+      icon: "error",
+      title: "File too large",
+      text: "CV must be under 5 MB",
+    });
+    return;
+  }
+
   const formData = new FormData();
   formData.append("name", `${fn} ${ln}`);
   formData.append("email", em);
@@ -179,6 +203,104 @@ async function step2Submit() {
     btn.textContent = "Verify Code";
   }
 }
+
+/* ════════════════════════════════
+   CV UPLOAD UI
+════════════════════════════════ */
+document.addEventListener("DOMContentLoaded", () => {
+  const cvInput = document.getElementById("r-cv");
+  const cvZone  = document.getElementById("cv-zone");
+  const cvLbl   = document.getElementById("cv-lbl");
+  const cvSub   = document.getElementById("cv-sub");
+
+  if (!cvInput || !cvZone) return;
+
+  // Helper — format file size
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  }
+
+  // Show selected file
+  function showFile(file) {
+    if (!file) return;
+
+    // PDF check
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      cvInput.value = "";
+      resetZone();
+      Swal.fire({
+        icon: "error",
+        title: "Invalid file type",
+        text: "CV must be a PDF file (.pdf)"
+      });
+      return;
+    }
+
+    // Size check (5 MB)
+    if (file.size > 5 * 1024 * 1024) {
+      cvInput.value = "";
+      resetZone();
+      Swal.fire({
+        icon: "error",
+        title: "File too large",
+        text: "CV must be under 5 MB"
+      });
+      return;
+    }
+
+    // Update label with filename + size
+    cvLbl.innerHTML = `<strong style="color:var(--primary,#004b2d);word-break:break-all">${file.name}</strong>
+                       <span style="margin-left:8px;color:#dc2626;cursor:pointer;font-weight:600" 
+                             onclick="clearCv(event)">Remove</span>`;
+    cvSub.innerHTML = `<span style="color:#15803d;font-weight:600">✓ ${formatSize(file.size)} · Ready to upload</span>`;
+    cvZone.classList.add("has-file");
+  }
+
+  function resetZone() {
+    cvLbl.textContent = "Click to upload or drag & drop";
+    cvSub.innerHTML = `PDF format only &nbsp;<span class="pdf-pill">PDF only</span>`;
+    cvZone.classList.remove("has-file");
+  }
+
+  // Expose clearCv globally so onclick works
+  window.clearCv = function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+    cvInput.value = "";
+    resetZone();
+  };
+
+  // File input change
+  cvInput.addEventListener("change", (e) => {
+    showFile(e.target.files[0]);
+  });
+
+  // Drag & drop
+  cvZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    cvZone.classList.add("drag-over");
+  });
+
+  cvZone.addEventListener("dragleave", () => {
+    cvZone.classList.remove("drag-over");
+  });
+
+  cvZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    cvZone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      // Assign to the input so the form submits it
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      cvInput.files = dt.files;
+      showFile(file);
+    }
+  });
+});
 
 function startResend() {
   var link = document.getElementById("resend-link");

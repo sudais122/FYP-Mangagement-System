@@ -39,6 +39,7 @@ const STATE = {
   proposalFile: null,
   selectedEvalStudent: 0,
   groupData: null, 
+  deadlines: [], 
 };
 
 /* ══════════════════════════════════
@@ -1354,7 +1355,33 @@ function renderTeamTab() {
       isYou: false,
     })),
   ];
+// ── Update Team Info card with real created date + nearest deadline ──
+  const createdEl = document.getElementById("team-created-date");
+  if (createdEl && STATE.groupData?.createdAt) {
+    createdEl.textContent = formatShortDate(STATE.groupData.createdAt);
+  }
 
+  const deadlineEl = document.getElementById("team-nearest-deadline");
+  if (deadlineEl) {
+    const nearest = getNearestDeadline(STATE.deadlines);
+    if (nearest) {
+      const due      = new Date(nearest.dueDate);
+      const diffDays = Math.ceil((due - new Date()) / 86400000);
+      const label    = nearest.type === "Other" && nearest.customName
+        ? nearest.customName : nearest.type;
+      const dateStr  = due.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
+      const urgent   = diffDays <= 3;
+      deadlineEl.innerHTML = `
+        <span style="color:${urgent ? "#dc2626" : "var(--primary)"}">
+          ${urgent ? "⚠ " : ""}${dateStr}
+        </span>
+        <span style="font-size:.72rem;color:var(--text-mute);margin-left:6px">
+          ${label} · ${diffDays} day${diffDays !== 1 ? "s" : ""} left
+        </span>`;
+    } else {
+      deadlineEl.textContent = "No upcoming deadlines";
+    }
+  }
   // Replace the allMembers map inside renderTeamTab:
 display.innerHTML = allMembers.map(m => {
   const avatarContent = m.isYou
@@ -1622,6 +1649,22 @@ if (STATE.supervisorData) {
 /* ══════════════════════════════════
    HELPERS
 ══════════════════════════════════ */
+function formatShortDate(dateString) {
+  if (!dateString) return "—";
+  return new Date(dateString).toLocaleDateString("en-GB", {
+    day: "2-digit", month: "short", year: "numeric"
+  });
+}
+
+function getNearestDeadline(deadlines) {
+  if (!deadlines || !deadlines.length) return null;
+  const now = new Date();
+  const upcoming = deadlines
+    .filter(d => new Date(d.dueDate) > now)
+    .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  return upcoming[0] || null;
+}
+
 function initials(name) {
   return (name || "")
     .split(" ")
@@ -1772,7 +1815,7 @@ async function loadStudentDeadlines() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
-
+    STATE.deadlines = Array.isArray(data) ? data : []; 
     if (!data.length) {
       container.innerHTML = `<p style="color:var(--text-mute)">No upcoming deadlines.</p>`;
       return;

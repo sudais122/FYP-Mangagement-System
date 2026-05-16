@@ -3,27 +3,16 @@ import multerS3  from "multer-s3";
 import path      from "path";
 import { createS3Client } from "../config/s3.js";
 
-const MIME_TYPES = {
-  avatar:   ["image/jpeg", "image/png", "image/webp"],
-  cv:       ["application/pdf"],
-  proposal: [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  ],
-};
-
 const FILE_SIZE_LIMITS = {
   avatar:   3  * 1024 * 1024,
   cv:       5  * 1024 * 1024,
-  proposal: 10 * 1024 * 1024,
+  proposal: 20 * 1024 * 1024,
 };
 
 function makeUploader(folder, fieldName) {
   const BUCKET = process.env.AWS_BUCKET_NAME;
   if (!BUCKET) throw new Error("AWS_BUCKET_NAME is not set in .env");
 
-  // Create S3 client here — dotenv is loaded by this point
   const s3 = createS3Client();
 
   return multer({
@@ -39,12 +28,6 @@ function makeUploader(folder, fieldName) {
     }),
     limits: {
       fileSize: FILE_SIZE_LIMITS[folder] || 10 * 1024 * 1024,
-    },
-    fileFilter: (req, file, cb) => {
-      const allowed = MIME_TYPES[folder] || [];
-      allowed.includes(file.mimetype)
-        ? cb(null, true)
-        : cb(new Error(`Invalid file type for ${folder}`));
     },
   }).single(fieldName);
 }

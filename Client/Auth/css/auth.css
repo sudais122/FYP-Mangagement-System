@@ -664,3 +664,17 @@ svg { display: block; flex-shrink: 0; }
   border-color: #dc3545;
   background: #fff8f8;
 }
+.cv-zone.drag-over {
+  border-color: var(--primary, #004b2d);
+  background: rgba(0,75,45,.05);
+  transform: scale(1.01);
+}
+
+.cv-zone.has-file {
+  border-color: #15803d;
+  background: rgba(34,197,94,.04);
+}
+
+.cv-zone.has-file .cv-ic {
+  color: #15803d;
+}

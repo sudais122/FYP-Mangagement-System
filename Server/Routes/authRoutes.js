@@ -8,20 +8,25 @@ import {
   verifyOtp
 } from "../controllers/authController.js";
 import { protect } from "../middleware/auth.js";
-import { uploadCVLocal } from "../middleware/localUpload.js";   // ← changed
+import { handleUpload } from "../middleware/upload.js";   
 
 const router = express.Router();
 
-/* ================= AUTH ================= */
+// AUTH
 router.post("/login", login);
-router.post("/register", uploadCVLocal.single("cv"), registerStudent);   // ← changed
 
-/* ================= PASSWORD RESET ================= */
+router.post(
+  "/register",
+  (req, res, next) => handleUpload("cvs", "cv")(req, res, next),   
+  registerStudent
+);
+
+// PASSWORD RESET
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/verify-otp", verifyOtp);
 
-/* ================= PROFILE ================= */
+// PROFILE
 router.get("/profile", protect, getProfile);
 
 export default router;

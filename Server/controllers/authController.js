@@ -66,9 +66,6 @@ if (role === "supervisor" || role === "chairman") {
   userData.is_chairman           = user.is_chairman;
   userData.whatsapp              = user.whatsapp;
   userData.avatar_url            = user.avatar_url;
-  userData.office                = user.office;        // ← ADD (optional)
-  userData.office_hours          = user.office_hours;  // ← ADD (optional)
-  userData.research_areas        = user.research_areas;// ← ADD (optional)
 }
 
     res.json(userData);
@@ -89,39 +86,48 @@ export const registerStudent = async (req, res) => {
       return res.status(400).json({ message: "CV is required" });
     }
 
-    // 2. Duplicate email check
+    // 2. PDF check 
+    const isPdfMime = req.file.mimetype === "application/pdf";
+    const filename  = req.file.originalname || req.file.key || "";
+    const isPdfExt  = filename.toLowerCase().endsWith(".pdf");
+
+    if (!isPdfMime && !isPdfExt) {
+      return res.status(400).json({ message: "CV must be a PDF file" });
+    }
+
+    // 3. Duplicate email check
     const existing = await Student.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "Email already registered" });
     }
 
-    // 3. Password hash
+    // 4. Password hash
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 4. Student ID
+    // 5. Student ID
     const student_code = await generateStudentId();
 
-    // 5. Create student
+    // 6. Create student 
     const student = await Student.create({
       name,
       email,
       whatsapp,
-      gender, 
+      gender,
       password: hashedPassword,
       student_code,
-      cv_url: `/uploads/cvs/${req.file.filename}`,
-      cv_public_id: req.file.filename,
+      cv_url: req.file.location,
     });
 
-    // 6. Response
+    // 7. Response
     res.status(201).json({
       message: "Student registered successfully",
       student: {
-        _id: student._id,
-        name: student.name,
-        email: student.email,
-        gender: student.gender, 
+        _id:          student._id,
+        name:         student.name,
+        email:        student.email,
+        gender:       student.gender,
         student_code: student.student_code,
+        cv_url:       student.cv_url,
       },
     });
 
