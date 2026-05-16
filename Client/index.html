@@ -1,251 +1,869 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>FYP Management System — AWKUM</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./shared/css/theme.css">
-<link rel="stylesheet" href="./shared/css/global.css">
-</head>
-<body>
-<!-- ══════════════════ NAVBAR ══════════════════ -->
-<nav class="navbar">
-  <div class="nav-inner">
-    <div class="nav-brand" onclick="navigate('home')">
-      <div class="nav-logo-mark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-      </div>
-      <div class="nav-brand-text">
-        <strong>FYP Management</strong>
-        <small>AWKUM · CS Department</small>
-      </div>
-    </div>
-    <ul class="nav-links">
-      <li><a id="nav-home" class="active" onclick="navigate('home')">Home</a></li>
-      <li><a id="nav-coursera" onclick="navigate('coursera')">Coursera</a></li>
-      <li><a id="nav-faq" onclick="navigate('faq')">FAQs</a></li>
-      <li><a id="nav-messages" onclick="navigate('messages')">Messages</a></li>
-      <li><a id="nav-developers" onclick="navigate('developers')">Developers</a></li>
-    </ul>
-    <a href="./Auth/login.html"><button class="nav-btn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-      Login
-    </button></a>
-    <div class="hamburger" onclick="toggleMobile()" id="ham">
-      <span></span><span></span><span></span>
-    </div>
-  </div>
-  <div class="nav-mobile" id="mob-menu">
-    <a onclick="navigate('home');toggleMobile()" id="mob-home" class="active">Home</a>
-    <a onclick="navigate('coursera');toggleMobile()" id="mob-coursera">Coursera</a>
-    <a onclick="navigate('faq');toggleMobile()" id="mob-faq">FAQs</a>
-    <a onclick="navigate('messages');toggleMobile()" id="mob-messages">Messages</a>
-    <a onclick="navigate('developers');toggleMobile()" id="mob-developers">Developers</a>
-  </div>
-</nav>
-
-<!-- ══════════════════ HOME PAGE ══════════════════ -->
-<div id="page-home" class="page active">
-  <div class="hero">
-    <div class="hero-slider" id="slider">
-      <div class="slide active"></div>
-      <div class="slide"></div>
-      <div class="slide"></div>
-      <div class="slide"></div>
-    </div>
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      <div class="hero-eyebrow">Academic Year 2025–2026</div>
-      <h1 style="font-family: sans-serif; font-weight: 800;">Welcome to the <span class="gold-word">FYP Management</span> System</h1>
-      <p>A centralized hub for all Final Year Project activities — from proposals and submissions to evaluations and guidelines.</p>
-      <div class="hero-actions">
-        <a href="./Auth/login.html">
-        <button class="btn-hero btn-hero-primary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Access Portal
-        </button>
-        </a>
-        <button class="btn-hero btn-hero-ghost" onclick="navigate('faq')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          Browse FAQs
-        </button>
-      </div>
-    </div>
-    <div class="slider-dots" id="dots"></div>
-  </div>
-
-  <div class="section">
-    <div class="reveal">
-      <div class="section-label">About the System</div>
-      <h2 class="section-title">Everything You Need, In One Place</h2>
-      <p class="section-sub">Students can access structured information related to project proposals, submission deadlines, evaluations, and academic resources. Stay updated with announcements and ensure all submissions are completed on time.</p>
-    </div>
-    <div class="overview-grid">
-      <div class="overview-card reveal"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><h3>Project Proposals</h3><p>Submit and track your FYP proposal through our streamlined digital workflow. Get real-time status updates and supervisor feedback.</p></div>
-      <div class="overview-card reveal" style="animation-delay:.08s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><h3>Submission Deadlines</h3><p>Never miss an important date. View all upcoming deadlines for proposals, progress reports, and final submissions in one calendar view.</p></div>
-      <div class="overview-card reveal" style="animation-delay:.16s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></div><h3>Evaluations</h3><p>Track your project evaluation scores across all phases including mid-evaluation, final presentation, and documentation assessment.</p></div>
-      <div class="overview-card reveal" style="animation-delay:.08s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><h3>FAQs &amp; Guidelines</h3><p>Comprehensive answers to common questions about Coursera requirements, proposal formats, group sizes, and submission procedures.</p></div>
-      <div class="overview-card reveal" style="animation-delay:.16s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Supervisor Management</h3><p>Browse available supervisors, view their research interests, and request supervision directly through the portal after login.</p></div>
-      <div class="overview-card reveal" style="animation-delay:.24s"><div class="oc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>Announcements</h3><p>Stay informed with official department announcements, guideline updates, and system notifications all in one dedicated section.</p></div>
-    </div>
-    <div class="stats-row reveal">
-      <div class="stat-item"><div class="stat-num">320+</div><div class="stat-lbl">Enrolled Students</div></div>
-      <div class="stat-item"><div class="stat-num">48</div><div class="stat-lbl">Faculty Supervisors</div></div>
-      <div class="stat-item"><div class="stat-num">150+</div><div class="stat-lbl">Active Projects</div></div>
-      <div class="stat-item"><div class="stat-num">96%</div><div class="stat-lbl">Submission Rate</div></div>
-    </div>
-    <div class="reveal">
-      <div class="section-label">Schedule</div>
-      <h2 class="section-title">Important Dates</h2>
-      <p class="section-sub">Key submission and evaluation deadlines for the current academic session.</p>
-    </div>
-<!-- ══════════════════ Real Deadlines ══════════════════ -->
-<section>
-  <div class="reveal">
-  </div>
-  <div class="dates-grid reveal" id="dates-grid">
-    <p style="color:var(--text-mute);text-align:center;grid-column:1/-1">Loading deadlines…</p>
-  </div>
-</section>
-  </div>
-</div>
-<!-- ══════════════════ COURSERA PAGE ══════════════════ -->
-<div id="page-coursera" class="page">
-  <div class="coursera-page-wrap">
-    <div class="coursera-hero">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(191,161,74,.15);border:1px solid rgba(191,161,74,.3);color:var(--gold-lt);padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px">Online Learning</div>
-      <h2 style="font-family: sans-serif;">Coursera Course Requirements</h2>
-      <p>Approved courses for FYP prerequisites — counted as part of your internship program.</p>
-    </div>
-
-    <div class="coursera-container">
-      <div class="coursera-notice">
-        <div class="cn-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>FYP Management System — AWKUM</title>
+    <link
+      rel="icon"
+      href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQQuS5zKV6Zvqb-Q0nuX_xm8j1-VBx2WXwSJw&s"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./shared/css/theme.css" />
+    <link rel="stylesheet" href="./shared/css/global.css" />
+  </head>
+  <body>
+    <!-- ══════════════════ NAVBAR ══════════════════ -->
+    <nav class="navbar">
+      <div class="nav-inner">
+        <div class="nav-brand" onclick="navigate('home')">
+          <div class="nav-logo-mark">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+              <path d="M6 12v5c3 3 9 3 12 0v-5" />
+            </svg>
+          </div>
+          <div class="nav-brand-text">
+            <strong>FYP Management</strong>
+            <small>AWKUM · CS Department</small>
+          </div>
         </div>
-        <div>
-          <strong>Important Notice for Students</strong>
-          <p>A minimum of <b>8 Coursera certificates</b> must be submitted with your FYP proposal. Select courses according to FYP requirements — incomplete submissions will not be entertained.</p>
+        <ul class="nav-links">
+          <li>
+            <a id="nav-home" class="active" onclick="navigate('home')">Home</a>
+          </li>
+          <li>
+            <a id="nav-coursera" onclick="navigate('coursera')">Coursera</a>
+          </li>
+          <li><a id="nav-faq" onclick="navigate('faq')">FAQs</a></li>
+          <li>
+            <a id="nav-messages" onclick="navigate('messages')">Messages</a>
+          </li>
+          <li>
+            <a id="nav-developers" onclick="navigate('developers')"
+              >Developers</a
+            >
+          </li>
+        </ul>
+        <a href="./Auth/login.html"
+          ><button class="nav-btn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
+            Login
+          </button></a
+        >
+        <div class="hamburger" onclick="toggleMobile()" id="ham">
+          <span></span><span></span><span></span>
         </div>
       </div>
-
-      <div class="coursera-grid" id="coursera-grid"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════════ FAQ PAGE ══════════════════ -->
-<div id="page-faq" class="page">
-  <div class="faq-page-wrap">
-    <div class="faq-hero">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(191,161,74,.15);border:1px solid rgba(191,161,74,.3);color:var(--gold-lt);padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px">Final Year Project</div>
-      <h2 style="font-family: sans-serif;">Frequently Asked Questions</h2>
-      <p style="font-family: sans-serif;">Find answers to common queries about FYP procedures, requirements, and submission guidelines.</p>
-    </div>
-    <div class="faq-container" id="faq-container"></div>
-  </div>
-</div>
-
-<!-- ══════════════════ MESSAGES PAGE ══════════════════ -->
-<div id="page-messages" class="page">
-  <div class="messages-page">
-    <div class="msg-hero">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(191,161,74,.15);border:1px solid rgba(191,161,74,.3);color:var(--gold-lt);padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px">Official Communications</div>
-      <h2 style="font-family: sans-serif;">Messages from Authorities</h2>
-      <p>Guidance and motivation from our department leadership.</p>
-    </div>
-    <div class="messages-grid">
-      <div class="msg-card">
-        <div class="msg-card-top"><div class="msg-avatar"><img src="https://staging.awkum.edu.pk/img/users/7.jpg" alt=""></div><div class="msg-card-meta"><strong>Dr. Nadeem Iqbal</strong><span>Chairman, Department of Computer Science</span></div></div>
-        <div class="msg-body"><span class="quote-mark">"</span><p>Dear Students,</p><p>The Final Year Project represents a defining phase of your academic journey. It reflects your analytical thinking, discipline, and professional readiness.</p><p>I encourage you to select projects that address real-world challenges and demonstrate innovation and responsibility.</p><p>Our faculty is fully committed to supporting you throughout this process. Maintain consistency, communicate effectively, and adhere to academic timelines.</p><div class="msg-sig"><strong>Dr. Nadeem Iqbal</strong> — Chairman's Message</div></div>
+      <div class="nav-mobile" id="mob-menu">
+        <a
+          onclick="
+            navigate('home');
+            toggleMobile();
+          "
+          id="mob-home"
+          class="active"
+          >Home</a
+        >
+        <a
+          onclick="
+            navigate('coursera');
+            toggleMobile();
+          "
+          id="mob-coursera"
+          >Coursera</a
+        >
+        <a
+          onclick="
+            navigate('faq');
+            toggleMobile();
+          "
+          id="mob-faq"
+          >FAQs</a
+        >
+        <a
+          onclick="
+            navigate('messages');
+            toggleMobile();
+          "
+          id="mob-messages"
+          >Messages</a
+        >
+        <a
+          onclick="
+            navigate('developers');
+            toggleMobile();
+          "
+          id="mob-developers"
+          >Developers</a
+        >
       </div>
-      <div class="msg-card">
-        <div class="msg-card-top" style="background:linear-gradient(135deg,var(--secondary),var(--primary-dark))"><div class="msg-avatar"><img src="./shared/images/Dr.Aftab A khan.jpeg" alt=""></div><div class="msg-card-meta"><strong>Dr. Aftab Khan</strong><span>FYP Coordinator, CS Department</span></div></div>
-        <div class="msg-body"><span class="quote-mark">"</span><p>Dear Students,</p><p>Your Final Year Project is an opportunity to apply theoretical knowledge in a practical environment and demonstrate your capabilities as a future professional.</p><p>Choose your project topic wisely, remain consistent in your efforts, and seek guidance whenever necessary.</p><p>Discipline, proper documentation, and timely submissions are the key pillars of a successful FYP journey.</p><div class="msg-sig"><strong>Dr. Aftab Ahmed Khan</strong> — FYP Coordinator's Message</div></div>
+    </nav>
+
+    <!-- ══════════════════ HOME PAGE ══════════════════ -->
+    <div id="page-home" class="page active">
+      <div class="hero">
+        <div class="hero-slider" id="slider">
+          <div class="slide active"></div>
+          <div class="slide"></div>
+          <div class="slide"></div>
+          <div class="slide"></div>
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div class="hero-eyebrow">Academic Year 2025–2026</div>
+          <h1 style="font-family: sans-serif; font-weight: 800">
+            Welcome to the <span class="gold-word">FYP Management</span> System
+          </h1>
+          <p>
+            A centralized hub for all Final Year Project activities — from
+            proposals and submissions to evaluations and guidelines.
+          </p>
+          <div class="hero-actions">
+            <a href="./Auth/login.html">
+              <button class="btn-hero btn-hero-primary">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                Access Portal
+              </button>
+            </a>
+            <button class="btn-hero btn-hero-ghost" onclick="navigate('faq')">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              Browse FAQs
+            </button>
+          </div>
+        </div>
+        <div class="slider-dots" id="dots"></div>
+      </div>
+
+      <div class="section">
+        <div class="reveal">
+          <div class="section-label">About the System</div>
+          <h2 class="section-title">Everything You Need, In One Place</h2>
+          <p class="section-sub">
+            Students can access structured information related to project
+            proposals, submission deadlines, evaluations, and academic
+            resources. Stay updated with announcements and ensure all
+            submissions are completed on time.
+          </p>
+        </div>
+        <div class="overview-grid">
+          <div class="overview-card reveal">
+            <div class="oc-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+              </svg>
+            </div>
+            <h3>Project Proposals</h3>
+            <p>
+              Submit and track your FYP proposal through our streamlined digital
+              workflow. Get real-time status updates and supervisor feedback.
+            </p>
+          </div>
+          <div class="overview-card reveal" style="animation-delay: 0.08s">
+            <div class="oc-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <line x1="16" y1="2" x2="16" y2="6" />
+                <line x1="8" y1="2" x2="8" y2="6" />
+                <line x1="3" y1="10" x2="21" y2="10" />
+              </svg>
+            </div>
+            <h3>Submission Deadlines</h3>
+            <p>
+              Never miss an important date. View all upcoming deadlines for
+              proposals, progress reports, and final submissions in one calendar
+              view.
+            </p>
+          </div>
+          <div class="overview-card reveal" style="animation-delay: 0.16s">
+            <div class="oc-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 20h9" />
+                <path
+                  d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"
+                />
+              </svg>
+            </div>
+            <h3>Evaluations</h3>
+            <p>
+              Track your project evaluation scores across all phases including
+              mid-evaluation, final presentation, and documentation assessment.
+            </p>
+          </div>
+          <div class="overview-card reveal" style="animation-delay: 0.08s">
+            <div class="oc-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+            <h3>FAQs &amp; Guidelines</h3>
+            <p>
+              Comprehensive answers to common questions about Coursera
+              requirements, proposal formats, group sizes, and submission
+              procedures.
+            </p>
+          </div>
+          <div class="overview-card reveal" style="animation-delay: 0.16s">
+            <div class="oc-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+            </div>
+            <h3>Supervisor Management</h3>
+            <p>
+              Browse available supervisors, view their research interests, and
+              request supervision directly through the portal after login.
+            </p>
+          </div>
+          <div class="overview-card reveal" style="animation-delay: 0.24s">
+            <div class="oc-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                />
+              </svg>
+            </div>
+            <h3>Announcements</h3>
+            <p>
+              Stay informed with official department announcements, guideline
+              updates, and system notifications all in one dedicated section.
+            </p>
+          </div>
+        </div>
+        <div class="stats-row reveal">
+          <div class="stat-item">
+            <div class="stat-num">320+</div>
+            <div class="stat-lbl">Enrolled Students</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">48</div>
+            <div class="stat-lbl">Faculty Supervisors</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">150+</div>
+            <div class="stat-lbl">Active Projects</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">96%</div>
+            <div class="stat-lbl">Submission Rate</div>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="section-label">Schedule</div>
+          <h2 class="section-title">Important Dates</h2>
+          <p class="section-sub">
+            Key submission and evaluation deadlines for the current academic
+            session.
+          </p>
+        </div>
+        <!-- ══════════════════ Real Deadlines ══════════════════ -->
+        <section>
+          <div class="reveal"></div>
+          <div class="dates-grid reveal" id="dates-grid">
+            <p
+              style="
+                color: var(--text-mute);
+                text-align: center;
+                grid-column: 1/-1;
+              "
+            >
+              Loading deadlines…
+            </p>
+          </div>
+        </section>
       </div>
     </div>
-  </div>
-</div>
+    <!-- ══════════════════ COURSERA PAGE ══════════════════ -->
+    <div id="page-coursera" class="page">
+      <div class="coursera-page-wrap">
+        <div class="coursera-hero">
+          <div
+            style="
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: rgba(191, 161, 74, 0.15);
+              border: 1px solid rgba(191, 161, 74, 0.3);
+              color: var(--gold-lt);
+              padding: 5px 14px;
+              border-radius: 100px;
+              font-size: 0.72rem;
+              font-weight: 600;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              margin-bottom: 16px;
+            "
+          >
+            Online Learning
+          </div>
+          <h2 style="font-family: sans-serif">Coursera Course Requirements</h2>
+          <p>
+            Approved courses for FYP prerequisites — counted as part of your
+            internship program.
+          </p>
+        </div>
 
-<!-- ══════════════════ DEVELOPERS PAGE ══════════════════ -->
-<div id="page-developers" class="page">
-  <div class="devs-page">
-    <div class="dev-hero">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(191,161,74,.15);border:1px solid rgba(191,161,74,.3);color:var(--gold-lt);padding:5px 14px;border-radius:100px;font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px">The Team</div>
-      <h2 style="font-family: sans-serif;">Meet the Developers</h2>
-      <p>The talented individuals behind the FYP Management System.</p>
-    </div>
-    <div class="dev-grid">
-      <div class="dev-card"><div class="dev-avatar"><img src="./images/Devalopers/Sudias.jpg"></div><h3>Muhammad Sudais</h3><span class="dev-role">Full Stack Developer</span><p>Responsible for designing and developing the FYP Management System, including backend APIs, database architecture, and the complete frontend interface.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
-      <div class="dev-card"><div class="dev-avatar"><img src="./images/Devalopers/Mehboob.jpeg"></div><h3>Mahboob Ali</h3><span class="dev-role">Frontend Developer</span><p>Focused on building responsive, accessible UI components and ensuring a seamless user experience across student, supervisor, and admin interfaces.</p><div class="dev-links"><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></div><div class="dev-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div></div></div>
-    </div>
-  </div>
-</div>
-<!-- ══════════════════ FOOTER ══════════════════ -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <div class="logo-row">
-        <div class="f-logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-        <div><strong>FYP Management System</strong><small>Abdul Wali Khan University Mardan</small></div>
+        <div class="coursera-container">
+          <div class="coursera-notice">
+            <div class="cn-icon">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <div>
+              <strong>Important Notice for Students</strong>
+              <p>
+                A minimum of <b>8 Coursera certificates</b> must be submitted
+                with your FYP proposal. Select courses according to FYP
+                requirements — incomplete submissions will not be entertained.
+              </p>
+            </div>
+          </div>
+
+          <div class="coursera-grid" id="coursera-grid"></div>
+        </div>
       </div>
-      <p>A centralized academic platform for managing Final Year Projects — streamlining proposals, evaluations, and communications between students and faculty.</p>
     </div>
-    <div class="footer-col">
-      <h4>Quick Links</h4>
-      <ul>
-        <li><a onclick="navigate('home')">Home</a></li>
-        <li><a onclick="navigate('coursera')">Coursera Courses</a></li>
-        <li><a onclick="navigate('faq')">FAQs</a></li>
-        <li><a onclick="navigate('messages')">Messages</a></li>
-        <li><a onclick="navigate('developers')">Developers</a></li>
-        <li><a href="./Auth/login.html">Login Portal</a></li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h4>Contact</h4>
-      <ul>
-        <li><a>Department of CS, AWKUM</a></li>
-        <li><a>Mardan, Khyber Pakhtunkhwa</a></li>
-        <li><a>cs@awkum.edu.pk</a></li>
-        <li><a>+92-937-000000</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2026 <span>Abdul Wali Khan University Mardan</span> — Department of Computer Science. All rights reserved.</p>
-    <p style="font-size:.72rem">Developed by CS Students · FYP 2025–26</p>
-  </div>
-</footer>
-<!-- ══════════════════ PICTURE-IN-PICTURE VIDEO ══════════════════ -->
-<div id="pip-video" class="pip-video">
-  <button class="pip-close" onclick="closePip()" aria-label="Close video">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-  </button>
-  <video id="pip-video-el" autoplay muted loop playsinline>
-    <source src="./shared/Videos/Demo.mp4" type="video/mp4">
-    Your browser does not support video playback.
-  </video>
-  <div class="pip-progress" onclick="seekPip(event)">
-  <div class="pip-progress-fill" id="pip-progress-fill"></div>
-  <div class="pip-progress-thumb" id="pip-progress-thumb"></div>
-</div>
-<div class="pip-controls">
-  <button class="pip-btn" onclick="togglePipMute()" id="pip-mute-btn" aria-label="Toggle mute">
-    <svg id="pip-mute-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
-  </button>
-  <button class="pip-btn" onclick="togglePipPlay()" id="pip-play-btn" aria-label="Pause/Play">
-    <svg id="pip-play-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-  </button>
-  <button class="pip-btn" onclick="togglePipExpand()" id="pip-expand-btn" aria-label="Expand to big screen">
-    <svg id="pip-expand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-  </button>
-</div>
-</div>
 
-<script src="./shared/js/script.js"></script>
-</body>
+    <!-- ══════════════════ FAQ PAGE ══════════════════ -->
+    <div id="page-faq" class="page">
+      <div class="faq-page-wrap">
+        <div class="faq-hero">
+          <div
+            style="
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: rgba(191, 161, 74, 0.15);
+              border: 1px solid rgba(191, 161, 74, 0.3);
+              color: var(--gold-lt);
+              padding: 5px 14px;
+              border-radius: 100px;
+              font-size: 0.72rem;
+              font-weight: 600;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              margin-bottom: 16px;
+            "
+          >
+            Final Year Project
+          </div>
+          <h2 style="font-family: sans-serif">Frequently Asked Questions</h2>
+          <p style="font-family: sans-serif">
+            Find answers to common queries about FYP procedures, requirements,
+            and submission guidelines.
+          </p>
+        </div>
+        <div class="faq-container" id="faq-container"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ MESSAGES PAGE ══════════════════ -->
+    <div id="page-messages" class="page">
+      <div class="messages-page">
+        <div class="msg-hero">
+          <div
+            style="
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: rgba(191, 161, 74, 0.15);
+              border: 1px solid rgba(191, 161, 74, 0.3);
+              color: var(--gold-lt);
+              padding: 5px 14px;
+              border-radius: 100px;
+              font-size: 0.72rem;
+              font-weight: 600;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              margin-bottom: 16px;
+            "
+          >
+            Official Communications
+          </div>
+          <h2 style="font-family: sans-serif">Messages from Authorities</h2>
+          <p>Guidance and motivation from our department leadership.</p>
+        </div>
+        <div class="messages-grid">
+          <div class="msg-card">
+            <div class="msg-card-top">
+              <div class="msg-avatar">
+                <img
+                  src="https://staging.awkum.edu.pk/img/users/7.jpg"
+                  alt=""
+                />
+              </div>
+              <div class="msg-card-meta">
+                <strong>Dr. Nadeem Iqbal</strong
+                ><span>Chairman, Department of Computer Science</span>
+              </div>
+            </div>
+            <div class="msg-body">
+              <span class="quote-mark">"</span>
+              <p>Dear Students,</p>
+              <p>
+                The Final Year Project represents a defining phase of your
+                academic journey. It reflects your analytical thinking,
+                discipline, and professional readiness.
+              </p>
+              <p>
+                I encourage you to select projects that address real-world
+                challenges and demonstrate innovation and responsibility.
+              </p>
+              <p>
+                Our faculty is fully committed to supporting you throughout this
+                process. Maintain consistency, communicate effectively, and
+                adhere to academic timelines.
+              </p>
+              <div class="msg-sig">
+                <strong>Dr. Nadeem Iqbal</strong> — Chairman's Message
+              </div>
+            </div>
+          </div>
+          <div class="msg-card">
+            <div
+              class="msg-card-top"
+              style="
+                background: linear-gradient(
+                  135deg,
+                  var(--secondary),
+                  var(--primary-dark)
+                );
+              "
+            >
+              <div class="msg-avatar">
+                <img src="./shared/images/Dr.Aftab A khan.jpeg" alt="" />
+              </div>
+              <div class="msg-card-meta">
+                <strong>Dr. Aftab Khan</strong
+                ><span>FYP Coordinator, CS Department</span>
+              </div>
+            </div>
+            <div class="msg-body">
+              <span class="quote-mark">"</span>
+              <p>Dear Students,</p>
+              <p>
+                Your Final Year Project is an opportunity to apply theoretical
+                knowledge in a practical environment and demonstrate your
+                capabilities as a future professional.
+              </p>
+              <p>
+                Choose your project topic wisely, remain consistent in your
+                efforts, and seek guidance whenever necessary.
+              </p>
+              <p>
+                Discipline, proper documentation, and timely submissions are the
+                key pillars of a successful FYP journey.
+              </p>
+              <div class="msg-sig">
+                <strong>Dr. Aftab Ahmed Khan</strong> — FYP Coordinator's
+                Message
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════ DEVELOPERS PAGE ══════════════════ -->
+    <div id="page-developers" class="page">
+      <div class="devs-page">
+        <div class="dev-hero">
+          <div
+            style="
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+              background: rgba(191, 161, 74, 0.15);
+              border: 1px solid rgba(191, 161, 74, 0.3);
+              color: var(--gold-lt);
+              padding: 5px 14px;
+              border-radius: 100px;
+              font-size: 0.72rem;
+              font-weight: 600;
+              letter-spacing: 0.08em;
+              text-transform: uppercase;
+              margin-bottom: 16px;
+            "
+          >
+            The Team
+          </div>
+          <h2 style="font-family: sans-serif">Meet the Developers</h2>
+          <p>The talented individuals behind the FYP Management System.</p>
+        </div>
+        <div class="dev-grid">
+          <div class="dev-card">
+            <div class="dev-avatar">
+              <img src="./images/Devalopers/Sudias.jpg" />
+            </div>
+            <h3>Muhammad Sudais</h3>
+            <span class="dev-role">Full Stack Developer</span>
+            <p>
+              Full Stack Developer responsible for building the FYP Management System. He develops backend APIs, manages the database, and creates the frontend interface to ensure a smooth and efficient user experie
+            </p>
+            <div class="dev-links">
+              <a href="https://github.com/sudais122"><div class="dev-link">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                  />
+                </svg>
+              </div></a>
+              <div class="dev-link">
+                <a href="https://www.linkedin.com/in/muhammad-sudais-15305a317/"><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+                  />
+                  <rect x="2" y="9" width="4" height="12" />
+                  <circle cx="4" cy="4" r="2" />
+                </svg></a>
+              </div>
+              <div class="dev-link">
+                <a href="sudais023@yahoo.com"><svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                  />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg></a>
+              </div>
+            </div>
+          </div>
+          <div class="dev-card">
+            <div class="dev-avatar">
+              <img src="./images/Devalopers/Mehboob.jpeg" />
+            </div>
+            <h3>Mahboob Ali</h3>
+            <span class="dev-role">Frontend Developer</span>
+            <p>
+              Focused on building responsive, accessible UI components and
+              ensuring a seamless user experience across student, supervisor,
+              and admin interfaces.
+            </p>
+            <div class="dev-links">
+              <div class="dev-link">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                  />
+                </svg>
+              </div>
+              <div class="dev-link">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"
+                  />
+                  <rect x="2" y="9" width="4" height="12" />
+                  <circle cx="4" cy="4" r="2" />
+                </svg>
+              </div>
+              <div class="dev-link">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                  />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ══════════════════ FOOTER ══════════════════ -->
+    <footer>
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="logo-row">
+            <div class="f-logo-mark">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                width="18"
+                height="18"
+              >
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
+                <path d="M6 12v5c3 3 9 3 12 0v-5" />
+              </svg>
+            </div>
+            <div>
+              <strong>FYP Management System</strong
+              ><small>Abdul Wali Khan University Mardan</small>
+            </div>
+          </div>
+          <p>
+            A centralized academic platform for managing Final Year Projects —
+            streamlining proposals, evaluations, and communications between
+            students and faculty.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a onclick="navigate('home')">Home</a></li>
+            <li><a onclick="navigate('coursera')">Coursera Courses</a></li>
+            <li><a onclick="navigate('faq')">FAQs</a></li>
+            <li><a onclick="navigate('messages')">Messages</a></li>
+            <li><a onclick="navigate('developers')">Developers</a></li>
+            <li><a href="./Auth/login.html">Login Portal</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a>Department of CS, AWKUM</a></li>
+            <li><a>Mardan, Khyber Pakhtunkhwa</a></li>
+            <li><a>cs@awkum.edu.pk</a></li>
+            <li><a>+92-937-000000</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>
+          © 2026 <span>Abdul Wali Khan University Mardan</span> — Department of
+          Computer Science. All rights reserved.
+        </p>
+        <p style="font-size: 0.72rem">Developed by CS Students · FYP 2025–26</p>
+      </div>
+    </footer>
+    <!-- ══════════════════ PICTURE-IN-PICTURE VIDEO ══════════════════ -->
+    <div id="pip-video" class="pip-video">
+      <button class="pip-close" onclick="closePip()" aria-label="Close video">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+      <video id="pip-video-el" autoplay muted loop playsinline>
+        <source src="./shared/Videos/Demo.mp4" type="video/mp4" />
+        Your browser does not support video playback.
+      </video>
+      <div class="pip-progress" onclick="seekPip(event)">
+        <div class="pip-progress-fill" id="pip-progress-fill"></div>
+        <div class="pip-progress-thumb" id="pip-progress-thumb"></div>
+      </div>
+      <div class="pip-controls">
+        <button
+          class="pip-btn"
+          onclick="togglePipMute()"
+          id="pip-mute-btn"
+          aria-label="Toggle mute"
+        >
+          <svg
+            id="pip-mute-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+        </button>
+        <button
+          class="pip-btn"
+          onclick="togglePipPlay()"
+          id="pip-play-btn"
+          aria-label="Pause/Play"
+        >
+          <svg
+            id="pip-play-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="6" y="4" width="4" height="16" />
+            <rect x="14" y="4" width="4" height="16" />
+          </svg>
+        </button>
+        <button
+          class="pip-btn"
+          onclick="togglePipExpand()"
+          id="pip-expand-btn"
+          aria-label="Expand to big screen"
+        >
+          <svg
+            id="pip-expand-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="15 3 21 3 21 9" />
+            <polyline points="9 21 3 21 3 15" />
+            <line x1="21" y1="3" x2="14" y2="10" />
+            <line x1="3" y1="21" x2="10" y2="14" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script src="./shared/js/script.js"></script>
+  </body>
 </html>
