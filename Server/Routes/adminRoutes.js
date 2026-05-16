@@ -13,6 +13,7 @@ import {
   getMarkToggles,
   saveMarkToggles,
   updateSupervisor,
+  saveMarks
 } from "../controllers/adminController.js";
 import {
    getSupervisorDetail
@@ -43,6 +44,8 @@ router.get("/groups", protect, adminOnly, getAllGroups);
 
 // Marks
 router.put("/marks", protect, adminOnly, adminSaveMarks);
+router.post("/marks", protect, adminOnly, saveMarks);
+router.put("/marks",  protect, adminOnly, saveMarks); 
 
 // Mark toggles
 router.get("/mark-toggles", protect, adminOnly, getMarkToggles);

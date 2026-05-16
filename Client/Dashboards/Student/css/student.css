@@ -5281,3 +5281,28 @@ textarea {
   line-height: 1.2;
   margin-bottom: 2px;
 }
+/* Pulse-highlight the member search box in Step 2 */
+#member-search-wrap-highlight {
+  position: relative;
+  animation: search-pulse 2.5s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+@keyframes search-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(191, 161, 74, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(191, 161, 74, 0);
+  }
+}
+
+#member-search-wrap-highlight:focus-within {
+  animation: none;
+  box-shadow: 0 0 0 3px rgba(0, 75, 45, 0.15);
+}
+
+/* Stop the pulse once user starts typing */
+#member-search-wrap-highlight:has(input:not(:placeholder-shown)) {
+  animation: none;
+}

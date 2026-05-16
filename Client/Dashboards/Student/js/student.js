@@ -214,7 +214,8 @@ async function loadDashboard() {
       updateBannerForTeam();
       renderSupervisorTab();
     } else {
-      setTimeout(() => openSetup(), 500);
+      hideDashboardForSetup();
+        openSetup();
     }
   } catch (error) {
     console.error(error);
@@ -328,20 +329,29 @@ function convertBackendMarks(markRecord) {
 
   const valueFor = (component) => {
     switch (component) {
-      case "October":                  return monthly.oct                ?? null;
-      case "November":                 return monthly.nov                ?? null;
-      case "December":                 return monthly.dec                ?? null;
-      case "February":                 return monthly.feb                ?? null;
-      case "March":                    return monthly.mar                ?? null;
-      case "Proposal Submission":      return submissions.proposal       ?? null;
-      case "Progress Report":          return submissions.progress       ?? null;
-      case "Progress Similarity Check":return submissions.similarity     ?? null;
-      case "Thesis / Final Report":    return documentation.thesis       ?? null;
-      case "Thesis Similarity Check":  return documentation.similarity   ?? null;
-      case "Code / Practical Work":    return practical.code             ?? null;
-      case "Internal Viva 1":          return viva.internal1             ?? null;
-      case "Internal Viva 2":          return viva.internal2             ?? null;
-      case "External Viva":            return viva.external              ?? null;
+      case "October":                  return monthly.oct          ?? null;
+      case "November":                 return monthly.nov          ?? null;
+      case "December":                 return monthly.dec          ?? null;
+      case "February":                 return monthly.feb          ?? null;
+      case "March":                    return monthly.mar          ?? null;
+
+      case "Proposal Submission":      return submissions.proposal ?? null;
+      case "Progress Report":          return submissions.progress ?? null;
+
+      // ── Similarity fields — match admin's save keys ──
+      case "Progress Similarity Check": return submissions.prog_sim   ?? null;   // ← FIX
+      case "Thesis Similarity Check":   return submissions.thesis_sim ?? null;   // ← FIX
+
+      // ── Code goes into submissions in admin save, not practical ──
+      case "Code / Practical Work":     return submissions.code       ?? practical.code ?? null;   // ← FIX
+
+      // ── Thesis goes into documentation.final ──
+      case "Thesis / Final Report":     return documentation.final    ?? documentation.thesis ?? null;   // ← FIX
+
+      case "Internal Viva 1":          return viva.internal1         ?? null;
+      case "Internal Viva 2":          return viva.internal2         ?? null;
+      case "External Viva":            return viva.external          ?? null;
+
       default:                         return null;
     }
   };

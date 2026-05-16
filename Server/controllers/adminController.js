@@ -459,3 +459,57 @@ export const deleteSupervisor = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// ── SAVE MARKS (Admin) ─────────────────────────────────────────
+export const saveMarks = async (req, res) => {
+  try {
+    const { student_id, monthly, submissions, viva, documentation } = req.body;
+
+    if (!student_id) {
+      return res.status(400).json({ message: "student_id is required" });
+    }
+
+    const student = await Student.findById(student_id);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+    if (!student.group) {
+      return res.status(404).json({ message: "Student is not in a group" });
+    }
+
+    // Build $set object — only include fields that were sent
+    const setObj = {};
+    if (monthly)       setObj.monthly       = monthly;
+    if (submissions)   setObj.submissions   = submissions;
+    if (viva)          setObj.viva          = viva;
+    if (documentation) setObj.documentation = documentation;
+
+    // Calculate total from all sections
+    const sumObj = (obj) => Object.values(obj || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+    const total  = sumObj(monthly) + sumObj(submissions) + sumObj(viva) + sumObj(documentation);
+
+    setObj.total = total;
+
+    const marks = await Marks.findOneAndUpdate(
+      { student: student_id, group: student.group },
+      {
+        $set:      setObj,
+        $setOnInsert: {
+          student:  student_id,
+          group:    student.group,
+        }
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({
+      message: "Marks saved successfully",
+      total:   marks.total,
+      marks,
+    });
+
+  } catch (err) {
+    console.error("saveMarks error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
