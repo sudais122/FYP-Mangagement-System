@@ -148,7 +148,6 @@ async function loadMarkToggles() {
     if (!res.ok) return;
     const data = await res.json();
 
-    console.log("TOGGLES FROM SERVER:", data.toggles); // ← check this
 
     MARK_TOGGLES = data.toggles || {};
   } catch (err) {
@@ -689,14 +688,10 @@ async function uploadAvatar() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Upload failed");
 
-    // S3 returns full public URL
     const avatarUrl = data.avatar_url;
-    console.log("Avatar URL from server:", avatarUrl);
 
-    // Update navbar avatar
     setNavAvatar(avatarUrl);
 
-    // Update modal preview
     const modalImg = document.getElementById("modal-avatar-img");
     const modalInit = document.getElementById("modal-avatar-initials");
 
@@ -709,7 +704,6 @@ async function uploadAvatar() {
       modalInit.style.display = "none";
     }
 
-    // Update localStorage safely
     try {
       const stored = JSON.parse(localStorage.getItem("supervisor"));
 
@@ -721,7 +715,6 @@ async function uploadAvatar() {
       console.warn("localStorage error:", e);
     }
 
-    // Update global state safely
     if (typeof sup !== "undefined" && sup) {
       sup.avatar_url = avatarUrl;
     }
@@ -753,7 +746,6 @@ function setNavAvatar(url) {
     return;
   }
 
-  // Test if image loads
   const testImg = new Image();
   testImg.onload = () => {
     img.src            = url;
@@ -761,7 +753,6 @@ function setNavAvatar(url) {
     if (init) init.style.display = "none";
   };
   testImg.onerror = () => {
-    // URL broken — show initials instead
     img.style.display = "none";
     if (init) init.style.display = "";
     console.warn("Avatar failed to load:", url);

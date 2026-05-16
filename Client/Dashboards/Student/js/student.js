@@ -1,26 +1,21 @@
 let memberCountBeforeModal = 0; 
 const user = JSON.parse(localStorage.getItem("user"));
-console.log("user from localStorage:", user); // ← add this
 
 if (!user) {
   window.location.href = "../login.html";
 }
 function logout() {
   localStorage.removeItem("user");
-  window.location.href = "../index.html"; // adjust path to your login page
+  window.location.href = "../index.html"; 
 }
-// ══════════════════════════════════
 // API Configuration
-// ══════════════════════════════════
-const API_BASE = "http://localhost:5001/api"; // Update with your backend URL
+const API_BASE = "http://localhost:5001/api"; 
 const API_HEADERS = {
   "Content-Type": "application/json",
-  Authorization: `Bearer ${user.token}`, // Assuming token is stored in user object
+  Authorization: `Bearer ${user.token}`, 
 };
 
-// ══════════════════════════════════
 // STATE MANAGEMENT
-// ══════════════════════════════════
 const STATE = {
   studentId: user.student_code,
   studentName: user.name,
@@ -42,9 +37,7 @@ const STATE = {
   deadlines: [], 
 };
 
-/* ══════════════════════════════════
-   MARKS DATA TEMPLATE
-══════════════════════════════════ */
+  //  MARKS DATA TEMPLATE
 const MARKS_TEMPLATE = [
   { section: "Monthly Meetings", component: "October",  max: 10 },
   { section: "Monthly Meetings", component: "November", max: 10 },
@@ -87,10 +80,8 @@ function ensureMarksExist() {
     }
   });
 }
-/* ══════════════════════════════════
-   API CALLS
-══════════════════════════════════ */
-let SUPERVISORS = []; // Initialize as empty array
+/*API CALLS*/
+let SUPERVISORS = []; 
 
 async function loadSupervisors() {
   try {
@@ -114,7 +105,6 @@ async function loadSupervisors() {
     return [];
   }
 }
-// Load dashboard data on page load
 async function loadDashboard() {
   try {
     const response = await fetch(`${API_BASE}/students/dashboard`, {
@@ -129,12 +119,10 @@ async function loadDashboard() {
     }
 
     if (!data.hasGroup) {
-      // Student has no team — open setup
       setTimeout(() => openSetup(), 400);
       return;
     }
 
-    // ── Student HAS a group ──
     STATE.teamCreated  = true;
     STATE.teamId       = data.group.team_code || data.group.group_code || data.group._id;
     STATE.projectTitle = data.group.project_title;
@@ -142,7 +130,6 @@ async function loadDashboard() {
     STATE.teamRole     = data.student.team_role;
     STATE.groupData    = data.group;
 
-    // Proposal state
     const proposalUrl    = data.group.proposal_url;
     const proposalStatus = data.group.proposal_status;
     if (proposalUrl) {
@@ -152,7 +139,6 @@ async function loadDashboard() {
       STATE.proposalState = "idle";
     }
 
-    // Members (exclude self)
     STATE.members = [];
     if (data.group.leader && data.group.leader.student_code !== STATE.studentId) {
       STATE.members.push({
@@ -181,7 +167,6 @@ async function loadDashboard() {
       });
     }
 
-    // Supervisor
     if (data.group.supervisor) {
       const sup = data.group.supervisor;
       STATE.selectedSupervisor = sup._id;
@@ -562,8 +547,6 @@ let marksChart = null;
 
 function renderEvaluation() {
   ensureMarksExist();
-  console.log("renderEvaluation called, students:", getAllStudents());
-  console.log("STUDENT_MARKS:", STUDENT_MARKS);
   
   const students = getAllStudents();
   
@@ -592,13 +575,10 @@ function renderMarksForStudent(idx) {
     return;
   }
   
-  console.log("Rendering marks for student:", student.id, student.name);
-  
   const marks = STUDENT_MARKS[student.id];
   
   if (!marks) {
     console.error("No marks found for student:", student.id);
-    console.log("Available keys in STUDENT_MARKS:", Object.keys(STUDENT_MARKS));
     
     // Show empty state
     const tbody = document.getElementById("marks-comp-tbody");
@@ -637,7 +617,6 @@ function renderMarksForStudent(idx) {
   renderPieChart(marks);
   renderBreakdown(marks, totalObtained, totalMax);
   
-  console.log("Finished rendering marks for:", student.name, "Total:", totalObtained, "/", totalMax);
 }
 
 function renderStudentTabs() {
@@ -677,7 +656,6 @@ function renderMarksTable(marks, totalObtained, totalMax) {
     console.error("marks-comp-tbody not found in DOM");
     return;
   }
-  console.log("Rendering marks table with", marks.length, "items");
   let html = "";
   let currentSection = "";
 
@@ -1739,8 +1717,6 @@ async function addMember(studentCode, name, ini) {
     });
 
     const data = await response.json();
-    console.log("Add member response:", response.status, data);
-
     if (!response.ok) {
       toast(data.message || "Failed to add member", "red");
       return;
@@ -1787,8 +1763,7 @@ async function uploadCV(file) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Upload failed");
 
-    toast("CV uploaded ✓", "gold");
-    console.log("CV URL:", data.cv_url);
+    toast("CV uploaded", "gold");
     return data.cv_url;
 
   } catch (err) {
