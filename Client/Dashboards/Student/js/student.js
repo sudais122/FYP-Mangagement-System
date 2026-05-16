@@ -24,7 +24,7 @@ const API_HEADERS = {
 const STATE = {
   studentId: user.student_code,
   studentName: user.name,
-  userId: user._id, // Backend user ID
+  userId: user._id, 
   teamId: null,
   projectTitle: null,
   category: null,
@@ -32,13 +32,13 @@ const STATE = {
   selectedSupervisor: null,
   supervisorData: null,
   teamCreated: false,
-  teamRole: null, // "Leader" or "Member"
+  teamRole: null, 
   uploadedFiles: [],
   unreadNotifs: 2,
   proposalState: "idle",
   proposalFile: null,
   selectedEvalStudent: 0,
-  groupData: null, // Full group data from backend
+  groupData: null, 
 };
 
 /* ══════════════════════════════════
@@ -179,17 +179,18 @@ async function loadDashboard() {
 if (data.group.supervisor) {
   STATE.selectedSupervisor = data.group.supervisor._id;
   STATE.supervisorData = {
-    _id:            data.group.supervisor._id,
-    prefix:         data.group.supervisor.prefix || "",
-    name:           data.group.supervisor.name,
-    email:          data.group.supervisor.email,
-    designation:    data.group.supervisor.designation || "Faculty Member",
-    research_areas: data.group.supervisor.research_areas || [],
-    office:         data.group.supervisor.office || "CS Department",
-    office_hours:   data.group.supervisor.office_hours || "Contact supervisor",
-    sup_code:       data.group.supervisor.sup_code,
-    whatsapp:       data.group.supervisor.whatsapp || "",
-  };
+  _id:            data.group.supervisor._id,
+  prefix:         data.group.supervisor.prefix || "",
+  name:           data.group.supervisor.name,
+  email:          data.group.supervisor.email,
+  designation:    data.group.supervisor.designation || "Faculty Member",
+  research_areas: data.group.supervisor.research_areas || [],
+  office:         data.group.supervisor.office || "CS Department",
+  office_hours:   data.group.supervisor.office_hours || "Contact supervisor",
+  sup_code:       data.group.supervisor.sup_code,
+  whatsapp:       data.group.supervisor.whatsapp || "",
+  avatar_url:     data.group.supervisor.avatar_url || "",   
+};
 }
       // Update UI
       updateDashboardUI();
@@ -1102,7 +1103,7 @@ async function finishSetup() {
 STATE.teamCreated = true;
 STATE.teamId = result.group.group_code || result.group.team_code;
 
-// Reset marks for new team
+// Reset marks for new teamx
 STUDENT_MARKS = {};
 
 updateDashboardUI();
@@ -1123,6 +1124,7 @@ if (result.group?.supervisor) {
     office_hours:   sup.office_hours || "Contact supervisor",
     sup_code:       sup.sup_code,
     whatsapp:       sup.whatsapp || "",
+    avatar_url: sup.avatar_url || "",
   };
 }
   const chips = [
@@ -1397,11 +1399,78 @@ display.innerHTML += `
 }
 
 function openAddMemberModal() {
-  memberCountBeforeModal = STATE.members.length; 
-    const setupOverlay = document.getElementById("setup-overlay");
-  if (setupOverlay) setupOverlay.style.display = "flex";
-    document.getElementById("step-1").style.display = "none";
-  document.getElementById("step-2").style.display = "block";
+  memberCountBeforeModal = STATE.members.length;
+
+  const setupOverlay = document.getElementById("setup-overlay");
+  if (!setupOverlay) return;
+
+  // Hide all steps, show only step 2
+  [1, 2, 3, "done"].forEach(s => {
+    const el = document.getElementById("setup-step-" + s);
+    if (el) el.style.display = "none";
+  });
+
+  const step2 = document.getElementById("setup-step-2");
+  if (step2) step2.style.display = "block";
+
+  // Swap the footer to Add Member mode
+  const footer = step2.querySelector(".setup-footer");
+  if (footer) {
+    footer.innerHTML = `
+      <button class="btn btn-ghost" onclick="closeAddMemberModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Close
+      </button>
+      <button class="btn btn-primary" onclick="saveNewMember()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Save Member
+      </button>`;
+  }
+
+  // Reset search box
+  clearSearch();
+  renderMemberSlots();
+
+  setupOverlay.style.display = "flex";
+}
+
+function saveNewMember() {
+  if (STATE.members.length <= memberCountBeforeModal) {
+    toast("Please search and add a member before saving", "red");
+    return;
+  }
+  closeAddMemberModal();
+  toast("Member added successfully ✓");
+}
+
+function closeAddMemberModal() {
+  const setupOverlay = document.getElementById("setup-overlay");
+  if (setupOverlay) setupOverlay.style.display = "none";
+
+  // Restore step 2 footer back to normal setup flow for next time
+  const step2 = document.getElementById("setup-step-2");
+  const footer = step2?.querySelector(".setup-footer");
+  if (footer) {
+    footer.innerHTML = `
+      <button class="btn btn-ghost" onclick="backStep1()">← Back</button>
+      <button class="btn btn-primary" onclick="goStep3()">
+        Next: Choose Supervisor
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>`;
+  }
+
+  clearSearch();
+  renderTeamTab();
 }
 function saveNewMember() {
   if (STATE.members.length <= memberCountBeforeModal) {
@@ -1435,8 +1504,6 @@ function renderSupervisorTab() {
   const card = document.getElementById("supervisor-card-body");
   if (!card) return;
 
-    console.log("supervisorData:", STATE.supervisorData); // ← add this
-
   if (!STATE.supervisorData) {
     card.innerHTML = `
       <div style="text-align:center;padding:36px 20px;color:var(--text-mute)">
@@ -1453,14 +1520,43 @@ function renderSupervisorTab() {
 
   const sup = STATE.supervisorData;
 
+  // ── Build avatar (real photo OR fallback to initials) ──
+  const avatarHtml = sup.avatar_url
+    ? `<div class="sup-avatar" style="padding:0;overflow:hidden;background:none">
+         <img src="${sup.avatar_url}" alt="${sup.name}"
+              style="width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='grid'">
+         <span style="display:none;width:100%;height:100%;border-radius:inherit;
+                      background:linear-gradient(135deg,var(--primary),var(--secondary));
+                      color:#fff;font-weight:700;font-size:1.1rem;
+                      place-items:center">
+           ${initials(sup.name)}
+         </span>
+       </div>`
+    : `<div class="sup-avatar">${initials(sup.name)}</div>`;
+
+  // ── WhatsApp link or "Not provided" ──
+  const whatsappHtml = sup.whatsapp
+    ? `<a href="https://wa.me/${sup.whatsapp.replace(/^0/, "92").replace(/[^0-9]/g, "")}"
+          target="_blank"
+          style="display:inline-flex;align-items:center;gap:7px;color:#15803d;
+                 font-weight:700;text-decoration:none;font-size:.86rem">
+         <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15">
+           <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+         </svg>
+         ${sup.whatsapp}
+       </a>`
+    : `<span style="color:var(--text-mute)">Not provided</span>`;
+
   card.innerHTML = `
     <div class="sup-card">
-      <div class="sup-avatar">${initials(sup.name || "")}</div>
+      ${avatarHtml}
       <div class="sup-info">
         <strong>${formatName(sup.prefix, sup.name) || "—"}</strong>
         <span>${sup.designation || "Faculty Member"} · Dept. of Computer Science</span>
       </div>
     </div>
+
     <div class="proj-row">
       <span class="proj-key">Email</span>
       <span class="proj-val">
@@ -1470,57 +1566,23 @@ function renderSupervisorTab() {
         </a>
       </span>
     </div>
+
     <div class="proj-row">
       <span class="proj-key">Office</span>
       <span class="proj-val">${sup.office || "CS Department"}</span>
     </div>
-    <div class="proj-row">
-  <span class="proj-key">Contact Hours</span>
-  <span class="proj-val">${sup.office_hours || "Contact supervisor directly"}</span>
-</div>
-<div class="proj-row">
-  <span class="proj-key">Phone / WhatsApp</span>
-  <span class="proj-val">
-    ${sup.whatsapp
-      ? `<a href="https://wa.me/${sup.whatsapp.replace(/^0/, "92").replace(/[^0-9]/g, "")}"
-            target="_blank"
-            style="display:inline-flex;align-items:center;gap:7px;color:#15803d;
-                   font-weight:700;text-decoration:none;font-size:.86rem">
-           <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17">
-             <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
-           </svg>
-           ${sup.whatsapp}
-         </a>`
-      : "<span style='color:var(--text-mute)'>Not provided</span>"}
-  </span>
-</div>
-    ${sup.whatsapp ? `
+
     <div class="proj-row">
       <span class="proj-key">WhatsApp</span>
-      <span class="proj-val">
-        <a href="https://wa.me/${sup.whatsapp.replace(/^0/, "92").replace(/[^0-9]/g, "")}"
-           target="_blank"
-           style="display:inline-flex;align-items:center;gap:7px;color:#15803d;
-                  font-weight:700;text-decoration:none;font-size:.86rem">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17">
-            <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
-          </svg>
-          ${sup.whatsapp}
-        </a>
-      </span>
-    </div>` : ""}
-    ${sup.research_areas && sup.research_areas.length ? `
-    <div class="proj-row">
-      <span class="proj-key">Research Areas</span>
-      <span class="proj-val">${sup.research_areas.join(", ")}</span>
-    </div>` : ""}
-    ${sup.sup_code ? `
+      <span class="proj-val">${whatsappHtml}</span>
+    </div>
+
     <div class="proj-row">
       <span class="proj-key">Supervisor ID</span>
       <span class="proj-val">
-        <span class="id-highlight id-highlight-team">${sup.sup_code}</span>
+        <span class="id-highlight id-highlight-team">${sup.sup_code || "—"}</span>
       </span>
-    </div>` : ""}
+    </div>
   `;
 }
 

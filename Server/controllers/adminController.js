@@ -153,10 +153,13 @@ export const getDashboardStats = async (req, res) => {
 // In adminController.js
 export const updateSupervisor = async (req, res) => {
   try {
-    const { name, email, whatsapp, is_chairman } = req.body;
+    const { name, email, whatsapp, is_chairman, prefix } = req.body;
+    const updateData = { name, email, whatsapp, is_chairman };
+    if (prefix) updateData.prefix = prefix;
+
     const supervisor = await Supervisor.findByIdAndUpdate(
       req.params.id,
-      { name, email, whatsapp, is_chairman },
+      updateData,
       { new: true }
     );
     if (!supervisor) return res.status(404).json({ message: "Supervisor not found" });
@@ -170,10 +173,10 @@ export const updateSupervisor = async (req, res) => {
 export const getGroupMarks = async (req, res) => {
   try {
     const { groupId } = req.params;
-    const group = await Group.findById(groupId)
-      .populate("leader")
-      .populate("members")
-      .populate("supervisor");
+const group = await Group.findById(groupId)
+  .populate("leader")
+  .populate("members")
+  .populate("supervisor", "name prefix sup_code email designation whatsapp is_chairman avatar_url");
 
     if (!group) {
       return res.status(404).json({ message: "Group not found" });
@@ -201,7 +204,7 @@ export const getAllStudents = async (req, res) => {
       .populate({
         path: "group",
         select: "group_code project_title supervisor",
-        populate: { path: "supervisor", select: "name sup_code" },
+        populate: { path: "supervisor", select: "name prefix sup_code is_chairman designation whatsapp avatar_url" },
       });
 
     const Marks = (await import("../Models/marks.js")).default;
@@ -222,7 +225,7 @@ export const getAllStudents = async (req, res) => {
 export const getAllSupervisors = async (req, res) => {
   try {
     const supervisors = await Supervisor.find()
-    .select("name email prefix sup_code designation whatsapp office is_chairman role")
+      .select("name email prefix sup_code designation whatsapp office is_chairman role avatar_url")
       .lean();
 
     const result = await Promise.all(
@@ -243,9 +246,7 @@ export const getAllSupervisors = async (req, res) => {
 export const getAllGroups = async (req, res) => {
   try {
     const groups = await Group.find()
-      .populate("leader",     "name student_code")
-      .populate("members",    "name student_code email")
-      .populate("supervisor", "name sup_code email");
+    .populate("supervisor", "name prefix sup_code email is_chairman designation whatsapp avatar_url");
 
     res.json(groups); // plain array
   } catch (error) {
@@ -302,7 +303,7 @@ export const getAllStudentsForAdmin = async (req, res) => {
       .populate({
         path: "group",
         select: "group_code project_title proposal_url proposal_status supervisor",
-        populate: { path: "supervisor", select: "name sup_code" }
+        populate: { path: "supervisor", select: "name prefix sup_code is_chairman designation whatsapp avatar_url" }
       })
       .sort({ createdAt: -1 })
       .lean();

@@ -100,7 +100,11 @@ const supervisorSchema = new mongoose.Schema({
   enum: ["Mr", "Ms", "Mrs", "Dr", "Prof", "Lect", "Engr"],
   default: "Mr",
   required: true
-}
+  },
+  avatar_url: {
+  type: String,
+  default: null,
+  },
 });
 
 supervisorSchema.pre("save", async function (next) {
