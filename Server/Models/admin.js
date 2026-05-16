@@ -37,7 +37,7 @@ const adminSchema = new mongoose.Schema(
     },
     avatar_url: {
       type: String,
-      default: null
+      default: ""
     },
   },
   {

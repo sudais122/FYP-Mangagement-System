@@ -123,102 +123,93 @@ async function loadDashboard() {
     });
 
     const data = await response.json();
-    console.log(data);
-    console.log("group fields:", Object.keys(data.group));
-    console.log("team_code value:", data.group.team_code);
 
     if (!response.ok) {
       throw new Error(data.message || "Failed to load dashboard");
     }
 
-    if (data.hasGroup) {
-      STATE.teamCreated = true;
-      STATE.teamId =
-        data.group.team_code || data.group.group_code || data.group._id;
-
-      STATE.projectTitle = data.group.project_title;
-      STATE.category = data.group.category;
-      STATE.teamRole = data.student.team_role;
-      STATE.groupData = data.group;
-
-      // Proposal state
-      const proposalStatus = data.group.proposal_status;
-      const proposalUrl = data.group.proposal_url;
-
-      if (proposalUrl) {
-        STATE.proposalState = proposalStatus || "pending";
-        STATE.proposalFile =
-          data.group.proposal_filename || data.group.proposal_url;
-      } else {
-        STATE.proposalState = "idle";
-      }
-
-      STATE.members = [];
-
-      if (
-        data.group.leader &&
-        data.group.leader.student_code !== STATE.studentId
-      ) {
-        STATE.members.push({
-          id: data.group.leader._id,
-          student_code: data.group.leader.student_code,
-          name: data.group.leader.name,
-          initials: initials(data.group.leader.name),
-          avatar_url: data.group.leader.avatar_url || "",
-          gender: data.group.leader.gender || "male",
-          role: "Leader",
-        });
-      }
-
-      if (data.group.members) {
-        data.group.members.forEach((m) => {
-          if (m.student_code !== STATE.studentId) {
-            STATE.members.push({
-              id: m._id,
-              student_code: m.student_code,
-              name: m.name,
-              initials: initials(m.name),
-              avatar_url: m.avatar_url || "",
-              gender: m.gender || "male",
-              role: "Member",
-            });
-          }
-        });
-      }
-
-      // Populate supervisor
-      if (data.group.supervisor) {
-        STATE.selectedSupervisor = data.group.supervisor._id;
-        STATE.supervisorData = {
-          _id: data.group.supervisor._id,
-          prefix: data.group.supervisor.prefix || "",
-          name: data.group.supervisor.name,
-          email: data.group.supervisor.email,
-          designation:
-            data.group.supervisor.designation || "Faculty Member",
-          research_areas:
-            data.group.supervisor.research_areas || [],
-          office:
-            data.group.supervisor.office || "CS Department",
-          office_hours:
-            data.group.supervisor.office_hours ||
-            "Contact supervisor",
-          sup_code: data.group.supervisor.sup_code,
-          whatsapp: data.group.supervisor.whatsapp || "",
-          avatar_url: data.group.supervisor.avatar_url || "",
-        };
-      }
-
-      updateDashboardUI();
-      renderTeamTab();
-      updateBannerForTeam();
-      renderSupervisorTab();
-    } else {
-      hideDashboardForSetup();
-        openSetup();
+    if (!data.hasGroup) {
+      // Student has no team — open setup
+      setTimeout(() => openSetup(), 400);
+      return;
     }
+
+    // ── Student HAS a group ──
+    STATE.teamCreated  = true;
+    STATE.teamId       = data.group.team_code || data.group.group_code || data.group._id;
+    STATE.projectTitle = data.group.project_title;
+    STATE.category     = data.group.category;
+    STATE.teamRole     = data.student.team_role;
+    STATE.groupData    = data.group;
+
+    // Proposal state
+    const proposalUrl    = data.group.proposal_url;
+    const proposalStatus = data.group.proposal_status;
+    if (proposalUrl) {
+      STATE.proposalState = proposalStatus || "pending";
+      STATE.proposalFile  = data.group.proposal_filename || proposalUrl;
+    } else {
+      STATE.proposalState = "idle";
+    }
+
+    // Members (exclude self)
+    STATE.members = [];
+    if (data.group.leader && data.group.leader.student_code !== STATE.studentId) {
+      STATE.members.push({
+        id:           data.group.leader._id,
+        student_code: data.group.leader.student_code,
+        name:         data.group.leader.name,
+        initials:     initials(data.group.leader.name),
+        avatar_url:   data.group.leader.avatar_url || "",
+        gender:       data.group.leader.gender     || "male",
+        role:         "Leader",
+      });
+    }
+    if (data.group.members) {
+      data.group.members.forEach(m => {
+        if (m.student_code !== STATE.studentId) {
+          STATE.members.push({
+            id:           m._id,
+            student_code: m.student_code,
+            name:         m.name,
+            initials:     initials(m.name),
+            avatar_url:   m.avatar_url || "",
+            gender:       m.gender     || "male",
+            role:         "Member",
+          });
+        }
+      });
+    }
+
+    // Supervisor
+    if (data.group.supervisor) {
+      const sup = data.group.supervisor;
+      STATE.selectedSupervisor = sup._id;
+      STATE.supervisorData = {
+        _id:            sup._id,
+        prefix:         sup.prefix         || "",
+        name:           sup.name,
+        email:          sup.email,
+        designation:    sup.designation    || "Faculty Member",
+        research_areas: sup.research_areas || [],
+        office:         sup.office         || "CS Department",
+        office_hours:   sup.office_hours   || "Contact supervisor",
+        sup_code:       sup.sup_code,
+        whatsapp:       sup.whatsapp       || "",
+        avatar_url:     sup.avatar_url     || "",
+      };
+    }
+
+    // Update UI
+    updateDashboardUI();
+    renderTeamTab();
+    updateBannerForTeam();
+    renderSupervisorTab();
+    renderProjectDetails();
+
   } catch (error) {
-    console.error(error);
+    console.error("Dashboard load error:", error);
+    toast("Failed to load dashboard: " + error.message, "red");
   }
 }
 // Search for student by code
@@ -975,25 +966,25 @@ function removeFile(id) {
 async function openSetup() {
   const setupOverlay = document.getElementById("setup-overlay");
   if (!setupOverlay) return;
-
   setupOverlay.style.display = "flex";
 
-  // Load supervisors first
   await loadSupervisors();
 
-  // Get next team ID from backend
   const nextTeamId = await getNextTeamId();
   STATE.teamId = nextTeamId;
 
-  const displayTeamId = document.getElementById("display-team-id");
+  // ── update all ID display elements ──
+  const step1Id    = document.getElementById("display-team-id");
+  const step2Id    = document.getElementById("step2-team-id");   
   const leaderStdId = document.getElementById("leader-std-id");
-  const leaderName = document.getElementById("leader-name");
-  const leaderAv = document.getElementById("leader-av");
+  const leaderName  = document.getElementById("leader-name");
+  const leaderAv    = document.getElementById("leader-av");
 
-  if (displayTeamId) displayTeamId.textContent = nextTeamId;
+  if (step1Id)    step1Id.textContent    = nextTeamId;
+  if (step2Id)    step2Id.textContent    = nextTeamId;            
   if (leaderStdId) leaderStdId.textContent = STATE.studentId;
-  if (leaderName) leaderName.textContent = STATE.studentName;
-  if (leaderAv) leaderAv.textContent = initials(STATE.studentName);
+  if (leaderName)  leaderName.textContent  = STATE.studentName;
+  if (leaderAv)    leaderAv.textContent    = initials(STATE.studentName);
 
   showStep(1);
 }
@@ -1016,40 +1007,24 @@ function showStep(n) {
 }
 
 function goStep2() {
-  const projInput = document.getElementById("s1-proj");
+  const projInput     = document.getElementById("s1-proj");
   const categoryInput = document.getElementById("s1-cat");
 
-  if (!projInput || !categoryInput) {
-    toast("Form fields missing", "red");
-    return;
-  }
+  if (!projInput) { toast("Project title field not found", "red"); return; }
 
-  const proj = projInput.value.trim();
-  const category = categoryInput.value.trim();
+  const proj     = projInput.value.trim();
+  const category = categoryInput ? categoryInput.value.trim() : "";
 
-  if (!proj) {
-    toast("Please enter the project title", "red");
-    projInput.focus();
-    return;
-  }
-
-  if (!category) {
-    toast("Please select a project category (Web/AI/App/etc.)", "red");
-    categoryInput.focus();
-    return;
-  }
-
-  if (proj.length < 5) {
-    toast("Project title must be at least 5 characters", "red");
-    projInput.focus();
-    return;
-  }
+  if (!proj) { toast("Please fill in Project Title", "red"); return; }
 
   STATE.projectTitle = proj;
-  STATE.category = category;
+  STATE.category     = category;
 
-  const displayTeamId = document.getElementById("display-team-id");
-  if (displayTeamId) displayTeamId.textContent = "Creating...";
+  const step1Id = document.getElementById("display-team-id");
+  const step2Id = document.getElementById("step2-team-id");
+
+  if (step1Id) step1Id.textContent = STATE.teamId || "Generating...";
+  if (step2Id) step2Id.textContent = STATE.teamId || "Generating..."; 
 
   renderMemberSlots();
   clearSearch();
@@ -1468,58 +1443,33 @@ display.innerHTML += `
 
 function openAddMemberModal() {
   memberCountBeforeModal = STATE.members.length;
-
   const setupOverlay = document.getElementById("setup-overlay");
-  if (!setupOverlay) return;
+  if (setupOverlay) setupOverlay.style.display = "flex";
 
-  // Hide all steps, show only step 2
-  [1, 2, 3, "done"].forEach(s => {
-    const el = document.getElementById("setup-step-" + s);
-    if (el) el.style.display = "none";
-  });
-
+  // ── correct IDs matching the HTML ──
+  const step1 = document.getElementById("setup-step-1");
   const step2 = document.getElementById("setup-step-2");
+  const step3 = document.getElementById("setup-step-3");
+  const done  = document.getElementById("setup-step-done");
+  if (step1) step1.style.display = "none";
   if (step2) step2.style.display = "block";
+  if (step3) step3.style.display = "none";
+  if (done)  done.style.display  = "none";
 
-  // ── Populate team ID display ──
-  const displayTeamId = document.getElementById("display-team-id");
-  if (displayTeamId) displayTeamId.textContent = STATE.teamId || "—";
-
-  // ── Populate leader info too ──
-  const leaderStdId = document.getElementById("leader-std-id");
-  const leaderName  = document.getElementById("leader-name");
-  const leaderAv    = document.getElementById("leader-av");
-  if (leaderStdId) leaderStdId.textContent = STATE.studentId;
-  if (leaderName)  leaderName.textContent  = STATE.studentName;
-  if (leaderAv)    leaderAv.textContent    = initials(STATE.studentName);
-
-  // Swap the footer to Add Member mode
-  const footer = step2.querySelector(".setup-footer");
+  // Update footer buttons for "add member" context
+  const footer = document.getElementById("setup-step-2")?.querySelector(".setup-footer");
   if (footer) {
     footer.innerHTML = `
-      <button class="btn btn-ghost" onclick="closeAddMemberModal()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-        Close
-      </button>
+      <button class="btn btn-ghost" onclick="closeAddMemberModal()">✕ Close</button>
       <button class="btn btn-primary" onclick="saveNewMember()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+        Save Member
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
              stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
-        Save Member
       </button>`;
   }
-
-  clearSearch();
-  renderMemberSlots();
-
-  setupOverlay.style.display = "flex";
 }
-
 function closeAddMemberModal() {
   const setupOverlay = document.getElementById("setup-overlay");
   if (setupOverlay) setupOverlay.style.display = "none";
@@ -1926,6 +1876,9 @@ function getGreeting(name, gender) {
   const title = gender === "female" ? "Ms" : "Mr";
   return `${greeting}, ${title}. ${name} ${icon}`;
 }
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeEditProjectModal();
+});
 
 async function loadProposalSection() {
   // If we already have groupData, use it directly
@@ -1940,6 +1893,7 @@ async function loadProposalSection() {
     }
 
     setProposalState(STATE.proposalState);
+    renderProjectDetails();
     return;
   }
 
@@ -1971,6 +1925,7 @@ async function loadProposalSection() {
   }
 
   setProposalState(STATE.proposalState);
+  renderProjectDetails();
 }
 /* ══════════════════════════════════
    INIT
@@ -2041,5 +1996,131 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initDashboard);
 } else {
   initDashboard();
+}
+/* ══════════════════════════════════
+   EDIT PROJECT MODAL
+══════════════════════════════════ */
+function renderProjectDetails() {
+  const isApproved = STATE.groupData?.proposal_status === "approved";
+  const isLeader   = STATE.teamRole === "Leader";
+  const canEdit    = isLeader && !isApproved;
+
+  const editBtnProject = document.getElementById("edit-project-btn");
+  const editBtnHome    = document.getElementById("edit-project-btn-home");
+
+  if (editBtnProject) editBtnProject.style.display = canEdit ? "inline-flex" : "none";
+  if (editBtnHome)    editBtnHome.style.display    = canEdit ? "inline-flex" : "none";
+
+  const titleEl    = document.getElementById("proj-tab-title");
+  const categoryEl = document.getElementById("proj-tab-category");
+  if (titleEl)    titleEl.textContent    = STATE.projectTitle || "—";
+  if (categoryEl) categoryEl.textContent = STATE.category     || "—";
+}
+
+function openEditProjectModal() {
+  const isApproved = STATE.groupData?.proposal_status === "approved";
+  const modal      = document.getElementById("editProjectModal");
+  const banner     = document.getElementById("edit-modal-banner");
+  const saveBtn    = document.getElementById("edit-modal-save-btn");
+  const titleInput = document.getElementById("modal-proj-title");
+  const catInput   = document.getElementById("modal-proj-category");
+
+  // Pre-fill fields
+  if (titleInput) titleInput.value = STATE.projectTitle || "";
+  if (catInput)   catInput.value   = STATE.category     || "";
+
+  if (isApproved) {
+    // Locked state
+    banner.style.cssText += "background:rgba(0,75,45,.07);border:1.5px solid rgba(0,75,45,.2);color:#004b2d";
+    banner.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" width="18" height="18" style="flex-shrink:0;margin-top:1px">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <span>Your proposal has been <strong>approved</strong> — project details are now locked.
+      Contact your supervisor if changes are needed.</span>`;
+
+    if (titleInput) { titleInput.disabled = true; titleInput.style.opacity = ".55"; titleInput.style.cursor = "not-allowed"; }
+    if (catInput)   { catInput.disabled   = true; catInput.style.opacity   = ".55"; catInput.style.cursor = "not-allowed"; }
+    if (saveBtn)    { saveBtn.style.display = "none"; }
+  } else {
+    // Editable state
+    banner.style.cssText += "background:rgba(234,179,8,.08);border:1.5px solid rgba(234,179,8,.35);color:#92660a";
+    banner.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" width="18" height="18" style="flex-shrink:0;margin-top:1px">
+        <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span>You can edit your project details <strong>until your proposal is approved</strong>.
+      Once approved, these fields will be locked permanently.</span>`;
+
+    if (titleInput) { titleInput.disabled = false; titleInput.style.opacity = "1"; titleInput.style.cursor = "text"; }
+    if (catInput)   { catInput.disabled   = false; catInput.style.opacity   = "1"; catInput.style.cursor = "pointer"; }
+    if (saveBtn)    { saveBtn.style.display = "inline-flex"; saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Save Changes'; saveBtn.disabled = false; saveBtn.style.opacity = "1"; }
+  }
+
+  modal.style.display = "flex";
+  if (!isApproved && titleInput) setTimeout(() => titleInput.focus(), 100);
+}
+
+function closeEditProjectModal() {
+  document.getElementById("editProjectModal").style.display = "none";
+}
+
+async function saveProjectDetails() {
+  const titleInput = document.getElementById("modal-proj-title");
+  const catInput   = document.getElementById("modal-proj-category");
+  const saveBtn    = document.getElementById("edit-modal-save-btn");
+
+  const newTitle    = titleInput?.value.trim();
+  const newCategory = catInput?.value.trim();
+
+  if (!newTitle) {
+    titleInput.style.borderColor = "#dc2626";
+    titleInput.style.boxShadow   = "0 0 0 3px rgba(220,38,38,.1)";
+    titleInput.focus();
+    toast("Project title cannot be empty", "red");
+    return;
+  }
+
+  if (saveBtn) {
+    saveBtn.innerHTML = "Saving…";
+    saveBtn.disabled  = true;
+    saveBtn.style.opacity = ".6";
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/groups/${STATE.groupData._id}/update-project`, {
+      method: "PUT",
+      headers: API_HEADERS,
+      body: JSON.stringify({ project_title: newTitle, category: newCategory }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to save");
+
+    // Update local state
+    STATE.projectTitle            = newTitle;
+    STATE.category                = newCategory;
+    STATE.groupData.project_title = newTitle;
+    STATE.groupData.category      = newCategory;
+
+    // Refresh all display elements
+    updateDashboardUI();
+    renderProjectDetails();
+    closeEditProjectModal();
+    toast("Project details updated ✓");
+
+  } catch (err) {
+    toast("Save failed: " + err.message, "red");
+    if (saveBtn) {
+      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
+      saveBtn.disabled  = false;
+      saveBtn.style.opacity = "1";
+    }
+  }
 }
 

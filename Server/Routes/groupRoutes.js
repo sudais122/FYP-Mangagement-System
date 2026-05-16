@@ -9,6 +9,7 @@ import {
   reassignSupervisor,
   addMemberToGroup,
   getNextTeamId,
+  updateProjectDetails
 } from "../controllers/groupController.js";
 
 import {
@@ -37,8 +38,7 @@ router.get("/", protect, adminOnly, getAllGroups);
 router.get("/:id", protect, getGroupById);
 router.put("/:id/reassign", protect, adminOnly, reassignSupervisor);
 router.put("/:id/add-member", protect, studentOnly, addMemberToGroup);
-
-// PROPOSAL ROUTES
+router.put("/:id/update-project", protect, updateProjectDetails);
 
 // Student uploads proposal
 router.post( "/:groupId/proposal", protect, studentOnly, uploadProposalFile.single("proposal"), uploadProposal,);

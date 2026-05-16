@@ -2449,33 +2449,106 @@ td > div[style*="display:flex"] {
   gap: 6px;
   white-space: nowrap;
 }
-.nav-avatar-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: var(--primary);
+#search-result.show { display: block !important; }
+.sr-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border-soft, #f0f0f0);
+}
+.sr-info strong { display: block; font-size: .85rem; color: var(--text); }
+.sr-info small  { font-size: .72rem; color: var(--text-mute); }
+.sr-add {
+  padding: 6px 14px; border-radius: 7px;
+  background: var(--primary, #004b2d); color: #fff;
+  border: none; font-size: .78rem; font-weight: 700; cursor: pointer;
+}
+.sr-error, .sr-empty {
+  padding: 12px 14px;
+  font-size: .8rem;
+  color: #dc2626;
+}
+.sr-empty { color: var(--text-mute); }
+/* ═══ Admin Avatar Modal — size lock ═══ */
+#adminAvatarModal .modal-box {
+  max-width: 400px !important;
+  width: 100%;
+}
+
+/* Avatar preview in modal — always fixed size */
+#adminAvatarModal #admin-modal-avatar-img,
+#adminAvatarModal #admin-modal-avatar-initials {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 90px;
+  max-height: 90px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Avatar wrapper — fixed circle */
+#adminAvatarModal .modal-body > div:first-child > div {
+  width: 90px !important;
+  height: 90px !important;
+  border-radius: 50% !important;
+  overflow: hidden;
+  flex-shrink: 0;
   display: grid;
   place-items: center;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  border: 2px solid rgba(255,255,255,.2);
-  flex-shrink: 0;
-  transition: border-color .2s;
-  color: #fff;
-  font-weight: 800;
-  font-size: .82rem;
+  background: var(--primary);
+  border: 3px solid var(--border);
 }
-.nav-avatar-wrap:hover { border-color: var(--gold); }
-.nav-avatar-wrap:hover .nav-avatar-overlay { opacity: 1; }
+
+#adminAvatarModal #admin-modal-avatar-initials {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Navbar avatar (the small one in top-right) */
+.nav-avatar-wrap {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: .8rem;
+  flex-shrink: 0;
+  border: 2px solid var(--surface);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
+  transition: transform .2s;
+}
+
+.nav-avatar-wrap:hover {
+  transform: scale(1.05);
+}
+
+.nav-avatar-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
 
 .nav-avatar-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.45);
+  background: rgba(0, 0, 0, .4);
   display: grid;
   place-items: center;
-  opacity: 0;
-  transition: opacity .2s;
   color: #fff;
+  opacity: 0;
+  transition: opacity .15s;
+}
+
+.nav-avatar-wrap:hover .nav-avatar-overlay {
+  opacity: 1;
 }

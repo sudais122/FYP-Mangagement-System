@@ -204,16 +204,33 @@
           </div>
 
           <div class="dash-card">
-            <div class="dash-card-header">
-              <h3>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-                Project Overview
-              </h3>
-            </div>
+<div class="dash-card-header">
+  <h3>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+    </svg>
+    Project Overview
+  </h3>
+
+  <button id="edit-project-btn-home"
+          onclick="openEditProjectModal()"
+          style="display:none;align-items:center;gap:6px;
+                 padding:7px 14px;font-size:.78rem;font-weight:700;
+                 background:rgba(0,75,45,.08);color:var(--primary);
+                 border:1.5px solid rgba(0,75,45,.2);border-radius:8px;
+                 cursor:pointer;transition:all .2s"
+          onmouseover="this.style.background='rgba(0,75,45,.15)'"
+          onmouseout="this.style.background='rgba(0,75,45,.08)'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+    Edit
+  </button>
+</div>
             <div class="dash-card-body">
               <div class="proj-row">
                 <span class="proj-key">Project Title</span>
@@ -301,16 +318,33 @@
         <div id="tab-project" class="dash-subpage">
           <div class="dash-card">
             <div class="dash-card-header">
-              <h3>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-                Project Details
-              </h3>
-              <span class="status-badge s-approved">Approved</span>
-            </div>
+  <h3>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+    </svg>
+    Project Details
+  </h3>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button id="edit-project-btn"
+            onclick="openEditProjectModal()"
+            style="display:none;align-items:center;gap:6px;
+                   padding:7px 14px;font-size:.78rem;font-weight:700;
+                   background:rgba(0,75,45,.08);color:var(--primary);
+                   border:1.5px solid rgba(0,75,45,.2);border-radius:8px;
+                   cursor:pointer;transition:all .2s"
+            onmouseover="this.style.background='rgba(0,75,45,.15)'"
+            onmouseout="this.style.background='rgba(0,75,45,.08)'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+           stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Edit
+    </button>
+  </div>
+</div>
             <div class="dash-card-body">
               <div class="proj-row">
                 <span class="proj-key">Title</span>
@@ -703,7 +737,127 @@
 
       </div>
     </div>
+<!-- ══════════════ EDIT PROJECT MODAL ══════════════ -->
+<div id="editProjectModal" style="display:none;position:fixed;inset:0;
+     background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;
+     padding:20px">
+  <div style="background:#fff;border-radius:18px;max-width:500px;width:100%;
+              box-shadow:0 12px 40px rgba(0,0,0,.2);overflow:hidden;
+              animation:modalIn .25s ease-out" onclick="event.stopPropagation()">
 
+    <!-- Header -->
+    <div style="padding:22px 26px 18px;border-bottom:1px solid var(--border-soft);
+                display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <h3 style="margin:0 0 4px 0;font-family:'Playfair Display',serif;
+                   font-size:1.15rem;font-weight:800;color:var(--primary-dark,#003520)">
+          Edit Project Details
+        </h3>
+        <p style="margin:0;font-size:.74rem;color:var(--text-mute);font-weight:500">
+          Update your project title or category
+        </p>
+      </div>
+      <button onclick="closeEditProjectModal()"
+              style="background:none;border:none;cursor:pointer;
+                     padding:6px;color:var(--text-mute);border-radius:6px"
+              onmouseover="this.style.background='var(--border-soft)'"
+              onmouseout="this.style.background='none'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" width="18" height="18">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding:22px 26px">
+
+      <!-- Status banner (filled by JS) -->
+      <div id="edit-modal-banner"
+           style="display:flex;gap:10px;align-items:flex-start;
+                  padding:12px 14px;border-radius:10px;margin-bottom:20px;
+                  font-size:.78rem;font-weight:600;line-height:1.5">
+      </div>
+
+      <!-- Project Title -->
+      <div class="sf-group" style="margin-bottom:16px">
+        <label style="display:block;font-size:.78rem;font-weight:700;
+                      color:var(--text);margin-bottom:6px">
+          Project Title <span style="color:#dc2626">*</span>
+        </label>
+        <input id="modal-proj-title"
+               class="sf-input"
+               type="text"
+               placeholder="e.g. AI-Based Exam Proctoring System"
+               style="width:100%;padding:10px 14px;border:1.5px solid var(--border);
+                      border-radius:9px;font-size:.86rem;font-family:inherit;
+                      transition:all .15s" />
+      </div>
+
+      <!-- Category -->
+      <div class="sf-group" style="margin-bottom:0">
+        <label style="display:block;font-size:.78rem;font-weight:700;
+                      color:var(--text);margin-bottom:6px">
+          Category
+        </label>
+        <select id="modal-proj-category"
+                class="sf-input"
+                style="width:100%;padding:10px 14px;border:1.5px solid var(--border);
+                       border-radius:9px;font-size:.86rem;font-family:inherit;
+                       cursor:pointer;background:#fff">
+          <option value="">Select category…</option>
+          <option>Artificial Intelligence</option>
+          <option>Web Development</option>
+          <option>Mobile Application</option>
+          <option>Data Science</option>
+          <option>Cybersecurity</option>
+          <option>Embedded Systems</option>
+          <option>Networking</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding:16px 26px 22px;display:flex;justify-content:flex-end;
+                gap:10px;border-top:1px solid var(--border-soft);background:#fafafa">
+      <button onclick="closeEditProjectModal()"
+              style="padding:9px 18px;border:1.5px solid var(--border);
+                     background:#fff;border-radius:9px;cursor:pointer;
+                     font-weight:600;font-size:.82rem;color:var(--text)">
+        Cancel
+      </button>
+      <button id="edit-modal-save-btn"
+              onclick="saveProjectDetails()"
+              style="padding:9px 18px;background:var(--primary,#004b2d);
+                     color:#fff;border:none;border-radius:9px;cursor:pointer;
+                     font-weight:700;font-size:.82rem;
+                     display:inline-flex;align-items:center;gap:6px;
+                     box-shadow:0 3px 10px rgba(0,75,45,.25)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" stroke-linecap="round" width="14" height="14">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Save Changes
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<style>
+@keyframes modalIn {
+  from { transform: scale(.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+#editProjectModal input:focus,
+#editProjectModal select:focus {
+  outline: none;
+  border-color: var(--primary, #004b2d);
+  box-shadow: 0 0 0 3px rgba(0,75,45,.12);
+}
+</style>
     <div class="toast" id="toast"></div>
     <script src="./js/student.js"></script>
   </body>

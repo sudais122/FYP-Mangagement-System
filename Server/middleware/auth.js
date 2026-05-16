@@ -6,23 +6,67 @@ import Admin from "../Models/admin.js";
 export const protect = async (req, res, next) => {
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      token = req.headers.authorization.split(" ")[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = { id: decoded.id, role: decoded.role };
-      next();
-    } catch (error) {
-      return res.status(401).json({ message: "Not authorized, token failed" });
-    }
-  } else {
+  // Get token from Authorization header
+  if (req.headers.authorization?.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token) {
     return res.status(401).json({ message: "Not authorized, no token" });
   }
-};
 
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Try to find user in any of the 3 collections
+    let user = null;
+    let role = null;
+
+    if (decoded.role === "admin") {
+      user = await Admin.findById(decoded.id).select("-password");
+      role = "admin";
+    } else if (decoded.role === "supervisor" || decoded.role === "chairman") {
+      user = await Supervisor.findById(decoded.id).select("-password");
+      role = decoded.role;
+    } else {
+      user = await Student.findById(decoded.id).select("-password");
+      role = "student";
+    }
+
+    // Fallback: if role wasn't in token, check all 3 collections
+    if (!user) {
+      user = await Admin.findById(decoded.id).select("-password");
+      if (user) role = "admin";
+      else {
+        user = await Supervisor.findById(decoded.id).select("-password");
+        if (user) role = "supervisor";
+        else {
+          user = await Student.findById(decoded.id).select("-password");
+          if (user) role = "student";
+        }
+      }
+    }
+
+    if (!user) {
+      return res.status(401).json({ message: "Not authorized, user not found" });
+    }
+
+    req.user = {
+      id:           user._id.toString(),
+      role:         role,
+      name:         user.name,
+      email:        user.email,
+      student_code: user.student_code,
+      sup_code:     user.sup_code,
+      is_chairman:  user.is_chairman || false,
+    };
+
+    next();
+  } catch (err) {
+    console.error("Auth error:", err.message);
+    return res.status(401).json({ message: "Not authorized, token failed" });
+  }
+};
 // ── Role-based access ──────────────────────────────────────
 export const adminOnly = (req, res, next) => {
   if (req.user.role !== "admin") {

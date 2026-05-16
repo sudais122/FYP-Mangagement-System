@@ -344,3 +344,38 @@ export const reassignSupervisor = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const updateProjectDetails = async (req, res) => {
+  try {
+    const { project_title, category } = req.body;
+
+    if (!project_title?.trim()) {
+      return res.status(400).json({ message: "Project title is required" });
+    }
+
+    const group = await Group.findById(req.params.id);
+    if (!group) return res.status(404).json({ message: "Group not found" });
+
+    // Block edit if proposal approved
+    if (group.proposal_status === "approved") {
+      return res.status(403).json({
+        message: "Project is locked — proposal has been approved"
+      });
+    }
+
+    // Verify requester is a member of this group
+    const isLeader = group.leader.toString() === req.user.id;
+    const isMember = group.members.some(m => m.toString() === req.user.id);
+    if (!isLeader && !isMember) {
+      return res.status(403).json({ message: "Not a member of this group" });
+    }
+
+    group.project_title = project_title.trim();
+    if (category) group.category = category;
+    await group.save();
+
+    res.json({ message: "Project updated", group });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
