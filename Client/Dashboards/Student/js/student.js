@@ -123,20 +123,20 @@ async function loadDashboard() {
 
     const data = await response.json();
     console.log(data); // ← see what's actually coming back
-
+    console.log("group fields:", Object.keys(data.group));
+    console.log("team_code value:", data.group.team_code);
     if (!response.ok) {
       throw new Error(data.message || "Failed to load dashboard");
     }
 
     if (data.hasGroup) {
-      // User is part of a team
       STATE.teamCreated = true;
-      STATE.teamId = data.group.group_code || data.group.team_code;
+      STATE.teamId = data.group.team_code || data.group.group_code || data.group._id;
+      console.log("Team ID set to:", STATE.teamId);
       STATE.projectTitle = data.group.project_title;
       STATE.category = data.group.category;
       STATE.teamRole = data.student.team_role;
       STATE.groupData = data.group;
-      // Set proposal state from backend
       const proposalStatus = data.group.proposal_status;
       const proposalUrl    = data.group.proposal_url;
       if (proposalUrl) {
@@ -145,21 +145,8 @@ async function loadDashboard() {
       } else {
         STATE.proposalState = "idle";
       }
-
-      // Populate members
       STATE.members = [];
-      if (
-        data.group.leader &&
-        data.group.leader.student_code !== STATE.studentId
-      ) {
-        STATE.members.push({
-          id: data.group.leader._id,
-          student_code: data.group.leader.student_code,
-          name: data.group.leader.name,
-          initials: initials(data.group.leader.name),
-          role: "Leader",
-        });
-      }
+
 
       if (data.group.members) {
         data.group.members.forEach((m) => {
@@ -254,7 +241,7 @@ async function createTeamAPI() {
     }
 
     // Update state with created group
-    STATE.teamId = data.group.group_code || data.group.team_code;
+    STATE.teamId = data.group.team_code || data.group.group_code || data.group._id;
     STATE.teamCreated = true;
     STATE.teamRole = "Leader";
     STATE.groupData = data.group;
@@ -1101,7 +1088,7 @@ async function finishSetup() {
   }
 
 STATE.teamCreated = true;
-STATE.teamId = result.group.group_code || result.group.team_code;
+STATE.teamId = result.group.team_code || result.group.group_code || result.group._id;
 
 // Reset marks for new teamx
 STUDENT_MARKS = {};

@@ -67,7 +67,10 @@ const studentSchema = new mongoose.Schema(
       enum: ["Leader", "Member"],
       default: "Member",
     },
-
+    avatar_url: {
+      type: String,
+      default: null 
+    },
     cv_url: {
       type: String,
       default: null,

@@ -64,17 +64,15 @@ export const uploadStudentCV = async (req, res) => {
 // ── GET MY DASHBOARD ───────────────────────────────────────────
 export const getMyDashboard = async (req, res) => {
   try {
-    const student = await Student.findById(req.user.id)
-      .select("-password")
-      .populate({
-        path: "group",
-        select: "group_code project_title category proposal_url proposal_status proposal_filename proposal_uploaded_by proposal_uploaded_at leader members supervisor",
-        populate: [
-          { path: "leader",     select: "name student_code" },
-          { path: "members",    select: "name student_code" },
-          { path: "supervisor", select: "name prefix sup_code email office office_hours research_areas designation whatsapp avatar_url" },
-        ],
-      });
+const student = await Student.findById(req.user.id)
+.populate({
+  path: "group",
+  populate: [
+    { path: "leader",     select: "name student_code avatar_url gender" },
+    { path: "members",    select: "name student_code avatar_url gender" },
+    { path: "supervisor", select: "name prefix sup_code email office office_hours research_areas designation whatsapp avatar_url" },
+  ],
+});
 
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
