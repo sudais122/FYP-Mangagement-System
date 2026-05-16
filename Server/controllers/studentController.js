@@ -65,6 +65,7 @@ export const uploadStudentCV = async (req, res) => {
 export const getMyDashboard = async (req, res) => {
   try {
 const student = await Student.findById(req.user.id)
+      .select("-password")  
 .populate({
   path: "group",
   populate: [

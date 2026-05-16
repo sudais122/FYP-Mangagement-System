@@ -677,8 +677,9 @@
       </div>
     </div>
     <!-- ═══ EDIT SUPERVISOR MODAL ═══ -->
+<!-- ═══ EDIT SUPERVISOR MODAL ═══ -->
 <div class="modal-overlay" id="editSupModal">
-  <div class="modal-box" style="max-width:480px" onclick="event.stopPropagation()">
+  <div class="modal-box" style="max-width:520px" onclick="event.stopPropagation()">
     <div class="modal-head">
       <div class="modal-head-text">
         <h3>Edit Supervisor</h3>
@@ -691,20 +692,43 @@
         </svg>
       </button>
     </div>
+
     <div class="modal-body">
       <input type="hidden" id="editSupId" />
-      <div class="form-group">
-        <label class="form-label">Full Name <span class="req">*</span></label>
-        <input type="text" class="form-input" id="editSupName" placeholder="e.g. Dr. Naila Khan" />
+
+      <!-- Prefix + Name in one row -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Title / Prefix <span class="req">*</span></label>
+          <select class="form-select" id="editSupPrefix">
+            <option value="">— Select —</option>
+            <option value="Dr">Dr</option>
+            <option value="Prof">Prof</option>
+            <option value="Mr">Mr</option>
+            <option value="Ms">Ms</option>
+            <option value="Mrs">Mrs</option>
+            <option value="Engr">Engr</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Full Name <span class="req">*</span></label>
+          <input type="text" class="form-input" id="editSupName" placeholder="e.g. Naila Khan" />
+        </div>
       </div>
+
+      <!-- Email -->
       <div class="form-group">
         <label class="form-label">Email <span class="req">*</span></label>
         <input type="email" class="form-input" id="editSupEmail" placeholder="naila.khan@awkum.edu.pk" />
       </div>
+
+      <!-- WhatsApp -->
       <div class="form-group">
-        <label class="form-label">WhatsApp Number</label>
+      <label>WhatsApp Number <span style="color:#dc2626">*</span></label>
         <input type="text" class="form-input" id="editSupWhatsapp" placeholder="e.g. 03001234567" />
       </div>
+
+      <!-- Role -->
       <div class="form-group">
         <label class="form-label">Role</label>
         <select class="form-select" id="editSupRole">
@@ -713,6 +737,7 @@
         </select>
       </div>
     </div>
+
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeEditSupModal()">Cancel</button>
       <button class="btn btn-primary" onclick="submitEditSupervisor()">
@@ -1017,7 +1042,7 @@
 
       <!-- WhatsApp -->
       <div class="form-group">
-        <label class="form-label">WhatsApp Number <span class="opt">Optional</span></label>
+      <label>WhatsApp Number <span style="color:#dc2626">*</span></label>
         <input type="text" class="form-input" id="supWhatsapp" placeholder="e.g. 03001234567" />
       </div>
 

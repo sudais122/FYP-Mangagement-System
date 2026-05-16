@@ -240,98 +240,158 @@ function updateSidebarBadges(stats) {
 async function renderRecentTeams() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = document.getElementById("recentTeamsTbody");
-
   if (!tbody) return;
 
-  // Helper for supervisor display
-  function withPrefix(supervisor) {
-    if (!supervisor) return "Unassigned";
-
-    return `${supervisor.prefix || "Mr"} ${supervisor.name}`;
-  }
-
-  tbody.innerHTML = `
-    <tr>
-      <td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">
-        Loading…
-      </td>
-    </tr>
-  `;
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/groups", {
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      }
+    const res  = await fetch("http://127.0.0.1:5001/api/groups", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
-
     const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Failed");
-    }
+    if (!res.ok) throw new Error(data.message || "Failed");
 
     const teams = (Array.isArray(data) ? data : data.groups || []).slice(0, 5);
 
     if (!teams.length) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">
-            No teams yet.
-          </td>
-        </tr>
-      `;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-mute)">No teams yet.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = teams.map(g => {
-      const code = g.group_code || g.team_code || "—";
-      const title = g.project_title || "—";
-
-      const supName = withPrefix(g.supervisor);
-
-      const abbr = code.slice(-2).toUpperCase();
+      const code    = g.team_code || g.group_code || "—";
+      const title   = g.project_title || "—";
       const members = 1 + (g.members?.length || 0);
+      const supName = g.supervisor
+        ? formatName(g.supervisor.prefix, g.supervisor.name)
+        : "Unassigned";
+
+      const proposalUrl    = g.proposal_url    || "";
+      const proposalStatus = g.proposal_status || "pending";
+
+      // ── Proposal badge ──
+      let proposalBadge = "";
+      if (proposalStatus === "approved") {
+        proposalBadge = `
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+                       border-radius:6px;font-size:.7rem;font-weight:700;
+                       background:rgba(21,128,61,.1);color:#15803d">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Approved
+          </span>`;
+      } else if (proposalStatus === "rejected") {
+        proposalBadge = `
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+                       border-radius:6px;font-size:.7rem;font-weight:700;
+                       background:rgba(220,38,38,.08);color:#dc2626">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Rejected
+          </span>`;
+      } else {
+        proposalBadge = `
+          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+                       border-radius:6px;font-size:.7rem;font-weight:700;
+                       background:rgba(234,179,8,.1);color:#a16207">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            Pending
+          </span>`;
+      }
+
+      // ── Proposal actions (only if pending + has file) ──
+      let proposalActions = "";
+      if (proposalUrl && proposalStatus === "pending") {
+        proposalActions = `
+          <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
+
+            <button onclick="viewDoc('${proposalUrl}')"
+              style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+                     border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
+                     border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);color:var(--primary)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              View
+            </button>
+
+            <button onclick="updateProposalStatus('${g._id}','approved')"
+              style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+                     border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
+                     border:1px solid rgba(21,128,61,.2);background:rgba(21,128,61,.06);color:#15803d">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Accept
+            </button>
+
+            <button onclick="updateProposalStatus('${g._id}','rejected')"
+              style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+                     border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
+                     border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:#dc2626">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Reject
+            </button>
+
+          </div>`;
+      }
 
       return `
         <tr>
           <td>
-            <div class="team-cell">
-              <div class="team-avatar">${abbr}</div>
-
-              <div class="team-info">
-                <strong>
-                  ${title.length > 28
-                    ? title.slice(0, 28) + "…"
-                    : title}
-                </strong>
-
-                <span>
-                  ${members} member${members !== 1 ? "s" : ""}
-                </span>
-              </div>
+            <div class="team-info">
+              <strong>${title.length > 28 ? title.slice(0, 28) + "…" : title}</strong>
+              <span style="display:block;font-size:.72rem;color:var(--text-mute)">${members} member${members !== 1 ? "s" : ""}</span>
             </div>
           </td>
-
+          <td><span class="id-pill gold">${code}</span></td>
+          <td><span style="font-weight:600;color:var(--text)">${supName}</span></td>
           <td>
-            <span class="id-pill gold">${code}</span>
+            ${proposalBadge}
+            ${proposalActions}
           </td>
-
-          <td>${supName}</td>
-        </tr>
-      `;
+          <td>
+            <div class="action-row">
+              <button class="icon-action" title="Reassign supervisor"
+                onclick="event.stopPropagation();openReassignModal('${g._id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                  <polyline points="1 4 1 10 7 10"/>
+                  <polyline points="23 20 23 14 17 14"/>
+                  <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                </svg>
+              </button>
+              <button class="icon-action" title="View team"
+                onclick="event.stopPropagation();openTeamDetail('${g._id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>`;
     }).join("");
 
   } catch (err) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="3"
-            style="text-align:center;color:#dc2626;padding:20px">
-          ${err.message}
-        </td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
   }
 }
 /* ════════════════════════════════════
@@ -444,6 +504,53 @@ function renderSupervisorCards(list) {
   `).join("");
 }
 
+function renderSupDetailTeamPage(groups, page) {
+  const perPage    = 5;
+  const totalPages = Math.ceil(groups.length / perPage);
+  const start      = (page - 1) * perPage;
+  const slice      = groups.slice(start, start + perPage);
+
+  // Remove old team blocks + pagination if re-rendering
+  document.querySelectorAll(".team-block, #sup-team-pagination").forEach(el => el.remove());
+
+  const container = document.getElementById("supDetailContent");
+
+  // Render team blocks for this page
+  slice.forEach(group => {
+    container.insertAdjacentHTML("beforeend", renderTeamBlockFromDB(group));
+  });
+
+  // Render pagination
+  if (totalPages > 1) {
+    const pag = document.createElement("div");
+    pag.id = "sup-team-pagination";
+    pag.style.cssText = "display:flex;align-items:center;justify-content:center;gap:6px;padding:20px 0";
+
+    let btns = "";
+    for (let i = 1; i <= totalPages; i++) {
+      const active = i === page;
+      btns += `
+        <button onclick="renderSupDetailTeamPage(window._supGroups, ${i})"
+          style="width:32px;height:32px;border-radius:7px;border:1px solid ${active ? "var(--primary)" : "var(--border)"};
+                 background:${active ? "var(--primary)" : "var(--surface)"};color:${active ? "#fff" : "var(--text)"};
+                 font-size:.78rem;font-weight:${active ? "700" : "600"};cursor:pointer">
+          ${i}
+        </button>`;
+    }
+
+    pag.innerHTML = `
+      <span style="font-size:.76rem;color:var(--text-mute);margin-right:8px">
+        Page ${page} of ${totalPages} · ${groups.length} teams
+      </span>
+      ${btns}`;
+
+    container.appendChild(pag);
+  }
+
+  // Store groups globally so pagination buttons can access them
+  window._supGroups = groups;
+}
+
 /* ════════════════════════════════════
    SUPERVISOR DETAIL
 ══════════════════════════════════════ */
@@ -544,19 +651,20 @@ let html = `
       <h2>${formatName(sup.prefix, sup.name)}</h2>
       <p>${sup.email}</p>
       <div class="sup-detail-stats">
-        <div class="sup-detail-stat"><strong>${sup.sup_code || "—"}</strong><span>SUP ID</span></div>
-        <div class="sup-detail-stat"><strong>${sup.designation || "Lecturer"}</strong><span>Designation</span></div>
-        <div class="sup-detail-stat">📋 <strong>${groups.length}</strong> Teams</div>
-        <div class="sup-detail-stat">👥 <strong>${totalStudents}</strong> Students</div>
+<div class="sup-detail-stat"><strong>${sup.sup_code || "—"}</strong></div>
+<div class="sup-detail-stat"><strong>${groups.length}</strong> Teams</div>
+<div class="sup-detail-stat"><strong>${totalStudents}</strong> Students</div>
       </div>
     </div>
   </div>`;
 
-    html += groups.length === 0
-      ? `<div class="dash-panel"><div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">No teams assigned yet.</div></div>`
-      : groups.map(group => renderTeamBlockFromDB(group)).join("");
-
-    $("#supDetailContent").innerHTML = html;
+    if (groups.length === 0) {
+      html += `<div class="dash-panel"><div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">No teams assigned yet.</div></div>`;
+      $("#supDetailContent").innerHTML = html;
+    } else {
+      $("#supDetailContent").innerHTML = html;
+      renderSupDetailTeamPage(groups, 1);
+    }
 
   } catch (err) {
     console.error(err);
@@ -576,21 +684,31 @@ function renderTeamBlockFromDB(group) {
     ...(group.members || []).map(m => ({ ...m, role: "Member" }))
   ].filter(Boolean);
 
-  if (allStudents.length === 0) {
-    return `
-      <div class="team-block">
-        <div class="team-block-head">
-          <div class="team-block-head-left">
-            <div class="team-avatar">${(group.group_code || "—").slice(-2)}</div>
-            <div>
-              <h3>${group.group_code || "—"}</h3>
-              <p>${group.project_title || "—"} · No students linked</p>
-            </div>
+  // ── Empty team (no students) ──
+ if (allStudents.length === 0) {
+  return `
+    <div class="team-block">
+      <div class="team-block-head">
+        <div class="team-block-head-left">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <span class="id-pill gold" style="font-size:.8rem;padding:5px 12px;font-weight:700">
+              ${group.team_code || group.group_code || "—"}
+            </span>
+            <span style="color:var(--text-mute);font-weight:600">·</span>
+            <h3 style="font-size:1rem;font-weight:700;color:var(--primary-dark);margin:0">
+              ${group.project_title || "—"}
+            </h3>
+            <span style="color:var(--text-mute);font-weight:600">·</span>
+            <span style="font-size:.78rem;color:var(--text-mute);font-style:italic">
+              No students linked
+            </span>
           </div>
         </div>
-      </div>`;
-  }
+      </div>
+    </div>`;
+}
 
+  // ── Build component headers ──
   const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
     sec.items.map(it => `
       <th title="${sec.section} · max ${it.max}">
@@ -601,6 +719,7 @@ function renderTeamBlockFromDB(group) {
       </th>`)
   ).join("");
 
+  // ── Build student rows ──
   const rows = allStudents.map(s => {
     const cells = MARKS_SCHEMA.flatMap(sec =>
       sec.items.map(it => {
@@ -640,38 +759,47 @@ function renderTeamBlockFromDB(group) {
       </tr>`;
   }).join("");
 
-  return `
-    <div class="team-block">
-      <div class="team-block-head">
-        <div class="team-block-head-left">
-          <div class="team-avatar">${(group.group_code || "—").slice(-2)}</div>
-          <div>
-            <h3>${group.group_code || "—"}</h3>
-            <p>${group.project_title || "—"} · ${allStudents.length} students</p>
-          </div>
+  // ── Final return with new header (Team ID → Title → member count) ──
+return `
+  <div class="team-block">
+    <div class="team-block-head">
+      <div class="team-block-head-left">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="id-pill gold" style="font-size:.8rem;padding:5px 12px;font-weight:700">
+            ${group.team_code || group.group_code || "—"}
+          </span>
+          <span style="color:var(--text-mute);font-weight:600">·</span>
+          <h3 style="font-size:1rem;font-weight:700;color:var(--primary-dark);margin:0">
+            ${group.project_title || "—"}
+          </h3>
+          <span style="color:var(--text-mute);font-weight:600">·</span>
+          <span style="font-size:.78rem;color:var(--text-mute);font-weight:600">
+            ${allStudents.length} member${allStudents.length !== 1 ? "s" : ""}
+          </span>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="saveTeamMarks('${group._id}')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-            <polyline points="20 6 9 17 4 12"/>
-          </svg>
-          Save Changes
-        </button>
       </div>
-      <div style="overflow-x:auto">
-        <table class="marks-edit-table">
-          <thead>
-            <tr>
-              <th>Student</th>
-              <th>ID</th>
-              <th>Role</th>
-              ${componentHeaders}
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    </div>`;
+      <button class="btn btn-primary btn-sm" onclick="saveTeamMarks('${group._id}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Save Changes
+      </button>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="marks-edit-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>ID</th>
+            <th>Role</th>
+            ${componentHeaders}
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
 }
 
 /* ════════════════════════════════════
@@ -811,223 +939,163 @@ function renderTeamsPage(page) {
 function renderTeamsTable(list) {
   const tbody = $("#teamsTable tbody");
 
-  // Helper
   function withPrefix(supervisor) {
     if (!supervisor) return "Unassigned";
-
     return `${supervisor.prefix || "Mr"} ${supervisor.name}`;
   }
 
   if (!list.length) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="5"
-            style="text-align:center;padding:40px;color:var(--text-mute)">
+        <td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">
           No teams found.
         </td>
-      </tr>
-    `;
+      </tr>`;
     return;
   }
 
   tbody.innerHTML = list.map(g => {
-
-    // ✅ FIXED PREFIX DISPLAY
-    const supName = withPrefix(g.supervisor);
-
-    const teamCode = g.team_code || "—";
-
-    const proposalUrl = g.proposal_url || "";
+    const supName        = withPrefix(g.supervisor);
+    const teamCode       = g.team_code || "—";
+    const proposalUrl    = g.proposal_url || "";
     const proposalStatus = g.proposal_status || "pending";
-    const attempt = g.proposal_attempt || 1;
+    const attempt        = g.proposal_attempt || 1;
 
-    // ─────────────────────────────
-    // ATTEMPT BADGE
-    // ─────────────────────────────
-    const attemptBadge = attempt > 1
-      ? `
-        <span style="
-          display:inline-block;
-          margin-left:6px;
-          padding:2px 7px;
-          border-radius:5px;
-          font-size:.62rem;
-          font-weight:800;
-          background:rgba(99,102,241,.12);
-          color:#4f46e5
-        ">
-          🔁 Attempt ${attempt}
-        </span>
-      `
-      : "";
+    // ── Attempt badge ──
+    const attemptBadge = attempt > 1 ? `
+      <span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;
+                   padding:2px 7px;border-radius:5px;font-size:.62rem;font-weight:800;
+                   background:rgba(99,102,241,.12);color:#4f46e5">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+        </svg>
+        Attempt ${attempt}
+      </span>` : "";
 
-    const secondAttemptWarning = attempt > 1
-      ? `
-        <div style="
-          margin-top:5px;
-          font-size:.65rem;
-          color:#a16207;
-          background:rgba(234,179,8,.08);
-          padding:4px 8px;
-          border-radius:5px;
-          border:1px solid rgba(234,179,8,.2)
-        ">
-          ⚠ Previously rejected proposal exists
-        </div>
-      `
-      : "";
+    // ── Second attempt warning ──
+    const secondAttemptWarning = attempt > 1 ? `
+      <div style="margin-top:5px;font-size:.65rem;color:#a16207;
+                  background:rgba(234,179,8,.08);padding:4px 8px;
+                  border-radius:5px;border:1px solid rgba(234,179,8,.2);
+                  display:flex;align-items:center;gap:5px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Previously rejected proposal exists
+      </div>` : "";
 
-    // ─────────────────────────────
-    // PROPOSAL BADGE
-    // ─────────────────────────────
+    // ── Proposal badge ──
     let proposalBadge = "";
 
     if (proposalStatus === "approved") {
-
       proposalBadge = `
-        <span style="
-          display:inline-flex;
-          align-items:center;
-          gap:4px;
-          padding:3px 9px;
-          border-radius:6px;
-          font-size:.7rem;
-          font-weight:700;
-          background:rgba(21,128,61,.1);
-          color:#15803d
-        ">
-          ✓ Approved
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+                     border-radius:6px;font-size:.7rem;font-weight:700;
+                     background:rgba(21,128,61,.1);color:#15803d">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Approved
         </span>
-
-        ${attemptBadge}
-      `;
+        ${attemptBadge}`;
 
     } else if (proposalStatus === "rejected") {
-
       proposalBadge = `
-        <span style="
-          display:inline-flex;
-          align-items:center;
-          gap:4px;
-          padding:3px 9px;
-          border-radius:6px;
-          font-size:.7rem;
-          font-weight:700;
-          background:rgba(220,38,38,.08);
-          color:#dc2626
-        ">
-          ✗ Rejected (File Deleted)
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+                     border-radius:6px;font-size:.7rem;font-weight:700;
+                     background:rgba(220,38,38,.08);color:#dc2626">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Rejected
         </span>
-
-        ${attemptBadge}
-      `;
+        ${attemptBadge}`;
 
     } else {
-
       proposalBadge = `
-        <span style="
-          display:inline-flex;
-          align-items:center;
-          gap:4px;
-          padding:3px 9px;
-          border-radius:6px;
-          font-size:.7rem;
-          font-weight:700;
-          background:rgba(234,179,8,.1);
-          color:#a16207
-        ">
-          ⏳ Pending
+        <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+                     border-radius:6px;font-size:.7rem;font-weight:700;
+                     background:rgba(234,179,8,.1);color:#a16207">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Pending
         </span>
-
-        ${attemptBadge}
-      `;
+        ${attemptBadge}`;
     }
 
-    // ─────────────────────────────
-    // ACTION BUTTONS
-    // ─────────────────────────────
+    // ── Proposal actions ──
+    // ── Proposal actions ──
     let proposalActions = "";
-
-    if (proposalUrl && proposalStatus === "pending") {
-
-      proposalActions = `
+    if (proposalUrl) {
+      // View + Download always visible when file exists
+      const viewDownload = `
         <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
-
-          <button
-            onclick="viewDoc('${proposalUrl}')"
-            style="
-              padding:3px 8px;
-              border-radius:5px;
-              font-size:.66rem;
-              font-weight:700;
-              cursor:pointer;
-              border:1px solid rgba(0,75,45,.2);
-              background:rgba(0,75,45,.06);
-              color:var(--primary)
-            "
-          >
+          <button onclick="viewDoc('${proposalUrl}')"
+            style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+                   border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
+                   border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);color:var(--primary)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
             View
           </button>
+        </div>`;
 
-          <button
-            onclick="updateProposalStatus('${g._id}','approved')"
-            style="
-              padding:3px 8px;
-              border-radius:5px;
-              font-size:.66rem;
-              font-weight:700;
-              cursor:pointer;
-              border:1px solid rgba(21,128,61,.2);
-              background:rgba(21,128,61,.06);
-              color:#15803d
-            "
-          >
-            ✓ Accept
-          </button>
-
-          <button
-            onclick="updateProposalStatus('${g._id}','rejected')"
-            style="
-              padding:3px 8px;
-              border-radius:5px;
-              font-size:.66rem;
-              font-weight:700;
-              cursor:pointer;
-              border:1px solid rgba(220,38,38,.2);
-              background:rgba(220,38,38,.05);
-              color:#dc2626
-            "
-          >
-            ✗ Reject
-          </button>
-
-        </div>
-
-        ${secondAttemptWarning}
-      `;
+      // Accept + Reject only when pending
+      if (proposalStatus === "pending") {
+        proposalActions = `
+          ${viewDownload}
+          <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">
+            <button onclick="updateProposalStatus('${g._id}','approved')"
+              style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+                     border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
+                     border:1px solid rgba(21,128,61,.2);background:rgba(21,128,61,.06);color:#15803d">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              Accept
+            </button>
+            <button onclick="updateProposalStatus('${g._id}','rejected')"
+              style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+                     border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
+                     border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:#dc2626">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Reject
+            </button>
+          </div>
+          ${secondAttemptWarning}`;
+      } else {
+        // Approved or rejected — only view/download, no action buttons
+        proposalActions = viewDownload;
+      }
     }
 
-    // ─────────────────────────────
-    // TABLE ROW
-    // ─────────────────────────────
+    // ── Table row ──
     return `
       <tr>
+        <td><span class="id-pill gold">${teamCode}</span></td>
 
-        <td>
-          <span class="id-pill gold">
-            ${teamCode}
-          </span>
-        </td>
+        <td>${g.project_title || "—"}</td>
 
-        <td>
-          ${g.project_title || "—"}
-        </td>
-
-        <td>
-          <span style="font-weight:600;color:var(--text)">
-            ${supName}
-          </span>
-        </td>
+        <td><span style="font-weight:600;color:var(--text)">${supName}</span></td>
 
         <td>
           ${proposalBadge}
@@ -1036,28 +1104,26 @@ function renderTeamsTable(list) {
 
         <td>
           <div class="action-row">
-
-            <button
-              class="icon-action"
-              title="Reassign supervisor"
-              onclick="event.stopPropagation();openReassignModal('${g._id}')"
-            >
-              🔄
+            <button class="icon-action" title="Reassign supervisor"
+              onclick="event.stopPropagation();openReassignModal('${g._id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <polyline points="1 4 1 10 7 10"/>
+                <polyline points="23 20 23 14 17 14"/>
+                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+              </svg>
             </button>
-
-            <button
-              class="icon-action"
-              title="View team"
-              onclick="event.stopPropagation();openTeamDetail('${g._id}')"
-            >
-              👁
+            <button class="icon-action" title="View team"
+              onclick="event.stopPropagation();openTeamDetail('${g._id}')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
             </button>
-
           </div>
         </td>
-
-      </tr>
-    `;
+      </tr>`;
   }).join("");
 }
 
@@ -1162,15 +1228,15 @@ function openReassignModal(teamId) {
   $("#reassignTeamName").textContent = team.group_code || team.team_code;
 
   $("#currentSup").value = currentSup
-  ? `${withPrefix(currentSup.name, currentSup.is_chairman)} (${currentSup.sup_code})`
-  : "Unassigned";
+    ? `${formatName(currentSup.prefix, currentSup.name)} (${currentSup.sup_code})`
+    : "Unassigned";
 
   const select = $("#newSup");
 
   select.innerHTML =
     '<option value="">— Choose a supervisor —</option>' +
     SUPERVISORS_DATA
-    .map(s => `<option value="${s._id}">${withPrefix(s.name, s.is_chairman)} · ${s.sup_code}</option>`)
+      .map(s => `<option value="${s._id}">${formatName(s.prefix, s.name)} · ${s.sup_code}</option>`)
       .join("");
 
   $("#reassignModal").classList.add("open");
@@ -1348,19 +1414,54 @@ function renderDocBadge(label, url, required, studentName, uploaderName = "", st
           <circle cx="12" cy="12" r="3"/>
         </svg>
       </button>
-      <button class="doc-btn dl" title="Download ${label}" onclick="downloadDoc('${url}','${studentName}_${label}')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-      </button>
     </div>`;
 }
 
 function viewDoc(url) {
   if (!url) return toast("No document", "File not available", "warn");
-  window.open(`http://127.0.0.1:5001${url}`, "_blank", "noopener");
+
+  // S3 URLs are full URLs (start with http/https) — open directly
+  // Local paths get prefixed with the API base
+  const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+
+  window.open(finalUrl, "_blank", "noopener");
+}
+
+async function downloadDoc(url, filename) {
+  if (!url) return toast("No document", "File not available", "warn");
+
+  const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+  const safeFilename = (filename || "document").replace(/[^\w\-\.]/g, "_");
+
+  try {
+    // Fetch the file as a blob → forces download instead of opening in browser
+    const response = await fetch(finalUrl);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    // Detect extension from URL
+    const ext = finalUrl.split(".").pop().split("?")[0].toLowerCase();
+    const filenameWithExt = safeFilename.endsWith(`.${ext}`)
+      ? safeFilename
+      : `${safeFilename}.${ext}`;
+
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = filenameWithExt;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    // Clean up
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+
+    toast("Downloaded", filenameWithExt, "success");
+  } catch (err) {
+    console.error("Download error:", err);
+    toast("Download failed", err.message, "error");
+  }
 }
 
 function downloadDoc(url, filename) {
@@ -1693,17 +1794,19 @@ async function submitSupervisor() {
 /* ════════════════════════════════════
    EDIT SUPERVISOR
 ══════════════════════════════════════ */
-// Change signature to include prefix
 function openEditSupModal(id, prefix, name, email, whatsapp, role) {
-  document.getElementById("editSupId").value        = id;
-  document.getElementById("editSupPrefix").value    = prefix || "";  
-  document.getElementById("editSupName").value      = name;
-  document.getElementById("editSupEmail").value     = email;
-  document.getElementById("editSupWhatsapp").value  = whatsapp;
-  document.getElementById("editSupRole").value      = role;
-  setTimeout(() => document.getElementById("editSupModal").classList.add("open"), 10);
-}
+  const get = (elId) => document.getElementById(elId);
+  if (!get("editSupModal")) { console.error("editSupModal not found in DOM"); return; }
 
+  if (get("editSupId"))       get("editSupId").value       = id;
+  if (get("editSupPrefix"))   get("editSupPrefix").value   = prefix || "";
+  if (get("editSupName"))     get("editSupName").value     = name;
+  if (get("editSupEmail"))    get("editSupEmail").value    = email;
+  if (get("editSupWhatsapp")) get("editSupWhatsapp").value = whatsapp;
+  if (get("editSupRole"))     get("editSupRole").value     = role;
+
+  get("editSupModal").classList.add("open");
+}
 function closeEditSupModal() {
   document.getElementById("editSupModal").classList.remove("open");
 }

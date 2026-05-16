@@ -42,7 +42,7 @@ const supervisorSchema = new mongoose.Schema({
 
   designation: {
     type: String,
-    default: "Lecturer",
+    default: "Supervisor",
   },
 
   office: {

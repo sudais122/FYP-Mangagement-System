@@ -52,10 +52,10 @@ export const addSupervisor = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      designation: designation || "Lecturer",
+      designation: designation || "Supervisor",
       office: office || "",
       whatsapp: whatsapp || "",
-      prefix: prefix || "Mr", // ✅ FIX: store prefix properly
+      prefix: prefix || "Mr", 
       is_chairman: is_chairman === true,
       role: is_chairman === true ? "chairman" : "supervisor",
       sup_code

@@ -123,31 +123,52 @@ async function loadDashboard() {
     });
 
     const data = await response.json();
-    console.log(data); // ← see what's actually coming back
+    console.log(data);
     console.log("group fields:", Object.keys(data.group));
     console.log("team_code value:", data.group.team_code);
+
     if (!response.ok) {
       throw new Error(data.message || "Failed to load dashboard");
     }
 
     if (data.hasGroup) {
       STATE.teamCreated = true;
-      STATE.teamId = data.group.team_code || data.group.group_code || data.group._id;
-      console.log("Team ID set to:", STATE.teamId);
+      STATE.teamId =
+        data.group.team_code || data.group.group_code || data.group._id;
+
       STATE.projectTitle = data.group.project_title;
       STATE.category = data.group.category;
       STATE.teamRole = data.student.team_role;
       STATE.groupData = data.group;
+
+      // Proposal state
       const proposalStatus = data.group.proposal_status;
-      const proposalUrl    = data.group.proposal_url;
+      const proposalUrl = data.group.proposal_url;
+
       if (proposalUrl) {
         STATE.proposalState = proposalStatus || "pending";
-        STATE.proposalFile  = data.group.proposal_filename || data.group.proposal_url;
+        STATE.proposalFile =
+          data.group.proposal_filename || data.group.proposal_url;
       } else {
         STATE.proposalState = "idle";
       }
+
       STATE.members = [];
 
+      if (
+        data.group.leader &&
+        data.group.leader.student_code !== STATE.studentId
+      ) {
+        STATE.members.push({
+          id: data.group.leader._id,
+          student_code: data.group.leader.student_code,
+          name: data.group.leader.name,
+          initials: initials(data.group.leader.name),
+          avatar_url: data.group.leader.avatar_url || "",
+          gender: data.group.leader.gender || "male",
+          role: "Leader",
+        });
+      }
 
       if (data.group.members) {
         data.group.members.forEach((m) => {
@@ -157,6 +178,8 @@ async function loadDashboard() {
               student_code: m.student_code,
               name: m.name,
               initials: initials(m.name),
+              avatar_url: m.avatar_url || "",
+              gender: m.gender || "male",
               role: "Member",
             });
           }
@@ -164,37 +187,39 @@ async function loadDashboard() {
       }
 
       // Populate supervisor
-if (data.group.supervisor) {
-  STATE.selectedSupervisor = data.group.supervisor._id;
-  STATE.supervisorData = {
-  _id:            data.group.supervisor._id,
-  prefix:         data.group.supervisor.prefix || "",
-  name:           data.group.supervisor.name,
-  email:          data.group.supervisor.email,
-  designation:    data.group.supervisor.designation || "Faculty Member",
-  research_areas: data.group.supervisor.research_areas || [],
-  office:         data.group.supervisor.office || "CS Department",
-  office_hours:   data.group.supervisor.office_hours || "Contact supervisor",
-  sup_code:       data.group.supervisor.sup_code,
-  whatsapp:       data.group.supervisor.whatsapp || "",
-  avatar_url:     data.group.supervisor.avatar_url || "",   
-};
-}
-      // Update UI
+      if (data.group.supervisor) {
+        STATE.selectedSupervisor = data.group.supervisor._id;
+        STATE.supervisorData = {
+          _id: data.group.supervisor._id,
+          prefix: data.group.supervisor.prefix || "",
+          name: data.group.supervisor.name,
+          email: data.group.supervisor.email,
+          designation:
+            data.group.supervisor.designation || "Faculty Member",
+          research_areas:
+            data.group.supervisor.research_areas || [],
+          office:
+            data.group.supervisor.office || "CS Department",
+          office_hours:
+            data.group.supervisor.office_hours ||
+            "Contact supervisor",
+          sup_code: data.group.supervisor.sup_code,
+          whatsapp: data.group.supervisor.whatsapp || "",
+          avatar_url: data.group.supervisor.avatar_url || "",
+        };
+      }
+
       updateDashboardUI();
       renderTeamTab();
       updateBannerForTeam();
       renderSupervisorTab();
     } else {
-      // User is NOT part of a team - show setup
       setTimeout(() => openSetup(), 500);
     }
   } catch (error) {
-    console.error("Dashboard load error:", error);
-    toast("Failed to load dashboard: " + error.message, "red");
+    console.error(error);
   }
 }
-
 // Search for student by code
 async function searchStudentByCode(studentCode) {
   try {
@@ -984,16 +1009,29 @@ function goStep2() {
   const projInput = document.getElementById("s1-proj");
   const categoryInput = document.getElementById("s1-cat");
 
-  if (!projInput) {
-    toast("Project title field not found", "red");
+  if (!projInput || !categoryInput) {
+    toast("Form fields missing", "red");
     return;
   }
 
   const proj = projInput.value.trim();
-  const category = categoryInput ? categoryInput.value.trim() : "";
+  const category = categoryInput.value.trim();
 
   if (!proj) {
-    toast("Please fill in Project Title", "red");
+    toast("Please enter the project title", "red");
+    projInput.focus();
+    return;
+  }
+
+  if (!category) {
+    toast("Please select a project category (Web/AI/App/etc.)", "red");
+    categoryInput.focus();
+    return;
+  }
+
+  if (proj.length < 5) {
+    toast("Project title must be at least 5 characters", "red");
+    projInput.focus();
     return;
   }
 
@@ -1007,7 +1045,6 @@ function goStep2() {
   clearSearch();
   showStep(2);
 }
-
 function backStep1() {
   showStep(1);
 }
@@ -1078,43 +1115,61 @@ async function finishSetup() {
     return;
   }
 
-  // Call backend API to create team
+  if (!STATE.projectTitle || !STATE.category) {
+    toast("Project title and category are required — go back to Step 1", "red");
+    return;
+  }
+
   toast("Creating team...", "gold");
 
   const result = await createTeamAPI();
 
   if (result.error) {
-    toast("Failed to create team: " + result.error, "red");
+    let msg = result.error;
+
+    if (msg.toLowerCase().includes("already")) {
+      msg = "You are already part of a team. Please refresh the page.";
+    } else if (msg.toLowerCase().includes("not found")) {
+      msg = "A team member could not be found. Check student codes.";
+    }
+
+    toast("Failed: " + msg, "red");
     return;
   }
 
-STATE.teamCreated = true;
-STATE.teamId = result.group.team_code || result.group.group_code || result.group._id;
+  STATE.teamCreated = true;
+  STATE.teamId =
+    result.group.team_code ||
+    result.group.group_code ||
+    result.group._id;
 
-// Reset marks for new teamx
-STUDENT_MARKS = {};
+  STUDENT_MARKS = {};
 
-updateDashboardUI();
-updateBannerForTeam();
+  updateDashboardUI();
+  updateBannerForTeam();
 
+  const selSup = SUPERVISORS.find(
+    (s) => s.id === STATE.selectedSupervisor
+  );
 
-const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
-if (result.group?.supervisor) {
-  const sup = result.group.supervisor;
-  STATE.supervisorData = {
-    _id:            sup._id,
-    prefix:         sup.prefix || "",
-    name:           sup.name,
-    email:          sup.email,
-    designation:    sup.designation || "Faculty Member",
-    research_areas: sup.research_areas || [],
-    office:         sup.office || "CS Department",
-    office_hours:   sup.office_hours || "Contact supervisor",
-    sup_code:       sup.sup_code,
-    whatsapp:       sup.whatsapp || "",
-    avatar_url: sup.avatar_url || "",
-  };
-}
+  if (result.group?.supervisor) {
+    const sup = result.group.supervisor;
+
+    STATE.supervisorData = {
+      _id: sup._id,
+      prefix: sup.prefix || "",
+      name: sup.name,
+      email: sup.email,
+      designation: sup.designation || "Faculty Member",
+      research_areas: sup.research_areas || [],
+      office: sup.office || "CS Department",
+      office_hours: sup.office_hours || "Contact supervisor",
+      sup_code: sup.sup_code,
+      whatsapp: sup.whatsapp || "",
+      avatar_url: sup.avatar_url || "",
+    };
+  }
+
   const chips = [
     { icon: "id", text: STATE.teamId },
     {
@@ -1133,13 +1188,19 @@ if (result.group?.supervisor) {
         (STATE.members.length !== 0 ? "s" : ""),
     },
   ];
-if (selSup) chips.push({ icon: "sup", text: formatName(selSup.prefix, selSup.name) });
+
+  if (selSup) {
+    chips.push({
+      icon: "sup",
+      text: formatName(selSup.prefix, selSup.name),
+    });
+  }
 
   const svgMap = {
-    id: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/></svg>`,
-    proj: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>`,
-    members: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`,
-    sup: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+    id: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/></svg>`,
+    proj: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>`,
+    members: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`,
+    sup: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
   };
 
   const summaryChips = document.getElementById("summary-chips");
@@ -1223,23 +1284,6 @@ async function _doSearch(val) {
     <button class="sr-add" onclick="addMember('${foundUser.student_code}','${foundUser.name}','${foundUser.initials}')">+ Add</button>
   </div>`;
   res.classList.add("show");
-}
-
-function addMember(studentCode, name, ini) {
-  if (STATE.members.length >= 2) {
-    toast("Team is full", "red");
-    return;
-  }
-  STATE.members.push({ student_code: studentCode, name, initials: ini });
-
-  const memberSearch = document.getElementById("member-search");
-  const searchResult = document.getElementById("search-result");
-
-  if (memberSearch) memberSearch.value = "";
-  if (searchResult) searchResult.classList.remove("show");
-
-  renderMemberSlots();
-  toast(name + " added to team ✓");
 }
 
 function removeMember(idx) {
@@ -1427,6 +1471,18 @@ function openAddMemberModal() {
   const step2 = document.getElementById("setup-step-2");
   if (step2) step2.style.display = "block";
 
+  // ── Populate team ID display ──
+  const displayTeamId = document.getElementById("display-team-id");
+  if (displayTeamId) displayTeamId.textContent = STATE.teamId || "—";
+
+  // ── Populate leader info too ──
+  const leaderStdId = document.getElementById("leader-std-id");
+  const leaderName  = document.getElementById("leader-name");
+  const leaderAv    = document.getElementById("leader-av");
+  if (leaderStdId) leaderStdId.textContent = STATE.studentId;
+  if (leaderName)  leaderName.textContent  = STATE.studentName;
+  if (leaderAv)    leaderAv.textContent    = initials(STATE.studentName);
+
   // Swap the footer to Add Member mode
   const footer = step2.querySelector(".setup-footer");
   if (footer) {
@@ -1448,20 +1504,10 @@ function openAddMemberModal() {
       </button>`;
   }
 
-  // Reset search box
   clearSearch();
   renderMemberSlots();
 
   setupOverlay.style.display = "flex";
-}
-
-function saveNewMember() {
-  if (STATE.members.length <= memberCountBeforeModal) {
-    toast("Please search and add a member before saving", "red");
-    return;
-  }
-  closeAddMemberModal();
-  toast("Member added successfully ✓");
 }
 
 function closeAddMemberModal() {
@@ -1495,23 +1541,6 @@ function saveNewMember() {
   toast("Member added successfully");
 }
 
-function closeAddMemberModal() {
-  const setupOverlay = document.getElementById("setup-overlay");
-  if (setupOverlay) setupOverlay.style.display = "none";
-  // Restore step 2 footer for future use in setup flow
-  const footer = document.getElementById("setup-step-2")?.querySelector(".setup-footer");
-  if (footer) {
-footer.innerHTML = `
-  <button class="btn btn-ghost" onclick="closeAddMemberModal()">✕ Close</button>
-  <button class="btn btn-primary" onclick="saveNewMember()">
-    Save Member
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
-  </button>`;
-  }
-  // Remove close button
-  document.querySelector(".modal-close-btn")?.remove();
-  renderTeamTab();
-}
 
 /* ══ Render supervisor tab ══ */
 function renderSupervisorTab() {
@@ -1720,26 +1749,13 @@ async function addMember(studentCode, name, ini) {
     return;
   }
 
-  try {
-    const response = await fetch(`${API_BASE}/groups/${STATE.groupData._id}/add-member`, {
-      method: "PUT",
-      headers: API_HEADERS,
-      body: JSON.stringify({ student_code: studentCode }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      toast(data.message || "Failed to add member", "red");
-      return;
-    }
-
-    // Update local state with returned data
+  // ── CASE 1: Team not yet created (during initial setup Step 2) ──
+  // Just add locally; will be sent to backend in finishSetup()
+  if (!STATE.teamCreated || !STATE.groupData?._id) {
     STATE.members.push({
-      _id: data.member._id,
-      student_code: data.member.student_code,
-      name: data.member.name,
-      initials: initials(data.member.name),
+      student_code: studentCode,
+      name: name,
+      initials: ini,
       role: "Member",
     });
 
@@ -1750,12 +1766,50 @@ async function addMember(studentCode, name, ini) {
 
     renderMemberSlots();
     toast(name + " added to team ✓");
+    return;
+  }
+
+  // ── CASE 2: Team already exists (clicking "Add Member" from dashboard) ──
+  // Call backend API to add member to existing team
+  try {
+    const response = await fetch(`${API_BASE}/groups/${STATE.groupData._id}/add-member`, {
+      method: "PUT",
+      headers: API_HEADERS,
+      body: JSON.stringify({ student_code: studentCode }),
+    });
+
+    const data = await response.json();
+    console.log("Add member response:", response.status, data);
+
+    if (!response.ok) {
+      toast(data.message || "Failed to add member", "red");
+      return;
+    }
+
+    // Add to local state
+    STATE.members.push({
+      _id: data.member?._id,
+      student_code: data.member?.student_code || studentCode,
+      name: data.member?.name || name,
+      initials: initials(data.member?.name || name),
+      role: "Member",
+    });
+
+    if (data.group) STATE.groupData = data.group;
+
+    const memberSearch = document.getElementById("member-search");
+    const searchResult = document.getElementById("search-result");
+    if (memberSearch) memberSearch.value = "";
+    if (searchResult) searchResult.classList.remove("show");
+
+    renderMemberSlots();
+    toast(name + " added to team ✓");
 
   } catch (error) {
+    console.error("Add member error:", error);
     toast("Failed to add member: " + error.message, "red");
   }
 }
-
 async function uploadCV(file) {
   const user = JSON.parse(localStorage.getItem("user"));
   const formData = new FormData();
