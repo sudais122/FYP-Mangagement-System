@@ -169,6 +169,14 @@
   </svg>
   <span>Deadlines</span>
 </a>
+<a class="nav-item" data-view="student-lookup">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="11" cy="11" r="8"/>
+    <path d="m21 21-4.35-4.35"/>
+  </svg>
+  <span>Student Lookup</span>
+</a>
       </div>
     </aside>
 
@@ -477,7 +485,6 @@
         </div>
         <div id="studentsPagination"></div>
       </section>
-      <!-- Add before closing </main> tag -->
       <section class="view" id="view-settings">
         <div class="section-head">
           <div class="section-head-text">
@@ -551,8 +558,75 @@
     </div>
   </div>
 </section>
+<!-- ───── STUDENT LOOKUP VIEW ───── -->
+<section class="view" id="view-student-lookup">
+  <div class="section-head">
+    <div class="section-head-text">
+      <h2>Student Lookup</h2>
+      <p>Search any student and view their full profile — team, supervisor, marks and documents</p>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="dash-panel" style="margin-bottom:20px">
+    <div class="panel-body" style="padding:20px 24px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+
+        <div style="flex:1;min-width:200px">
+          <label style="font-size:.72rem;font-weight:700;color:var(--text-mute);
+                         text-transform:uppercase;letter-spacing:.06em;
+                         display:block;margin-bottom:6px">
+            Search By
+          </label>
+          <select id="lookupField" class="form-select" style="width:100%">
+            <option value="name">Student Name</option>
+            <option value="email">Email</option>
+            <option value="student_code">Student ID</option>
+            <option value="team_id">Team ID</option>
+            <option value="project_title">Project Title</option>
+            <option value="supervisor">Supervisor Name</option>
+          </select>
+        </div>
+
+        <div style="flex:3;min-width:260px">
+          <label style="font-size:.72rem;font-weight:700;color:var(--text-mute);
+                         text-transform:uppercase;letter-spacing:.06em;
+                         display:block;margin-bottom:6px">
+            Search Query
+          </label>
+          <div class="filter-search" style="margin:0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="lookupQuery"
+                   placeholder="Type to search…"
+                   oninput="runStudentLookup()"
+                   style="width:100%"/>
+          </div>
+        </div>
+
+        <button onclick="clearStudentLookup()"
+          style="padding:10px 18px;border:1px solid var(--border);border-radius:9px;
+                 background:var(--bg);color:var(--text-soft);font-size:.82rem;
+                 font-weight:600;cursor:pointer;white-space:nowrap;height:42px;
+                 align-self:flex-end">
+          Clear
+        </button>
+
+      </div>
+
+      <div id="lookupResultCount"
+           style="margin-top:12px;font-size:.76rem;color:var(--text-mute);
+                  font-weight:600;display:none">
+      </div>
+    </div>
+  </div>
+
+  <div id="lookupResults"></div>
+</section>
     </main>
-    <!-- ═══ ADD SUPERVISOR MODAL ═══ -->
 <!-- ═══ ADMIN AVATAR MODAL ═══ -->
 <div class="modal-overlay" id="adminAvatarModal" onclick="if(event.target===this)closeAdminAvatarModal()">
   <div class="modal-box" style="max-width:400px" onclick="event.stopPropagation()">

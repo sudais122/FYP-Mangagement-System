@@ -181,6 +181,7 @@ function switchView(view) {
   $("#sidebar").classList.remove("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (view === "deadlines") renderDeadlines();
+  if (view === "student-lookup") { runStudentLookup(); }
 }
 
 $$(".nav-item").forEach((item) => {
@@ -510,47 +511,92 @@ function renderSupDetailTeamPage(groups, page) {
   const start      = (page - 1) * perPage;
   const slice      = groups.slice(start, start + perPage);
 
-  // Remove old team blocks + pagination if re-rendering
+  // Store globally for pagination button access
+  window._supGroups = groups;
+
+  // Remove old team blocks + old pagination
   document.querySelectorAll(".team-block, #sup-team-pagination").forEach(el => el.remove());
 
   const container = document.getElementById("supDetailContent");
+  if (!container) return;
 
-  // Render team blocks for this page
+  // Render this page's team blocks
   slice.forEach(group => {
     container.insertAdjacentHTML("beforeend", renderTeamBlockFromDB(group));
   });
 
-  // Render pagination
+  // Render pagination bar
+  const pag = document.createElement("div");
+  pag.id = "sup-team-pagination";
+  pag.style.cssText = `
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 20px;margin-top:12px;
+    background:var(--surface);border-radius:var(--radius);
+    border:1px solid var(--border-soft);
+    flex-wrap:wrap;gap:10px;
+  `;
+
+  const btnStyle = (active) => `
+    width:32px;height:32px;border-radius:7px;
+    border:1px solid ${active ? "var(--primary)" : "var(--border)"};
+    background:${active ? "var(--primary)" : "var(--surface)"};
+    color:${active ? "#fff" : "var(--text)"};
+    font-size:.78rem;font-weight:${active ? "700" : "600"};
+    cursor:pointer;transition:background .15s;
+  `;
+
+  // Build page number buttons
+  let btns = "";
+
+  // Prev button
+  btns += `
+    <button onclick="renderSupDetailTeamPage(window._supGroups,${page - 1})"
+      ${page === 1 ? "disabled" : ""}
+      style="${btnStyle(false)}opacity:${page === 1 ? ".4" : "1"};cursor:${page === 1 ? "not-allowed" : "pointer"}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           width="13" height="13">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>`;
+
+  // Page numbers
+  for (let i = 1; i <= totalPages; i++) {
+    btns += `
+      <button onclick="renderSupDetailTeamPage(window._supGroups,${i})"
+        style="${btnStyle(i === page)}">
+        ${i}
+      </button>`;
+  }
+
+  // Next button
+  btns += `
+    <button onclick="renderSupDetailTeamPage(window._supGroups,${page + 1})"
+      ${page === totalPages ? "disabled" : ""}
+      style="${btnStyle(false)}opacity:${page === totalPages ? ".4" : "1"};cursor:${page === totalPages ? "not-allowed" : "pointer"}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           width="13" height="13">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>`;
+
+  const showing_start = start + 1;
+  const showing_end   = Math.min(start + perPage, groups.length);
+
+  pag.innerHTML = `
+    <span style="font-size:.76rem;color:var(--text-mute);font-weight:600">
+      Showing <strong style="color:var(--text)">${showing_start}–${showing_end}</strong>
+      of <strong style="color:var(--text)">${groups.length}</strong> teams
+    </span>
+    <div style="display:flex;gap:4px;align-items:center">
+      ${btns}
+    </div>`;
+
   if (totalPages > 1) {
-    const pag = document.createElement("div");
-    pag.id = "sup-team-pagination";
-    pag.style.cssText = "display:flex;align-items:center;justify-content:center;gap:6px;padding:20px 0";
-
-    let btns = "";
-    for (let i = 1; i <= totalPages; i++) {
-      const active = i === page;
-      btns += `
-        <button onclick="renderSupDetailTeamPage(window._supGroups, ${i})"
-          style="width:32px;height:32px;border-radius:7px;border:1px solid ${active ? "var(--primary)" : "var(--border)"};
-                 background:${active ? "var(--primary)" : "var(--surface)"};color:${active ? "#fff" : "var(--text)"};
-                 font-size:.78rem;font-weight:${active ? "700" : "600"};cursor:pointer">
-          ${i}
-        </button>`;
-    }
-
-    pag.innerHTML = `
-      <span style="font-size:.76rem;color:var(--text-mute);margin-right:8px">
-        Page ${page} of ${totalPages} · ${groups.length} teams
-      </span>
-      ${btns}`;
-
     container.appendChild(pag);
   }
 
-  // Store groups globally so pagination buttons can access them
-  window._supGroups = groups;
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
-
 /* ════════════════════════════════════
    SUPERVISOR DETAIL
 ══════════════════════════════════════ */
@@ -658,11 +704,18 @@ let html = `
     </div>
   </div>`;
 
+$("#supDetailContent").innerHTML = html;
+
     if (groups.length === 0) {
-      html += `<div class="dash-panel"><div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">No teams assigned yet.</div></div>`;
-      $("#supDetailContent").innerHTML = html;
+      $("#supDetailContent").insertAdjacentHTML("beforeend",
+        `<div class="dash-panel">
+           <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
+             No teams assigned yet.
+           </div>
+         </div>`
+      );
     } else {
-      $("#supDetailContent").innerHTML = html;
+      window._supGroups = groups;
       renderSupDetailTeamPage(groups, 1);
     }
 
@@ -1760,7 +1813,7 @@ function closeSupervisorModal() {
 async function submitSupervisor() {
   const admin = JSON.parse(localStorage.getItem("admin"));
 
-  const prefix     = $("#supPrefix").value.trim();       // ← ADD
+  const prefix     = $("#supPrefix").value.trim();       
   const name       = $("#supName").value.trim();
   const email      = $("#supEmail").value.trim();
   const pwd        = $("#supPassword").value.trim();
@@ -2420,6 +2473,301 @@ function supAvatar(sup, size = 48, radius = 12) {
                  place-items:center">
       ${initials(sup.name)}
     </span>`;
+}
+/* ════════════════════════════════════
+   STUDENT LOOKUP
+══════════════════════════════════════ */
+
+function runStudentLookup() {
+  const field   = document.getElementById("lookupField")?.value   || "name";
+  const query   = (document.getElementById("lookupQuery")?.value  || "").trim().toLowerCase();
+  const results = document.getElementById("lookupResults");
+  const count   = document.getElementById("lookupResultCount");
+
+  if (!results) return;
+
+  // Need data loaded
+  if (!Array.isArray(STUDENTS_DATA) || !STUDENTS_DATA.length) {
+    results.innerHTML = `
+      <div class="dash-panel">
+        <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
+          No student data loaded yet — go to Students tab first.
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (!query) {
+    results.innerHTML = `
+      <div class="dash-panel">
+        <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+               stroke-linecap="round" width="48" height="48"
+               style="margin:0 auto 16px;display:block;color:var(--border)">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <p style="font-size:.88rem">Enter a search term above to find students</p>
+        </div>
+      </div>`;
+    if (count) count.style.display = "none";
+    return;
+  }
+
+  // Filter based on selected field
+  const matched = STUDENTS_DATA.filter(s => {
+    switch (field) {
+      case "name":          return matches(s.name, query);
+      case "email":         return matches(s.email, query);
+      case "student_code":  return matches(s.student_code, query);
+      case "team_id":       return matches(s.group?.team_code || s.group?.group_code, query);
+      case "project_title": return matches(s.group?.project_title, query);
+      case "supervisor":    return matches(s.group?.supervisor?.name, query)
+                                || matches(s.group?.supervisor?.sup_code, query);
+      default:              return matches(s.name, query);
+    }
+  });
+
+  // Show count
+  if (count) {
+    count.textContent  = `${matched.length} student${matched.length !== 1 ? "s" : ""} found`;
+    count.style.display = "block";
+    count.style.color   = matched.length ? "var(--primary)" : "#dc2626";
+  }
+
+  if (!matched.length) {
+    results.innerHTML = `
+      <div class="dash-panel">
+        <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
+          No students match your search.
+        </div>
+      </div>`;
+    return;
+  }
+
+  results.innerHTML = matched.map(s => renderStudentLookupCard(s, query)).join("");
+}
+
+function clearStudentLookup() {
+  const q = document.getElementById("lookupQuery");
+  const c = document.getElementById("lookupResultCount");
+  const r = document.getElementById("lookupResults");
+  if (q) q.value = "";
+  if (c) c.style.display = "none";
+  if (r) r.innerHTML = "";
+  runStudentLookup();
+}
+
+function renderStudentLookupCard(s, query = "") {
+  const sup          = s.group?.supervisor;
+  const supName      = sup ? formatName(sup.prefix, sup.name) : "Not assigned";
+  const supCode      = sup?.sup_code  || "—";
+  const supEmail     = sup?.email     || "—";
+  const supWhatsapp  = sup?.whatsapp  || "—";
+  const teamCode     = s.group?.team_code || s.group?.group_code || "—";
+  const projTitle    = s.group?.project_title || "—";
+  const category     = s.group?.category || "—";
+  const totalMarks   = s.total_marks || 0;
+  const cvUrl        = s.cv_url || "";
+  const proposalUrl  = s.group?.proposal_url || "";
+  const propStatus   = s.group?.proposal_status || "";
+  const memberCount  = (s.group?.members?.length || 0) + 1;
+
+  // Proposal status badge
+  const propBadge = !proposalUrl
+    ? `<span style="font-size:.7rem;color:var(--text-mute);font-style:italic">Not submitted</span>`
+    : propStatus === "approved"
+      ? `<span style="padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(21,128,61,.1);color:#15803d">✓ Approved</span>`
+      : propStatus === "rejected"
+        ? `<span style="padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(220,38,38,.08);color:#dc2626">✗ Rejected</span>`
+        : `<span style="padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(234,179,8,.1);color:#a16207">⏳ Pending</span>`;
+
+  // Mark color
+  const markPct   = Math.round((totalMarks / MAX_TOTAL) * 100);
+  const markColor = markPct >= 75 ? "#15803d" : markPct >= 50 ? "#a16207" : "#dc2626";
+
+  return `
+    <div class="dash-panel" style="margin-bottom:16px;overflow:hidden">
+
+      <!-- Student Header -->
+      <div style="padding:20px 24px;background:linear-gradient(135deg,rgba(0,75,45,.04),rgba(191,161,74,.04));
+                  border-bottom:1px solid var(--border-soft);
+                  display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+
+        <div style="width:52px;height:52px;border-radius:14px;flex-shrink:0;overflow:hidden;
+                    background:linear-gradient(135deg,var(--primary),var(--secondary));
+                    display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.1rem">
+          ${initials(s.name)}
+        </div>
+
+        <div style="flex:1;min-width:180px">
+          <div style="font-size:1rem;font-weight:800;color:var(--primary-dark);margin-bottom:3px">
+            ${highlightText(s.name, query)}
+          </div>
+          <div style="font-size:.76rem;color:var(--text-mute)">
+            ${highlightText(s.email || "—", query)}
+          </div>
+          <div style="font-size:.72rem;color:#15803d;font-weight:600;margin-top:3px;
+                      display:inline-flex;align-items:center;gap:4px">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11">
+              <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
+            </svg>
+            ${s.whatsapp || "—"}
+          </div>
+        </div>
+
+        <!-- Quick stats pills -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span class="id-pill">${highlightText(s.student_code || "—", query)}</span>
+          <span class="id-pill gold">${highlightText(teamCode, query)}</span>
+          <span style="padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:700;
+                       background:rgba(0,75,45,.08);color:var(--primary)">
+            ${s.team_role || "Member"}
+          </span>
+          <span style="padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:700;
+                       background:rgba(${markColor === '#15803d' ? '21,128,61' : markColor === '#a16207' ? '161,98,7' : '220,38,38'},.1);
+                       color:${markColor}">
+            ${totalMarks}/${MAX_TOTAL} marks
+          </span>
+        </div>
+
+        <!-- Action buttons -->
+        <div style="display:flex;gap:8px;margin-left:auto">
+          ${sup?._id ? `
+            <button onclick="openSupDetail('${sup._id}')"
+              style="padding:8px 14px;border-radius:9px;font-size:.76rem;font-weight:700;
+                     cursor:pointer;border:1px solid rgba(0,75,45,.2);
+                     background:rgba(0,75,45,.06);color:var(--primary)">
+              View Marks
+            </button>` : ""}
+          <button onclick="deleteStudent('${s._id}','${(s.name||"").replace(/'/g,"\\'")}')"
+            style="padding:8px 14px;border-radius:9px;font-size:.76rem;font-weight:700;
+                   cursor:pointer;border:1px solid rgba(220,38,38,.2);
+                   background:rgba(220,38,38,.06);color:#dc2626">
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <!-- Detail Grid -->
+      <div style="padding:20px 24px;display:grid;
+                  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
+
+        <!-- Project Info -->
+        <div>
+          <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;
+                      letter-spacing:.08em;color:var(--text-mute);margin-bottom:10px;
+                      padding-bottom:6px;border-bottom:1px solid var(--border-soft)">
+            Project
+          </div>
+          <div class="proj-row">
+            <span class="proj-key">Title</span>
+            <span class="proj-val" style="font-weight:600">
+              ${highlightText(projTitle, query)}
+            </span>
+          </div>
+          <div class="proj-row">
+            <span class="proj-key">Team Size</span>
+            <span class="proj-val">${memberCount} member${memberCount !== 1 ? "s" : ""}</span>
+          </div>
+          <div class="proj-row">
+            <span class="proj-key">Proposal</span>
+            <span class="proj-val">
+              ${propBadge}
+              ${proposalUrl ? `
+                <button onclick="viewDoc('${proposalUrl}')"
+                  style="margin-left:6px;padding:2px 8px;border-radius:5px;font-size:.66rem;
+                         font-weight:700;cursor:pointer;border:1px solid rgba(0,75,45,.2);
+                         background:rgba(0,75,45,.06);color:var(--primary)">
+                  View
+                </button>` : ""}
+            </span>
+          </div>
+        </div>
+
+        <!-- Supervisor Info -->
+        <div>
+          <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;
+                      letter-spacing:.08em;color:var(--text-mute);margin-bottom:10px;
+                      padding-bottom:6px;border-bottom:1px solid var(--border-soft)">
+            Supervisor
+          </div>
+          <div class="proj-row">
+            <span class="proj-key">Name</span>
+            <span class="proj-val" style="font-weight:700;color:var(--primary-dark)">
+              ${highlightText(supName, query)}
+            </span>
+          </div>
+          <div class="proj-row">
+            <span class="proj-key">SUP ID</span>
+            <span class="proj-val"><span class="id-pill">${supCode}</span></span>
+          </div>
+          <div class="proj-row">
+            <span class="proj-val">
+          </div>
+          <div class="proj-row">
+            <span class="proj-key">WhatsApp</span>
+            <span class="proj-val">
+              ${sup?.whatsapp
+                ? `<a href="https://wa.me/${sup.whatsapp.replace(/^0/,'92').replace(/\D/g,'')}"
+                      target="_blank"
+                      style="color:#15803d;font-weight:600;text-decoration:none;font-size:.8rem">
+                     ${sup.whatsapp}
+                   </a>`
+                : `<span style="color:var(--text-mute)">—</span>`}
+            </span>
+          </div>
+        </div>
+
+        <!-- Documents & Marks -->
+        <div>
+          <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;
+                      letter-spacing:.08em;color:var(--text-mute);margin-bottom:10px;
+                      padding-bottom:6px;border-bottom:1px solid var(--border-soft)">
+            Documents & Marks
+          </div>
+
+          <!-- CV -->
+          <div class="proj-row">
+            <span class="proj-key">CV</span>
+            <span class="proj-val">
+              ${cvUrl
+                ? `<div class="doc-badge available" style="display:inline-flex">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+                       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                       <polyline points="14 2 14 8 20 8"/>
+                     </svg>
+                     <span class="doc-label">CV</span>
+                     <button class="doc-btn view" onclick="viewDoc('${cvUrl}')">
+                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                         <circle cx="12" cy="12" r="3"/>
+                       </svg>
+                     </button>
+                   </div>`
+                : `<span style="font-size:.72rem;color:var(--text-mute);font-style:italic">Not uploaded</span>`}
+            </span>
+          </div>
+
+          <!-- Marks progress bar -->
+          <div class="proj-row" style="display:block">
+            <span class="proj-key" style="display:block;margin-bottom:6px">Marks Progress</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="flex:1;height:8px;background:var(--border-soft);border-radius:4px;overflow:hidden">
+                <div style="height:100%;width:${markPct}%;background:${markColor};
+                            border-radius:4px;transition:width .6s ease"></div>
+              </div>
+              <span style="font-size:.76rem;font-weight:700;color:${markColor};white-space:nowrap">
+                ${totalMarks} / ${MAX_TOTAL}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>`;
 }
 /* ════════════════════════════════════
    GLOBAL DATA + INIT
