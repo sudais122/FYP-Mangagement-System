@@ -2099,3 +2099,13 @@ async function saveProjectDetails() {
   }
 }
 
+async function apiFetch(url, options = {}) {
+  const res = await fetch(url, options);
+
+  if (res.status === 429) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Too many requests. Please wait and try again.");
+  }
+
+  return res;
+}

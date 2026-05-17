@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import path from "path";
+import path   from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -7,9 +7,9 @@ const __dirname  = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, ".env") });
 
-import express from "express";
-import cors    from "cors";
-import connectDB from "./config/db.js";
+import express    from "express";
+import cors       from "cors";
+import connectDB  from "./config/db.js";
 
 import authRoutes       from "./Routes/authRoutes.js";
 import studentRoutes    from "./Routes/studentRoutes.js";
@@ -19,13 +19,13 @@ import deadlineRoutes   from "./Routes/deadlineRoutes.js";
 import supervisorRoutes from "./Routes/supervisorRoutes.js";
 import adminRoutes      from "./Routes/adminRoutes.js";
 import uploadRoutes     from "./Routes/uploadRoutes.js";
+import { globalLimiter } from "./middleware/rateLimiter.js";
 
 connectDB();
 
 const app  = express();
 const PORT = process.env.PORT || 5001;
 
-// ── CORS ──
 app.use(cors({
   origin: [
     "http://127.0.0.1:5500",
@@ -38,20 +38,20 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-//Body parsers 
+app.use(globalLimiter);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-//Routes
 app.use("/api/auth",        authRoutes);
 app.use("/api/students",    studentRoutes);
 app.use("/api/groups",      groupRoutes);
 app.use("/api/marks",       marksRoutes);
 app.use("/api/deadlines",   deadlineRoutes);
-app.use("/api/supervisors", supervisorRoutes);   
-app.use("/api/supervisor",  supervisorRoutes);   
+app.use("/api/supervisors", supervisorRoutes);
+app.use("/api/supervisor",  supervisorRoutes);
 app.use("/api/admin",       adminRoutes);
-app.use("/api/uploads",     uploadRoutes);       
+app.use("/api/uploads",     uploadRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "FYP Management System API is running" });

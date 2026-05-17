@@ -7,26 +7,31 @@ import {
   getProfile,
   verifyOtp
 } from "../controllers/authController.js";
-import { protect } from "../middleware/auth.js";
-import { handleUpload } from "../middleware/upload.js";   
+import { protect }      from "../middleware/auth.js";
+import { handleUpload } from "../middleware/upload.js";
+import {
+  loginLimiter,
+  registerLimiter,
+  forgotPasswordLimiter,
+} from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
-// AUTH
-router.post("/login", login);
+router.post("/login",
+  loginLimiter,
+  login
+);
 
-router.post(
-  "/register",
-  (req, res, next) => handleUpload("cvs", "cv")(req, res, next),   
+router.post("/register",
+  registerLimiter,
+  (req, res, next) => handleUpload("cvs", "cv")(req, res, next),
   registerStudent
 );
 
-// PASSWORD RESET
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
-router.post("/verify-otp", verifyOtp);
+router.post("/forgot-password",  forgotPasswordLimiter, forgotPassword);
+router.post("/verify-otp",       forgotPasswordLimiter, verifyOtp);
+router.post("/reset-password",   forgotPasswordLimiter, resetPassword);
 
-// PROFILE
 router.get("/profile", protect, getProfile);
 
 export default router;

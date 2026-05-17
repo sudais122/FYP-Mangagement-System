@@ -1,12 +1,12 @@
 import express from "express";
-import { 
-  addSupervisor, 
-  getDashboardStats, 
+import {
+  addSupervisor,
+  getDashboardStats,
   getAllStudentsForAdmin,
   getAllSupervisors,
   getAllGroups,
   adminSaveMarks,
-  getGroupMarks,  
+  getGroupMarks,
   deleteSupervisor,
   cleanupOrphanedTeams,
   deleteStudent,
@@ -15,40 +15,37 @@ import {
   updateSupervisor,
   saveMarks
 } from "../controllers/adminController.js";
-import {
-   getSupervisorDetail
-  } from "../controllers/supervisorController.js";
-
+import { getSupervisorDetail } from "../controllers/supervisorController.js";
 import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import { adminLimiter }       from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
+router.use(protect, adminOnly, adminLimiter);
+
 // Dashboard
-router.get("/stats", protect, adminOnly, getDashboardStats);
+router.get("/stats", getDashboardStats);
 
 // Supervisors
-router.post("/supervisors", protect, adminOnly, addSupervisor);
-router.get("/supervisors", protect, adminOnly, getAllSupervisors);
-router.delete("/supervisors/:id", protect, adminOnly, deleteSupervisor, cleanupOrphanedTeams);
-router.post("/supervisor",  protect, adminOnly, addSupervisor); 
-router.put("/supervisors/:id", protect, adminOnly, updateSupervisor);
-router.get("/supervisors/:id", protect, adminOnly, getSupervisorDetail);
+router.get("/supervisors",        getAllSupervisors);
+router.post("/supervisors",       addSupervisor);
+router.put("/supervisors/:id",    updateSupervisor);
+router.delete("/supervisors/:id", deleteSupervisor, cleanupOrphanedTeams);
+router.get("/supervisors/:id",    getSupervisorDetail);
 
 // Students
-router.get("/students", protect, adminOnly, getAllStudentsForAdmin);
-router.get("/marks/group/:groupId", protect, adminOnly, getGroupMarks); 
-router.delete("/student/:id", protect, adminOnly, deleteStudent);
+router.get("/students",           getAllStudentsForAdmin);
+router.delete("/student/:id",     deleteStudent);
 
 // Groups
-router.get("/groups", protect, adminOnly, getAllGroups);
+router.get("/groups",             getAllGroups);
 
 // Marks
-router.put("/marks", protect, adminOnly, adminSaveMarks);
-router.post("/marks", protect, adminOnly, saveMarks);
-router.put("/marks",  protect, adminOnly, saveMarks); 
+router.get("/marks/group/:groupId", getGroupMarks);
+router.post("/marks",               saveMarks);    
 
 // Mark toggles
-router.get("/mark-toggles", protect, adminOnly, getMarkToggles);
-router.post("/mark-toggles", protect, adminOnly, saveMarkToggles);
+router.get("/mark-toggles",       getMarkToggles);
+router.post("/mark-toggles",      saveMarkToggles);
 
 export default router;

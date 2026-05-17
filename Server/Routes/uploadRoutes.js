@@ -1,5 +1,4 @@
 import express from "express";
-
 import {
   uploadSupervisorAvatar,
   uploadStudentCV,
@@ -8,43 +7,40 @@ import {
   updateProposalStatus
 } from "../controllers/uploadController.js";
 
-import { protect } from "../middleware/auth.js";
-import { handleUpload } from "../middleware/upload.js";
+import { proposalUploadLimiter } from "../middleware/rateLimiter.js";
+import { protect }               from "../middleware/auth.js";
+import { handleUpload }          from "../middleware/upload.js";
 
 const router = express.Router();
 
-// UPLOAD ROUTES
-router.post(
-  "/admin/avatar",
+router.post("/admin/avatar",
   protect,
   handleUpload("avatar", "avatar"),
   uploadAdminAvatar
 );
 
-router.post(
-  "/supervisor/avatar",
+router.post("/supervisor/avatar",
   protect,
   handleUpload("avatar", "avatar"),
   uploadSupervisorAvatar
 );
 
-router.post(
-  "/student/cv",
+router.post("/student/cv",
   protect,
   handleUpload("cv", "cv"),
   uploadStudentCV
 );
 
-router.post(
-  "/group/:groupId/proposal",
+router.post("/group/:groupId/proposal",
   protect,
+  proposalUploadLimiter,
   handleUpload("proposal", "proposal"),
   uploadGroupProposal
 );
 
-// PROPOSAL STATUS UPDATE (ADMIN ONLY)
-router.put(
-  "/:id/proposal-status",protect,updateProposalStatus
+router.put("/:id/proposal-status",
+  protect,
+  updateProposalStatus
 );
 
 export default router;
