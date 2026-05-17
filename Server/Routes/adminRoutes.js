@@ -16,12 +16,9 @@ import {
   saveMarks
 } from "../controllers/adminController.js";
 import { getSupervisorDetail } from "../controllers/supervisorController.js";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
-import { adminLimiter }       from "../middleware/rateLimiter.js";
 
 const router = express.Router();
 
-router.use(protect, adminOnly, adminLimiter);
 
 // Dashboard
 router.get("/stats", getDashboardStats);

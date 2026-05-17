@@ -315,10 +315,8 @@ function convertBackendMarks(markRecord) {
       case "Progress Report":          return submissions.progress ?? null;
 
       // ── Similarity fields — match admin's save keys ──
-      case "Progress Similarity Check": return submissions.prog_sim   ?? null;   // ← FIX
-      case "Thesis Similarity Check":   return submissions.thesis_sim ?? null;   // ← FIX
-
-      // ── Code goes into submissions in admin save, not practical ──
+      case "Progress Similarity Check": return submissions.prog_sim   ?? null;   
+      case "Thesis Similarity Check":   return submissions.thesis_sim ?? null;   
       case "Code / Practical Work":     return submissions.code       ?? practical.code ?? null;   // ← FIX
 
       // ── Thesis goes into documentation.final ──
@@ -624,14 +622,21 @@ function renderStudentTabs() {
   if (!tabs) return;
   const students = getAllStudents();
   tabs.innerHTML = students
-    .map(
-      (s, i) => `
-    <button class="student-tab-btn ${i === STATE.selectedEvalStudent ? "active" : ""}"
-            onclick="selectEvalStudent(${i})">
-      <div class="stb-av">${s.initials}</div>
-      ${s.name}
-    </button>`,
-    )
+    .map((s, i) => {
+      const gender = i === 0 ? (user.gender || "male") : (STATE.members[i - 1]?.gender || "male");
+      const avatarSrc = gender === "female"
+        ? "https://img.magnific.com/free-photo/woman-with-long-brown-hair_1308-179038.jpg?t=st=1779010011~exp=1779013611~hmac=9739089beb9bf0e63bea4a934a6d0bf417e2195e2dd6c884b37b8def78277866&w=2000"
+        : "https://img.magnific.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?t=st=1779009728~exp=1779013328~hmac=a6a3819f96d3f06b5ef9e2f48dcb21510d831a7eb2c1e5f3ae372708039adaac&w=2000";
+      return `
+        <button class="student-tab-btn ${i === STATE.selectedEvalStudent ? "active" : ""}"
+                onclick="selectEvalStudent(${i})">
+          <div class="stb-av" style="padding:0;overflow:hidden;background:none;border-radius:50%">
+            <img src="${avatarSrc}" alt="${s.name}"
+                 style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">
+          </div>
+          ${s.name}
+        </button>`;
+    })
     .join("");
 }
 
@@ -1298,29 +1303,42 @@ function renderMemberSlots() {
   const list = document.getElementById("members-list");
   if (!list) return;
 
+  const leaderAvatarSrc = (user.gender || "male") === "female"
+    ? "https://img.magnific.com/free-photo/woman-with-long-brown-hair_1308-179038.jpg?t=st=1779010011~exp=1779013611~hmac=9739089beb9bf0e63bea4a934a6d0bf417e2195e2dd6c884b37b8def78277866&w=2000"
+    : "https://img.magnific.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?t=st=1779009728~exp=1779013328~hmac=a6a3819f96d3f06b5ef9e2f48dcb21510d831a7eb2c1e5f3ae372708039adaac&w=2000";
+
   const leaderHTML = `<div class="tm-item">
+    <div class="tm-av" style="padding:0;overflow:hidden;background:none">
+      <img src="${leaderAvatarSrc}" alt="avatar"
+           style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">
+    </div>
     <div><div class="tm-name">${STATE.studentName}</div><div class="tm-id">${STATE.studentId}</div></div>
     <span class="tm-role tm-lead">Team Leader</span>
   </div>`;
 
-  const membersHTML = STATE.members
-    .map(
-      (m, i) => `
-    <div class="tm-item" style="margin-top:8px">
-      <div><div class="tm-name">${m.name}</div><div class="tm-id">${m.student_code}</div></div>
-      <span class="tm-role tm-member">Member</span>
-      <button class="tm-remove" onclick="removeMember(${i})">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>`,
-    )
-    .join("");
+  const membersHTML = STATE.members.map((m, i) => {
+    const mGender = m.gender || "male";
+    const mAvatarSrc = mGender === "female"
+      ? "https://img.magnific.com/free-photo/woman-with-long-brown-hair_1308-179038.jpg?t=st=1779010011~exp=1779013611~hmac=9739089beb9bf0e63bea4a934a6d0bf417e2195e2dd6c884b37b8def78277866&w=2000"
+      : "https://img.magnific.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?t=st=1779009728~exp=1779013328~hmac=a6a3819f96d3f06b5ef9e2f48dcb21510d831a7eb2c1e5f3ae372708039adaac&w=2000";
+    return `
+      <div class="tm-item" style="margin-top:8px">
+        <div class="tm-av" style="padding:0;overflow:hidden;background:none">
+          <img src="${mAvatarSrc}" alt="avatar"
+               style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">
+        </div>
+        <div><div class="tm-name">${m.name}</div><div class="tm-id">${m.student_code}</div></div>
+        <span class="tm-role tm-member">Member</span>
+        <button class="tm-remove" onclick="removeMember(${i})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+  }).join("");
 
   list.innerHTML = leaderHTML + membersHTML;
 
   const slot1 = document.getElementById("slot-1");
   const slot2 = document.getElementById("slot-2");
-
   if (slot1) slot1.style.display = STATE.members.length < 1 ? "flex" : "none";
   if (slot2) slot2.style.display = STATE.members.length < 2 ? "flex" : "none";
 }
@@ -1391,15 +1409,17 @@ function renderTeamTab() {
   }
   // Replace the allMembers map inside renderTeamTab:
 display.innerHTML = allMembers.map(m => {
-  const avatarContent = m.isYou
-    ? `<img src="${user.gender === "female" ? "../../avatar/female.jpg" : "../../avatar/male.jpg"}"
-            alt="avatar"
-            style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`
-    : m.initials;
+  const gender = m.isYou ? (user.gender || "male") : (m.gender || "male");
+  const avatarSrc = gender === "female"
+    ? "https://img.magnific.com/free-photo/woman-with-long-brown-hair_1308-179038.jpg?t=st=1779010011~exp=1779013611~hmac=9739089beb9bf0e63bea4a934a6d0bf417e2195e2dd6c884b37b8def78277866&w=2000"
+    : "https://img.magnific.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?t=st=1779009728~exp=1779013328~hmac=a6a3819f96d3f06b5ef9e2f48dcb21510d831a7eb2c1e5f3ae372708039adaac&w=2000";
 
   return `
     <div class="tm-item" style="margin-bottom:8px">
-      <div class="tm-av" style="${m.isYou ? "padding:0;overflow:hidden" : ""}">${avatarContent}</div>
+      <div class="tm-av" style="padding:0;overflow:hidden;background:none">
+        <img src="${avatarSrc}" alt="avatar"
+             style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">
+      </div>
       <div>
         <div class="tm-name">${m.name}${m.isYou ? " (You)" : ""}</div>
         <div class="tm-id">${m.student_code}</div>
@@ -1407,7 +1427,7 @@ display.innerHTML = allMembers.map(m => {
       <span class="tm-role ${m.role === "Team Leader" || m.role === "Leader" ? "tm-lead" : "tm-member"}">${m.role}</span>
     </div>`;
 }).join("");
-    const totalMembers = 1 + STATE.members.length; // leader + members
+    const totalMembers = 1 + STATE.members.length; 
     if (totalMembers < 3 && STATE.teamRole === "Leader") {
 display.innerHTML += `
     <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--border-soft);display:flex;justify-content:center">
@@ -1421,21 +1441,39 @@ display.innerHTML += `
 
 function openAddMemberModal() {
   memberCountBeforeModal = STATE.members.length;
+
   const setupOverlay = document.getElementById("setup-overlay");
   if (setupOverlay) setupOverlay.style.display = "flex";
 
-  // ── correct IDs matching the HTML ──
-  const step1 = document.getElementById("setup-step-1");
+  // Hide all steps, show only step 2
+  ["setup-step-1", "setup-step-3", "setup-step-done"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
   const step2 = document.getElementById("setup-step-2");
-  const step3 = document.getElementById("setup-step-3");
-  const done  = document.getElementById("setup-step-done");
-  if (step1) step1.style.display = "none";
   if (step2) step2.style.display = "block";
-  if (step3) step3.style.display = "none";
-  if (done)  done.style.display  = "none";
+
+  // ── FIX 1: populate Team ID in step 2 ──
+  const step2Id = document.getElementById("step2-team-id");
+  if (step2Id) step2Id.textContent = STATE.teamId || "—";
+
+  // ── FIX 2: populate leader info ──
+  const leaderAv     = document.getElementById("leader-av");
+  const leaderName   = document.getElementById("leader-name");
+  const leaderStdId  = document.getElementById("leader-std-id");
+
+  if (leaderAv)    leaderAv.textContent    = initials(STATE.studentName);
+  if (leaderName)  leaderName.textContent  = STATE.studentName;
+  if (leaderStdId) leaderStdId.textContent = STATE.studentId;
+
+  // ── FIX 3: render member slots so search result area works ──
+  renderMemberSlots();
+
+  // ── FIX 4: clear any previous search ──
+  clearSearch();
 
   // Update footer buttons for "add member" context
-  const footer = document.getElementById("setup-step-2")?.querySelector(".setup-footer");
+  const footer = step2?.querySelector(".setup-footer");
   if (footer) {
     footer.innerHTML = `
       <button class="btn btn-ghost" onclick="closeAddMemberModal()">✕ Close</button>
@@ -1915,19 +1953,18 @@ function initDashboard() {
   if (navStdId)  navStdId.textContent  = STATE.studentId;
   if (navName)   navName.textContent   = STATE.studentName;
 
-  if (navInitials) {
-    const gender    = user.gender || "male";
-    const avatarSrc = gender === "female"
-      ? "../../images/avatar/female.jpg"
-      : "../../images/Avatars/male.jpg";
+if (navInitials) {
+  const gender = user.gender || "male";
+  const avatarSrc = gender === "female"
+    ? "https://www.magnific.com/free-photo/woman-with-long-brown-hair_414986247.htm#fromView=search&page=1&position=19&uuid=dfe7e20e-4fe0-427e-b22e-a581ad864d15&query=female+avatar"
+    : "https://api.dicebear.com/7.x/avataaars/svg?seed=male&hair=short&backgroundColor=c0aede";
 
-    navInitials.textContent = "";
-    navInitials.style.padding = "0";
-    navInitials.style.overflow = "hidden";
-    navInitials.innerHTML = `<img src="${avatarSrc}"
-      alt="${gender}"
-      style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
-  }
+  navInitials.textContent = "";
+  navInitials.style.padding = "0";
+  navInitials.style.overflow = "hidden";
+  navInitials.innerHTML = `<img src="${avatarSrc}" alt="${gender}"
+    style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+}
 
   // ── Pass gender to greeting ──
   if (bannerName) bannerName.textContent = getGreeting(STATE.studentName, user.gender);

@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 // ── Global — applies to every route
 export const globalLimiter = rateLimit({
   windowMs:         15 * 60 * 1000,   // 15 min
-  max:              100,
+  max:              200,
   standardHeaders:  true,
   legacyHeaders:    false,
   message: {
@@ -46,18 +46,6 @@ export const proposalUploadLimiter = rateLimit({
   message: {
     success: false,
     message: "Too many proposal uploads. Please wait 10 minutes before trying again.",
-  },
-});
-
-// ── Admin actions
-export const adminLimiter = rateLimit({
-  windowMs:         60 * 1000,         // 1 min
-  max:              30,
-  standardHeaders:  true,
-  legacyHeaders:    false,
-  message: {
-    success: false,
-    message: "Too many admin requests. Please slow down.",
   },
 });
 

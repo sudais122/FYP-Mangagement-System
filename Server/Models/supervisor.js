@@ -3,115 +3,132 @@ import bcrypt from "bcrypt";
 
 const supervisorSchema = new mongoose.Schema({
   sup_code: {
-    type: String,
-    unique: true,
+    type:     String,
+    unique:   true,   
     required: true,
   },
 
   name: {
-    type: String,
+    type:     String,
     required: true,
-    trim: true,
+    trim:     true,
+    index:    true,  
+  },
+
+  prefix: {
+    type:     String,
+    enum:     ["Mr", "Ms", "Mrs", "Dr", "Prof", "Lect", "Engr"],
+    default:  "Mr",
+    required: true,
+    index:    true,   
   },
 
   email: {
-    type: String,
-    required: true,
-    unique: true,
+    type:      String,
+    required:  true,
+    unique:    true, 
     lowercase: true,
-    trim: true,
+    trim:      true,
   },
 
   password: {
-    type: String,
+    type:     String,
     required: true,
   },
 
   whatsapp: {
-    type: String,
-    required: false,
+    type:    String,
     default: "",
-    trim: true,
-    match: [/^03\d{9}$/, "Please use valid Pakistani number"],
+    trim:    true,
   },
 
   department: {
-    type: String,
+    type:    String,
     default: "Computer Science",
+    index:   true,  
   },
 
   designation: {
-    type: String,
+    type:    String,
     default: "Supervisor",
+    index:   true,  
   },
 
   office: {
-    type: String,
+    type:    String,
     default: "",
-    trim: true,
+    trim:    true,
   },
 
   office_hours: {
-    type: String,
+    type:    String,
     default: "",
-    trim: true,
+    trim:    true,
   },
 
-  research_areas: [{
-    type: String,
-    trim: true,
-  }],
+  research_areas: [
+    {
+      type: String,
+      trim: true,
+    },
+  ],
 
   max_groups: {
-    type: Number,
+    type:    Number,
     default: 5,
   },
 
   is_chairman: {
-    type: Boolean,
+    type:    Boolean,
     default: false,
+    index:   true,   
   },
 
   role: {
-    type: String,
-    enum: ["supervisor", "chairman"],
+    type:    String,
+    enum:    ["supervisor", "chairman"],
     default: "supervisor",
+    index:   true,   
   },
 
   force_password_change: {
-    type: Boolean,
+    type:    Boolean,
     default: true,
   },
 
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-
-  resetPasswordToken: {
-    type: String,
-  },
-
-  resetPasswordExpire: {
-    type: Date,
-  },
-  prefix: {
-  type: String,
-  enum: ["Mr", "Ms", "Mrs", "Dr", "Prof", "Lect", "Engr"],
-  default: "Mr",
-  required: true
-  },
   avatar_url: {
-  type: String,
-  default: null,
+    type:    String,
+    default: null,
   },
+
+  resetPasswordToken:  { type: String },
+  resetPasswordExpire: { type: Date   },
+
+  createdAt: {
+    type:    Date,
+    default: Date.now,
+    index:   true,   
+  },
+},
+{
+  timestamps: true,
 });
+
+supervisorSchema.index({ department: 1, name: 1 });
+
+supervisorSchema.index({ role: 1, is_chairman: 1 });
+
+supervisorSchema.index(
+  { resetPasswordToken: 1 },
+  { sparse: true }           
+);
+
+supervisorSchema.index({ name: "text" });
 
 supervisorSchema.pre("save", async function (next) {
   if (this.isModified("password") && !this.password.startsWith("$2")) {
     this.password = await bcrypt.hash(this.password, 10);
   }
-
   next();
 });
 
