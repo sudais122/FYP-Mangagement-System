@@ -1,9 +1,8 @@
-
 module.exports = {
   apps: [
     {
       name: "fyp-backend",
-      script: "./Server/index.js",
+      script: "./Server/server.js",
       cwd: "./",
       instances: 1,
       exec_mode: "fork",
