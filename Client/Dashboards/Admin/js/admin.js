@@ -252,7 +252,7 @@ async function renderRecentTeams() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
-    const teams = (Array.isArray(data) ? data : data.groups || []).slice(0, 5);
+    const teams = (Array.isArray(data) ? data : data.groups || []).slice(0, 3);
 
     if (!teams.length) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-mute)">No teams yet.</td></tr>`;
