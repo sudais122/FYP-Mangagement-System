@@ -7,6 +7,7 @@ import Settings from "../Models/Settings.js";
 import generatePassword from "../utils/generatePassword.js";
 import { generateSupCode } from "../utils/generateSupCode.js"; 
 import { sendEmail } from "../utils/sendEmail.js";
+import Maintaince from "../Models/Maintaince.js";
 import { supervisorCredentialsTemplate } from "../utils/emailTemplates/supervisorCredentials.js";
 import bcrypt from "bcryptjs"; 
 
@@ -510,6 +511,59 @@ export const saveMarks = async (req, res) => {
 
   } catch (err) {
     console.error("saveMarks error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getMaintenanceStatus = async (req, res) => {
+  try {
+    let settings = await Maintaince.findOne();
+    if (!settings) {
+      settings = await Maintaince.create({});
+    }
+
+    res.json({
+      maintenance_mode:       settings.maintenance_mode,
+      maintenance_reason:     settings.maintenance_reason,
+      maintenance_started_at: settings.maintenance_started_at,
+    });
+  } catch (err) {
+    console.error("Get maintenance status error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ── POST /api/admin/maintenance ──
+export const toggleMaintenanceMode = async (req, res) => {
+  try {
+    const { enabled, reason } = req.body;
+
+    let settings = await Maintaince.findOne();
+    if (!settings) {
+      settings = await Maintaince.create({});
+    }
+
+    settings.maintenance_mode = !!enabled;
+
+    if (enabled) {
+      settings.maintenance_reason     = reason || "We're upgrading the system. Please check back shortly.";
+      settings.maintenance_started_at = new Date();
+      settings.maintenance_enabled_by = req.user.id;
+    } else {
+      settings.maintenance_started_at = null;
+      settings.maintenance_enabled_by = null;
+    }
+
+    await settings.save();
+
+    res.json({
+      message: enabled ? "Maintenance mode enabled" : "Maintenance mode disabled",
+      maintenance_mode:       settings.maintenance_mode,
+      maintenance_reason:     settings.maintenance_reason,
+      maintenance_started_at: settings.maintenance_started_at,
+    });
+  } catch (err) {
+    console.error("Toggle maintenance error:", err);
     res.status(500).json({ message: err.message });
   }
 };

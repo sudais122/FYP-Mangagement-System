@@ -485,6 +485,53 @@
         </div>
         <div id="studentsPagination"></div>
       </section>
+      <!-- ───── MAINTENANCE MODE CARD ───── -->
+<div class="dash-panel" style="margin-bottom:24px;border:2px solid transparent" id="maintenance-card">
+  <div class="panel-head">
+    <div class="panel-head-text">
+      <h3 style="display:flex;align-items:center;gap:10px">
+        <span id="maintenance-status-dot" style="width:12px;height:12px;border-radius:50%;background:#15803d;box-shadow:0 0 0 4px rgba(21,128,61,.18)"></span>
+        System Status
+      </h3>
+      <p id="maintenance-status-text">Site is LIVE — all users have full access</p>
+    </div>
+    <label class="mark-toggle" style="width:50px;height:26px">
+      <input type="checkbox" id="maintenance-toggle" onchange="toggleMaintenance(this.checked)">
+      <span class="toggle-slider" style="border-radius:26px"></span>
+    </label>
+  </div>
+
+  <div class="panel-body" id="maintenance-detail-body" style="display:none">
+    <div style="background:rgba(234,179,8,.08);border:1.5px solid rgba(234,179,8,.3);border-radius:10px;padding:16px;margin-bottom:14px">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="flex-shrink:0;margin-top:2px">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <div>
+          <strong style="font-size:.88rem;color:#92660a;display:block;margin-bottom:4px">Maintenance mode is active</strong>
+          <span style="font-size:.78rem;color:var(--text-soft);line-height:1.5">
+            Students, supervisors, and chairman cannot access the system. Only you (Admin) can use the dashboard.
+            <span id="maintenance-started-info" style="display:block;margin-top:4px;font-style:italic"></span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Maintenance Reason (visible to users)</label>
+      <textarea id="maintenance-reason-input" class="form-input" rows="2" style="resize:vertical"
+                placeholder="e.g. Upgrading database and adding new features. Back online in 30 minutes."></textarea>
+      <button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="updateMaintenanceReason()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Update Reason
+      </button>
+    </div>
+  </div>
+</div>
       <section class="view" id="view-settings">
         <div class="section-head">
           <div class="section-head-text">

@@ -21,6 +21,9 @@ import adminRoutes      from "./Routes/adminRoutes.js";
 import uploadRoutes     from "./Routes/uploadRoutes.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 
+// ── NEW: Maintenance middleware ──
+import { maintenanceGuard } from "./middleware/maintenance.js";
+
 connectDB();
 
 const app  = express();
@@ -43,7 +46,11 @@ app.use(globalLimiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/auth",        authRoutes);
+// ROUTES
+app.use("/api/auth", authRoutes);
+app.use("/api", maintenanceGuard);
+
+// All other routes 
 app.use("/api/students",    studentRoutes);
 app.use("/api/groups",      groupRoutes);
 app.use("/api/marks",       marksRoutes);

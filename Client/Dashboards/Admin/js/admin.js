@@ -2769,6 +2769,125 @@ function renderStudentLookupCard(s, query = "") {
       </div>
     </div>`;
 }
+
+/* ════════════════════════════════════
+   MAINTENANCE MODE
+══════════════════════════════════════ */
+async function loadMaintenanceStatus() {
+  try {
+    const res  = await fetch(`${API_BASE}/api/admin/maintenance`);
+    const data = await res.json();
+    updateMaintenanceUI(data);
+  } catch (err) {
+    console.error("Failed to load maintenance status:", err);
+  }
+}
+
+function updateMaintenanceUI(data) {
+  const dot       = document.getElementById("maintenance-status-dot");
+  const text      = document.getElementById("maintenance-status-text");
+  const toggle    = document.getElementById("maintenance-toggle");
+  const body      = document.getElementById("maintenance-detail-body");
+  const card      = document.getElementById("maintenance-card");
+  const reasonIn  = document.getElementById("maintenance-reason-input");
+  const startedEl = document.getElementById("maintenance-started-info");
+
+  if (!dot) return;
+
+  if (data.maintenance_mode) {
+    dot.style.background = "#dc2626";
+    dot.style.boxShadow  = "0 0 0 4px rgba(220,38,38,.18)";
+    text.textContent     = "Site is in MAINTENANCE MODE — only Admin can access";
+    text.style.color     = "#dc2626";
+    text.style.fontWeight = "700";
+    toggle.checked       = true;
+    body.style.display   = "block";
+    card.style.borderColor = "rgba(220,38,38,.3)";
+    card.style.background  = "rgba(220,38,38,.02)";
+    reasonIn.value       = data.maintenance_reason || "";
+
+    if (data.maintenance_started_at && startedEl) {
+      const started = new Date(data.maintenance_started_at);
+      startedEl.textContent = `Started: ${started.toLocaleString()}`;
+    }
+  } else {
+    dot.style.background = "#15803d";
+    dot.style.boxShadow  = "0 0 0 4px rgba(21,128,61,.18)";
+    text.textContent     = "Site is LIVE — all users have full access";
+    text.style.color     = "";
+    text.style.fontWeight = "";
+    toggle.checked       = false;
+    body.style.display   = "none";
+    card.style.borderColor = "transparent";
+    card.style.background  = "";
+  }
+}
+
+async function toggleMaintenance(enabled) {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+
+  // Confirm before enabling
+  if (enabled) {
+    const ok = confirm("⚠️ Enable Maintenance Mode?\n\nAll students, supervisors, and the chairman will be locked out of the system. Only you will be able to access the admin dashboard.\n\nContinue?");
+    if (!ok) {
+      document.getElementById("maintenance-toggle").checked = false;
+      return;
+    }
+  }
+
+  const reason = document.getElementById("maintenance-reason-input")?.value.trim() || "";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/maintenance`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`,
+      },
+      body: JSON.stringify({ enabled, reason }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    updateMaintenanceUI(data);
+    toast(
+      enabled ? "Maintenance Mode ENABLED" : "Maintenance Mode DISABLED",
+      enabled ? "All non-admin users are now blocked" : "Site is back online",
+      enabled ? "warn" : "success"
+    );
+  } catch (err) {
+    toast("Error", err.message, "error");
+    document.getElementById("maintenance-toggle").checked = !enabled;
+  }
+}
+
+async function updateMaintenanceReason() {
+  const admin  = JSON.parse(localStorage.getItem("admin"));
+  const reason = document.getElementById("maintenance-reason-input")?.value.trim();
+
+  if (!reason) {
+    toast("Empty reason", "Please enter a reason to show users", "warn");
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/maintenance`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`,
+      },
+      body: JSON.stringify({ enabled: true, reason }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    updateMaintenanceUI(data);
+    toast("Reason updated", "Users will see the new message", "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
 /* ════════════════════════════════════
    GLOBAL DATA + INIT
 ══════════════════════════════════════ */
@@ -2785,6 +2904,7 @@ async function initDashboard() {
   await loadGlobalToggles();
   await renderDeadlines();
   await renderRecentTeams();
+  await loadMaintenanceStatus();
 }
 
 initDashboard();

@@ -13,10 +13,12 @@ import {
   getMarkToggles,
   saveMarkToggles,
   updateSupervisor,
-  saveMarks
+  saveMarks,
+  getMaintenanceStatus,
+  toggleMaintenanceMode
 } from "../controllers/adminController.js";
 import { getSupervisorDetail } from "../controllers/supervisorController.js";
-
+import { protect } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 
@@ -45,4 +47,7 @@ router.post("/marks",               saveMarks);
 router.get("/mark-toggles",       getMarkToggles);
 router.post("/mark-toggles",      saveMarkToggles);
 
+//Miaintance
+router.get("/maintenance",  getMaintenanceStatus);           
+router.post("/maintenance", protect, toggleMaintenanceMode); 
 export default router;

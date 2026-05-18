@@ -1,3 +1,19 @@
+// Intercept all 503 responses → redirect to maintenance page
+const _origFetch = window.fetch;
+window.fetch = async function(...args) {
+  const res = await _origFetch(...args);
+  if (res.status === 503) {
+    const clone = res.clone();
+    try {
+      const data = await clone.json();
+      if (data.maintenance_mode) {
+        window.location.href = "../../maintenance.html";
+        return res;
+      }
+    } catch {}
+  }
+  return res;
+};
 /* ═══════════════════════════════════
    BOOTSTRAP — auth & guard
 ═══════════════════════════════════ */
