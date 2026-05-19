@@ -20,6 +20,7 @@ import supervisorRoutes from "./Routes/supervisorRoutes.js";
 import adminRoutes      from "./Routes/adminRoutes.js";
 import uploadRoutes     from "./Routes/uploadRoutes.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
+import internshipRoutes from "./Routes/internshipRoutes.js";
 
 // ── NEW: Maintenance middleware ──
 import { maintenanceGuard } from "./middleware/maintenance.js";
@@ -59,6 +60,7 @@ app.use("/api/supervisors", supervisorRoutes);
 app.use("/api/supervisor",  supervisorRoutes);
 app.use("/api/admin",       adminRoutes);
 app.use("/api/uploads",     uploadRoutes);
+app.use("/api/internship", internshipRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "FYP Management System API is running" });

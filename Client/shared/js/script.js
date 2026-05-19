@@ -52,14 +52,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-const pages = ["home", "coursera", "faq", "messages", "developers", "login"];
-const navIds = [
-  "nav-home",
-  "nav-coursera",
-  "nav-faq",
-  "nav-messages",
-  "nav-developers",
-];
+const pages = ["home", "coursera", "faq", "messages", "internship", "developers", "login"];
+const navIds = ["nav-home","nav-coursera","nav-faq","nav-messages","nav-internship","nav-developers"];
+
 const pageNames = {
   home: "Home",
   coursera: "Coursera Courses",
@@ -67,6 +62,7 @@ const pageNames = {
   messages: "Messages",
   developers: "Developers",
   login: "Login",
+  internship: "Internship",
 };
 function navigate(pg) {
   pages.forEach((p) => {
@@ -799,6 +795,123 @@ container.innerHTML = data.map((d, i) => {
   }
 }
 
+/* ══════════════════════════════════════
+   INTERNSHIP PAGE JS
+══════════════════════════════════════ */
+let internFile = null;
+
+function handleInternFile(file) {
+  if (!file) return;
+  const allowed = ["application/pdf"];
+  const errEl   = document.getElementById("intern-error");
+
+  if (!allowed.includes(file.type)) {
+    showInternError("Only PDF, JPG, PNG or WEBP files are allowed.");
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showInternError("File must be under 10 MB.");
+    return;
+  }
+
+  internFile = file;
+  hideInternError();
+
+  const nameEl = document.getElementById("intern-file-name");
+  nameEl.textContent = "✓ " + file.name;
+  nameEl.style.display = "block";
+
+  const dz = document.getElementById("intern-dropzone");
+  dz.style.borderColor  = "var(--primary)";
+  dz.style.background   = "rgba(0,75,45,.04)";
+}
+
+function handleInternDrop(e) {
+  e.preventDefault();
+  document.getElementById("intern-dropzone").classList.remove("drag-over");
+  const file = e.dataTransfer?.files?.[0];
+  if (file) handleInternFile(file);
+}
+
+function showInternError(msg) {
+  const el = document.getElementById("intern-error");
+  el.textContent    = msg;
+  el.style.display  = "block";
+}
+
+function hideInternError() {
+  const el = document.getElementById("intern-error");
+  el.style.display = "none";
+}
+
+async function submitInternshipLetter() {
+  const name       = document.getElementById("intern-name").value.trim();
+  const cnic       = document.getElementById("intern-cnic").value.trim();
+  const discipline = document.getElementById("intern-discipline").value;
+  const btn        = document.getElementById("intern-submit-btn");
+
+  hideInternError();
+
+  // Validate
+  if (!name)       { showInternError("Please enter your full name."); return; }
+  if (!cnic || cnic.length !== 13) {
+    showInternError("Please enter a valid 13-digit CNIC (without dashes).");
+    return;
+  }
+  if (!discipline) { showInternError("Please select your discipline."); return; }
+  if (!internFile) { showInternError("Please upload your acceptance letter file."); return; }
+
+  // Build form data
+  const formData = new FormData();
+  formData.append("full_name",   name);
+  formData.append("cnic",        cnic);
+  formData.append("discipline",  discipline);
+
+  // File saved as studentname.pdf on the server
+  const safeName = name.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+  const ext      = internFile.name.split(".").pop();
+  const renamedFile = new File([internFile], `${safeName}.${ext}`, { type: internFile.type });
+  formData.append("acceptance_letter", renamedFile);
+
+  btn.disabled    = true;
+  btn.textContent = "Uploading…";
+
+  try {
+    const res = await fetch("http://127.0.0.1:5001/api/internship/submit", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Upload failed");
+
+    // Show success
+    document.getElementById("intern-upload-form").style.display = "none";
+    document.getElementById("intern-success").style.display     = "block";
+
+  } catch (err) {
+    showInternError(err.message);
+    btn.disabled    = false;
+    btn.innerHTML   = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                           stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+                         <polyline points="20 6 9 17 4 12"/>
+                       </svg> Submit Acceptance Letter`;
+  }
+}
+
+function resetInternForm() {
+  document.getElementById("intern-upload-form").style.display = "block";
+  document.getElementById("intern-success").style.display     = "none";
+  document.getElementById("intern-name").value        = "";
+  document.getElementById("intern-cnic").value        = "";
+  document.getElementById("intern-discipline").value  = "";
+  document.getElementById("intern-file-name").style.display = "none";
+  document.getElementById("intern-file-input").value  = "";
+  const dz = document.getElementById("intern-dropzone");
+  dz.style.borderColor = "";
+  dz.style.background  = "";
+  internFile = null;
+  hideInternError();
+}
 loadHomepageDeadlines();
 renderCoursera();
 renderFAQ();
