@@ -1,6 +1,7 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import path   from "path";
+import fs     from "fs";
+import Group  from "../Models/group.js";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,22 +12,29 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
-  filename:    (req, file, cb) => {
-    const ext  = path.extname(file.originalname);
-    const name = `proposal_${Date.now()}${ext}`;
-    cb(null, name);
+  filename:    async (req, file, cb) => {
+    try {
+      const groupId = req.params.groupId || req.params.id;
+      const group   = await Group.findById(groupId).select("team_code");
+      const code    = group?.team_code || `TEAM-${Date.now()}`;
+      cb(null, `${code}.pdf`);
+    } catch (err) {
+      cb(err);
+    }
   }
 });
 
+// ── PDF only ──
 const fileFilter = (req, file, cb) => {
-  const allowed = [".pdf", ".doc", ".docx"];
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (allowed.includes(ext)) cb(null, true);
-  else cb(new Error("Only PDF, DOC, DOCX files are allowed"), false);
+  if (file.mimetype === "application/pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error("Only PDF files are allowed"), false);
+  }
 };
 
 export const uploadProposal = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB
+  limits: { fileSize: 20 * 1024 * 1024 }
 });

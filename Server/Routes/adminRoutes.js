@@ -15,39 +15,40 @@ import {
   updateSupervisor,
   saveMarks,
   getMaintenanceStatus,
-  toggleMaintenanceMode
+  toggleMaintenanceMode,
 } from "../controllers/adminController.js";
 import { getSupervisorDetail } from "../controllers/supervisorController.js";
-import { protect } from "../middleware/authMiddleware.js";
+import { protect }             from "../middleware/authMiddleware.js";
+
 const router = express.Router();
 
-
-// Dashboard
+// ── Dashboard ──────────────────────────────────────────────────
 router.get("/stats", getDashboardStats);
 
-// Supervisors
-router.get("/supervisors",        getAllSupervisors);
-router.post("/supervisors",       addSupervisor);
-router.put("/supervisors/:id",    updateSupervisor);
-router.delete("/supervisors/:id", deleteSupervisor, cleanupOrphanedTeams);
-router.get("/supervisors/:id",    getSupervisorDetail);
+// ── Supervisors ────────────────────────────────────────────────
+router.get("/supervisors",        protect, getAllSupervisors);
+router.post("/supervisors",       protect, addSupervisor);
+router.put("/supervisors/:id",    protect, updateSupervisor);
+router.delete("/supervisors/:id", protect, deleteSupervisor);
+router.get("/supervisors/:id",    protect, getSupervisorDetail);
 
-// Students
-router.get("/students",           getAllStudentsForAdmin);
-router.delete("/student/:id",     deleteStudent);
+// ── Students ───────────────────────────────────────────────────
+router.get("/students",       protect, getAllStudentsForAdmin);
+router.delete("/student/:id", protect, deleteStudent);
 
-// Groups
-router.get("/groups",             getAllGroups);
+// ── Groups ─────────────────────────────────────────────────────
+router.get("/groups", protect, getAllGroups);
 
-// Marks
-router.get("/marks/group/:groupId", getGroupMarks);
-router.post("/marks",               saveMarks);    
+// ── Marks ──────────────────────────────────────────────────────
+router.get("/marks/group/:groupId", protect, getGroupMarks);
+router.post("/marks",               protect, saveMarks);
 
-// Mark toggles
-router.get("/mark-toggles",       getMarkToggles);
-router.post("/mark-toggles",      saveMarkToggles);
+// ── Mark toggles ───────────────────────────────────────────────
+router.get("/mark-toggles",  protect, getMarkToggles);
+router.post("/mark-toggles", protect, saveMarkToggles);
 
-//Miaintance
-router.get("/maintenance",  getMaintenanceStatus);           
-router.post("/maintenance", protect, toggleMaintenanceMode); 
+// ── Maintenance ────────────────────────────────────────────────
+router.get("/maintenance",  getMaintenanceStatus);
+router.post("/maintenance", protect, toggleMaintenanceMode);
+
 export default router;

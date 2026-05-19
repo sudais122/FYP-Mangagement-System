@@ -1,12 +1,21 @@
-import multer    from "multer";
-import multerS3  from "multer-s3";
-import path      from "path";
+import multer   from "multer";
+import multerS3 from "multer-s3";
+import path     from "path";
+import Group    from "../Models/group.js";
 import { createS3Client } from "../config/s3.js";
 
 const FILE_SIZE_LIMITS = {
   avatar:   3  * 1024 * 1024,
   cv:       5  * 1024 * 1024,
   proposal: 20 * 1024 * 1024,
+};
+
+const proposalFileFilter = (req, file, cb) => {
+  if (file.mimetype === "application/pdf") {
+    cb(null, true);
+  } else {
+    cb(new Error("Only PDF files are allowed for proposals"), false);
+  }
 };
 
 function makeUploader(folder, fieldName) {
@@ -20,15 +29,41 @@ function makeUploader(folder, fieldName) {
       s3,
       bucket:      BUCKET,
       contentType: multerS3.AUTO_CONTENT_TYPE,
-      key: (req, file, cb) => {
-        const ext  = path.extname(file.originalname).toLowerCase();
-        const name = `${folder}/${Date.now()}-${req.user?.id || "anon"}${ext}`;
-        cb(null, name);
+      key: async (req, file, cb) => {
+        try {
+          if (folder === "proposal") {
+            const groupId = req.params.groupId || req.params.id;
+
+            // ── fetch team_code + attempt + status ──
+            const group = await Group.findById(groupId)
+              .select("team_code proposal_attempt proposal_status");
+
+            const code      = group?.team_code || `TEAM-${Date.now()}`;
+            const attempt   = (group?.proposal_status === "rejected")
+              ? (group.proposal_attempt || 1) + 1
+              : (group?.proposal_attempt || 1);
+            const timestamp = Date.now();
+
+            // ── unique key per attempt ──
+            // e.g. proposals/TEAM-20260001-attempt1-1716000000000.pdf
+            cb(null, `proposals/${code}-attempt${attempt}-${timestamp}.pdf`);
+            return;
+          }
+
+          // ── other uploads ──
+          const ext  = path.extname(file.originalname).toLowerCase();
+          const name = `${folder}/${Date.now()}-${req.user?.id || "anon"}${ext}`;
+          cb(null, name);
+
+        } catch (err) {
+          cb(err);
+        }
       },
     }),
     limits: {
       fileSize: FILE_SIZE_LIMITS[folder] || 10 * 1024 * 1024,
     },
+    fileFilter: folder === "proposal" ? proposalFileFilter : undefined,
   }).single(fieldName);
 }
 

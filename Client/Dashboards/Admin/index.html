@@ -177,6 +177,17 @@
   </svg>
   <span>Student Lookup</span>
 </a>
+<a class="nav-item" data-view="internship">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="7" width="20" height="14" rx="2"/>
+    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+    <line x1="12" y1="12" x2="12" y2="16"/>
+    <line x1="10" y1="14" x2="14" y2="14"/>
+  </svg>
+  <span>Internship</span>
+  <span class="nav-item-badge" id="internship-badge"></span>
+</a>
       </div>
     </aside>
 
@@ -283,6 +294,21 @@
             <div class="dstat-value"></div>
             <div class="dstat-label">Active Teams</div>
           </div>
+          <div class="dstat-card" data-color="secondary">
+  <div class="dstat-head">
+    <div class="dstat-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2"/>
+        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        <line x1="12" y1="12" x2="12" y2="16"/>
+        <line x1="10" y1="14" x2="14" y2="14"/>
+      </svg>
+    </div>
+  </div>
+  <div class="dstat-value" id="stat-internship-count">—</div>
+  <div class="dstat-label">Internship Letters</div>
+</div>
         </div>
         <div class="dash-grid">
           <div class="dash-panel">
@@ -672,6 +698,50 @@
   </div>
 
   <div id="lookupResults"></div>
+</section>
+<!-- ───── INTERNSHIP VIEW ───── -->
+<section class="view" id="view-internship">
+  <div class="section-head">
+    <div class="section-head-text">
+      <h2>Internship Submissions</h2>
+      <p>All acceptance letters submitted by students via the public portal</p>
+    </div>
+    <div class="section-head-actions">
+      <button class="btn btn-ghost" onclick="renderInternships()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+  <div class="dash-panel">
+    <div class="panel-body" style="padding:0">
+      <div class="data-table-wrap">
+        <table class="data-table" id="internshipTable">
+          <thead>
+            <tr>
+              <th>Full Name</th>
+              <th>CNIC</th>
+              <th>Discipline</th>
+              <th>Submission Date</th>
+              <th>View</th>
+            </tr>
+          </thead>
+          <tbody id="internshipTbody">
+            <tr>
+              <td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">
+                Loading…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div id="internshipPagination"></div>
 </section>
     </main>
 <!-- ═══ ADMIN AVATAR MODAL ═══ -->

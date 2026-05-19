@@ -700,7 +700,7 @@ a {
 /* ═══ STATS ═══ */
 .dash-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
     margin-bottom: 28px;
 }
@@ -716,8 +716,6 @@ a {
 }
 
 .dstat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow);
     border-color: var(--border-soft);
 }
 

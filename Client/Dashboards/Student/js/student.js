@@ -22,7 +22,7 @@ if (!user) {
 }
 function logout() {
   localStorage.removeItem("user");
-  window.location.href = "../index.html"; 
+  window.location.href = "../../Auth/login.html"; 
 }
 // API Configuration
 const API_BASE = "http://localhost:5001/api"; 

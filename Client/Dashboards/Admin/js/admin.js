@@ -182,6 +182,7 @@ function switchView(view) {
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (view === "deadlines") renderDeadlines();
   if (view === "student-lookup") { runStudentLookup(); }
+  if (view === "internship")   renderInternships();
 }
 
 $$(".nav-item").forEach((item) => {
@@ -214,6 +215,17 @@ async function fetchDashboardStats() {
     updateSidebarBadges(data.stats);
   } catch (err) {
     console.error("Error fetching dashboard stats:", err);
+  }
+    // ── Internship count ──
+  try {
+    const res  = await fetch("http://127.0.0.1:5001/api/internship/admin/all", {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    const el   = document.getElementById("stat-internship-count");
+    if (el) el.textContent = data.total ?? (data.data?.length ?? 0);
+  } catch (err) {
+    console.error("Internship count error:", err);
   }
 }
 
@@ -1470,14 +1482,35 @@ function renderDocBadge(label, url, required, studentName, uploaderName = "", st
     </div>`;
 }
 
-function viewDoc(url) {
+async function viewDoc(url) {
   if (!url) return toast("No document", "File not available", "warn");
 
-  // S3 URLs are full URLs (start with http/https) — open directly
-  // Local paths get prefixed with the API base
-  const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+  try {
+    // S3 private files need a presigned URL
+    if (url.includes("amazonaws.com")) {
+      const admin   = JSON.parse(localStorage.getItem("admin"))
+                   || JSON.parse(localStorage.getItem("student"))
+                   || JSON.parse(localStorage.getItem("supervisor"));
 
-  window.open(finalUrl, "_blank", "noopener");
+      const res  = await fetch(
+        `http://127.0.0.1:5001/api/uploads/signed-url?url=${encodeURIComponent(url)}`,
+        { headers: { "Authorization": `Bearer ${admin?.token}` } }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      window.open(data.signedUrl, "_blank", "noopener");
+      return;
+    }
+
+    // Local files — open directly
+    const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+    window.open(finalUrl, "_blank", "noopener");
+
+  } catch (err) {
+    console.error("viewDoc error:", err);
+    toast("Error", "Could not open document", "error");
+  }
 }
 
 async function downloadDoc(url, filename) {
@@ -2888,9 +2921,101 @@ async function updateMaintenanceReason() {
     toast("Error", err.message, "error");
   }
 }
+
+/* INTERNSHIP SUBMISSIONS */
 /* ════════════════════════════════════
-   GLOBAL DATA + INIT
+   INTERNSHIP SUBMISSIONS
 ══════════════════════════════════════ */
+let INTERNSHIP_DATA = [];
+const INTERNSHIP_PAGE = { current: 1, perPage: 25 };
+
+async function renderInternships() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const tbody = document.getElementById("internshipTbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
+  try {
+    const res  = await fetch("http://127.0.0.1:5001/api/internship/admin/all", {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to load");
+
+    INTERNSHIP_DATA = data.data || [];
+
+    // Update badge
+    const badge = document.getElementById("internship-badge");
+    if (badge) badge.textContent = INTERNSHIP_DATA.length || "";
+
+    INTERNSHIP_PAGE.current = 1;
+    renderInternshipPage(1);
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
+  }
+}
+
+function renderInternshipPage(page) {
+  INTERNSHIP_PAGE.current = page;
+  const { perPage } = INTERNSHIP_PAGE;
+  const start  = (page - 1) * perPage;
+  const slice  = INTERNSHIP_DATA.slice(start, start + perPage);
+  renderInternshipTable(slice);
+  renderPagination(
+    "internshipPagination",
+    INTERNSHIP_DATA.length,
+    page,
+    perPage,
+    "renderInternshipPage"
+  );
+}
+
+function renderInternshipTable(list) {
+  const tbody = document.getElementById("internshipTbody");
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">No internship submissions yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(item => {
+    const dateStr = item.createdAt
+      ? new Date(item.createdAt).toLocaleDateString("en-PK", {
+          day: "numeric", month: "short", year: "numeric"
+        })
+      : "—";
+
+    const letterBtn = item.acceptance_letter_url
+      ? `<button onclick="viewDoc('${item.acceptance_letter_url}')"
+           style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+                  border-radius:7px;font-size:.74rem;font-weight:700;cursor:pointer;
+                  border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+                  color:var(--primary)">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+             <circle cx="12" cy="12" r="3"/>
+           </svg>
+           View Letter
+         </button>`
+      : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic">No file</span>`;
+
+    return `
+      <tr>
+        <td><strong>${escapeHtml(item.full_name || "—")}</strong></td>
+        <td><span style="font-family:monospace;font-size:.82rem">${escapeHtml(item.cnic || "—")}</span></td>
+        <td><span style="font-size:.8rem">${escapeHtml(item.discipline || "—")}</span></td>
+        <td style="font-size:.78rem;color:var(--text-mute)">${dateStr}</td>
+        <td>${letterBtn}</td>
+      </tr>`;
+  }).join("");
+}
+/* GLOBAL DATA */
 let SUPERVISORS_DATA = [];
 let TEAMS_DATA       = [];
 let STUDENTS_DATA    = [];
@@ -2905,6 +3030,7 @@ async function initDashboard() {
   await renderDeadlines();
   await renderRecentTeams();
   await loadMaintenanceStatus();
+  await renderInternships();
 }
 
 initDashboard();
