@@ -2104,7 +2104,7 @@ a {
   gap: 6px;
   padding: 8px 14px;
   margin-left: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--gold);
   border-radius: 9px;
   background: transparent;
   color: var(--text-soft);

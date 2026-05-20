@@ -202,7 +202,7 @@ export const getAllStudents = async (req, res) => {
 export const getAllStudentsForAdmin = async (req, res) => {
   try {
     const students = await Student.find()
-      .select("name email student_code whatsapp cv_url group")
+      .select("name email student_code whatsapp gender cv_url certificates_url group")
       .populate({
         path:     "group",
         select:   "group_code project_title proposal_url proposal_status supervisor",

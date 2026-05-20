@@ -180,9 +180,12 @@ function switchView(view) {
   $$(`.nav-item[data-view="${view}"]`).forEach((n) => n.classList.add("active"));
   $("#sidebar").classList.remove("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
-  if (view === "deadlines") renderDeadlines();
-  if (view === "student-lookup") { runStudentLookup(); }
-  if (view === "internship")   renderInternships();
+
+  if (view === "deadlines")    renderDeadlines();
+  if (view === "settings")     loadGlobalToggles();
+  if (view === "supervisors")  renderSupervisors();
+  if (view === "teams")        renderTeams();
+  if (view === "students")     renderStudents();
 }
 
 $$(".nav-item").forEach((item) => {
@@ -1211,6 +1214,7 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
     const safeName         = (s.name || "").replace(/'/g, "\\'");
     const whatsapp         = s.whatsapp || "—";
     const cvUrl            = s.cv_url || "";
+    const certUrl = s.certificates_url || "";
     const proposalUrl      = s.group?.proposal_url || "";
     const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
     const proposalStatus   = s.group?.proposal_status || "";
@@ -1243,28 +1247,53 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
             ${renderDocBadge("Proposal", proposalUrl, false, safeName, proposalUploader, proposalStatus)}
           </div>
         </td>
-        <td>
-          <div class="action-row">
-            <button class="icon-action" title="View supervisor"
-              onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </button>
-            <button class="icon-action danger" title="Delete student" style="color:#dc2626"
-              onclick="deleteStudent('${s._id}','${safeName}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                <line x1="10" y1="11" x2="10" y2="17"/>
-                <line x1="14" y1="11" x2="14" y2="17"/>
-              </svg>
-            </button>
-          </div>
-        </td>
+          <td>
+  <div class="action-row" style="flex-direction:column;gap:6px;align-items:flex-start">
+
+    <!-- View button -->
+    <button onclick="openStudentViewModal('${s._id}')"
+      style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+             border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
+             border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+             color:var(--primary);width:100%;justify-content:center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+        <circle cx="12" cy="12" r="3"/>
+      </svg>
+      View
+    </button>
+
+    <!-- Edit (view supervisor marks) -->
+    <button onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Not in a team yet','warn')`}"
+      style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+             border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
+             border:1px solid rgba(59,130,246,.2);background:rgba(59,130,246,.06);
+             color:#2563eb;width:100%;justify-content:center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+      Edit
+    </button>
+
+    <!-- Delete -->
+    <button onclick="deleteStudent('${s._id}','${safeName}')"
+      style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+             border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
+             border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.06);
+             color:#dc2626;width:100%;justify-content:center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+      Delete
+    </button>
+
+  </div>
+</td>
       </tr>`;
   }).join("");
 }
@@ -1365,88 +1394,6 @@ function renderStudentsPage(page) {
   const slice   = STUDENTS_DATA.slice(start, start + perPage);
   renderStudentsTable(slice);
   renderPagination("studentsPagination", STUDENTS_DATA.length, page, perPage, "renderStudentsPage", "changeStudentsPerPage");
-}
-
-function renderStudentsTable(list, query = "", matchSet = new Set()) {
-  const tbody = $("#studentsTable tbody");
-
-  if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = list.map(s => {
-    const isMatch          = query && matchSet.has(s._id);
-    const supId            = s.group?.supervisor?._id || "";
-    const supName = s.group?.supervisor
-      ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
-      : "—";
-    const totalMarks       = s.total_marks || 0;
-    const safeName         = (s.name || "").replace(/'/g, "\\'");
-    const whatsapp         = s.whatsapp || "—";
-    const cvUrl            = s.cv_url || "";
-    const proposalUrl      = s.group?.proposal_url || "";
-    const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
-    const proposalStatus   = s.group?.proposal_status || "";
-
-    return `
-      <tr class="${isMatch ? "search-match" : ""}">
-
-        <td>
-          <div class="team-info">
-            <strong>${highlightText(s.name, query)}</strong>
-            <span style="display:block">${s.email || ""}</span>
-            <span style="display:block;font-size:.7rem;color:var(--success);font-weight:600">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"
-                   style="display:inline;vertical-align:middle;margin-right:3px">
-                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56zm-5.55 12.21h-.01a6.6 6.6 0 0 1-3.36-.92l-.24-.14-2.49.65.66-2.43-.16-.25a6.6 6.6 0 1 1 5.6 3.09z"/>
-              </svg>
-              ${whatsapp}
-            </span>
-          </div>
-        </td>
-
-        <td><span class="id-pill">${highlightText(s.student_code || "—", query)}</span></td>
-
-        <td>${highlightText(supName, query)}</td>
-
-        <td>
-          <strong style="font-family:monospace;color:var(--primary)">
-            ${totalMarks}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span>
-          </strong>
-        </td>
-
-        <td>
-          <div class="doc-cell">
-            ${renderDocBadge("CV", cvUrl, true, safeName)}
-            ${renderDocBadge("Proposal", proposalUrl, false, safeName, proposalUploader, proposalStatus)}
-          </div>
-        </td>
-        <td>
-          <div class="action-row">
-            <button class="icon-action" title="View supervisor"
-              onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Student is not in a team yet','warn')`}">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </button>
-            <button class="icon-action danger" title="Delete student" style="color:#dc2626"
-              onclick="deleteStudent('${s._id}','${safeName}')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                <line x1="10" y1="11" x2="10" y2="17"/>
-                <line x1="14" y1="11" x2="14" y2="17"/>
-              </svg>
-            </button>
-          </div>
-        </td>
-
-      </tr>`;
-  }).join("");
 }
 
 //   DOCUMENT BADGES
@@ -1550,15 +1497,6 @@ async function downloadDoc(url, filename) {
   }
 }
 
-function downloadDoc(url, filename) {
-  if (!url) return toast("No document", "File not available", "warn");
-  const a = document.createElement("a");
-  a.href     = `http://127.0.0.1:5001${url}`;
-  a.download = (filename || "document").replace(/[^\w\-]/g, "_");
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
 
 
 //   PROPOSAL STATUS
@@ -3019,7 +2957,155 @@ function renderInternshipTable(list) {
 let SUPERVISORS_DATA = [];
 let TEAMS_DATA       = [];
 let STUDENTS_DATA    = [];
+/* ════════════════════════════════════
+   STUDENT VIEW MODAL
+══════════════════════════════════════ */
+function openStudentViewModal(studentId) {
+  const s = STUDENTS_DATA.find(s => s._id === studentId);
+  if (!s) return toast("Error", "Student not found", "error");
 
+  const body = document.getElementById("studentViewModalBody");
+  if (!body) return;
+
+  const projTitle = s.group?.project_title || "Not assigned";
+  const supName   = s.group?.supervisor
+    ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
+    : "Not assigned";
+
+  const fieldStyle = `
+    width:100%;padding:9px 12px;
+    background:#f8faf8;border:1.5px solid var(--border);
+    border-radius:9px;font-size:.86rem;color:var(--text);
+    font-family:inherit;cursor:default`;
+
+  const labelStyle = `
+    display:block;font-size:.7rem;font-weight:700;
+    color:var(--text-mute);text-transform:uppercase;
+    letter-spacing:.06em;margin-bottom:5px`;
+
+  body.innerHTML = `
+    <!-- Avatar + name header -->
+    <div style="display:flex;align-items:center;gap:14px;
+                padding:16px;background:rgba(0,75,45,.04);
+                border-radius:12px;margin-bottom:20px;
+                border:1px solid rgba(0,75,45,.1)">
+      <div style="width:52px;height:52px;border-radius:14px;flex-shrink:0;
+                  background:linear-gradient(135deg,var(--primary),var(--secondary));
+                  display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.1rem">
+        ${initials(s.name)}
+      </div>
+      <div>
+        <div style="font-weight:800;font-size:1rem;color:var(--primary-dark)">${escapeHtml(s.name)}</div>
+        <div style="font-size:.74rem;color:var(--text-mute);margin-top:2px">${escapeHtml(s.email || "—")}</div>
+        <span class="id-pill" style="margin-top:4px;display:inline-block">${escapeHtml(s.student_code || "—")}</span>
+      </div>
+    </div>
+
+    <!-- Personal info: 2 per row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+
+      <div>
+        <label style="${labelStyle}">Full Name</label>
+        <div style="${fieldStyle}">${escapeHtml(s.name || "—")}</div>
+      </div>
+
+      <div>
+        <label style="${labelStyle}">Student ID</label>
+        <div style="${fieldStyle};font-family:monospace;font-weight:700;color:var(--primary)">
+          ${escapeHtml(s.student_code || "—")}
+        </div>
+      </div>
+
+      <div>
+        <label style="${labelStyle}">Email</label>
+        <div style="${fieldStyle}">${escapeHtml(s.email || "—")}</div>
+      </div>
+
+      <div>
+        <label style="${labelStyle}">WhatsApp</label>
+        <div style="${fieldStyle}">${escapeHtml(s.whatsapp || "—")}</div>
+      </div>
+
+      <div style="grid-column:1/-1">
+        <label style="${labelStyle}">Gender</label>
+        <div style="${fieldStyle};text-transform:capitalize">${escapeHtml(s.gender || "—")}</div>
+      </div>
+
+    </div>
+
+    <!-- Team & Project -->
+    <div style="border-top:1px solid var(--border-soft);padding-top:14px;margin-bottom:14px">
+      <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;
+                  letter-spacing:.08em;color:var(--text-mute);margin-bottom:10px">
+        Team &amp; Project
+      </div>
+      <div style="display:grid;grid-template-columns:1fr;gap:14px">
+
+        <div>
+          <label style="${labelStyle}">Supervisor</label>
+          <div style="${fieldStyle}">${escapeHtml(supName)}</div>
+        </div>
+
+        <div>
+          <label style="${labelStyle}">Project Title</label>
+          <div style="${fieldStyle}">${escapeHtml(projTitle)}</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div style="border-top:1px solid var(--border-soft);padding-top:14px">
+      <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;
+                  letter-spacing:.08em;color:var(--text-mute);margin-bottom:10px">
+        Documents
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+
+        ${s.cv_url ? `
+          <button onclick="viewDoc('${s.cv_url}')"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;
+                   border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;
+                   border:1.5px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+                   color:var(--primary)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+            View CV
+          </button>` : `
+          <span style="padding:8px 14px;border-radius:9px;font-size:.78rem;font-weight:600;
+                       border:1.5px dashed var(--border);color:var(--text-mute)">
+            CV not uploaded
+          </span>`}
+
+        ${s.group?.proposal_url ? `
+          <button onclick="viewDoc('${s.group.proposal_url}')"
+            style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;
+                   border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;
+                   border:1.5px solid rgba(99,102,241,.25);background:rgba(99,102,241,.06);
+                   color:#4f46e5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+            View Proposal
+          </button>` : `
+          <span style="padding:8px 14px;border-radius:9px;font-size:.78rem;font-weight:600;
+                       border:1.5px dashed var(--border);color:var(--text-mute)">
+            Proposal not submitted
+          </span>`}
+
+      </div>
+    </div>`;
+
+  document.getElementById("studentViewModal").classList.add("open");
+}
+function closeStudentViewModal() {
+  document.getElementById("studentViewModal").classList.remove("open");
+}
 async function initDashboard() {
   displayAdminInfo();
   await fetchDashboardStats();
