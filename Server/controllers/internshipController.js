@@ -62,6 +62,7 @@ export const submitAcceptanceLetter = async (req, res) => {
       acceptance_letter_filename:    req.file.key.split("/").pop(), 
       acceptance_letter_uploaded_at: new Date(),
       status:                        "submitted",
+      student:                       req.user?.id || null,
     });
 
     res.status(201).json({

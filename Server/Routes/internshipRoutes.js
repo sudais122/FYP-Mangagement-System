@@ -3,7 +3,7 @@ import multer         from "multer";
 import multerS3       from "multer-s3";
 import { createS3Client } from "../config/s3.js";
 import { protect }    from "../middleware/auth.js";
-import Internship     from "../Models/Internship.js";
+import Internship     from "../Models/internship.js";
 
 import {
   submitAcceptanceLetter,

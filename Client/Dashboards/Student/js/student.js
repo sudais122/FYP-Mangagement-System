@@ -121,6 +121,7 @@ async function loadSupervisors() {
     return [];
   }
 }
+
 async function loadDashboard() {
   try {
     const response = await fetch(`${API_BASE}/students/dashboard`, {
@@ -146,10 +147,20 @@ async function loadDashboard() {
     STATE.teamRole     = data.student.team_role;
     STATE.groupData    = data.group;
 
+    // ── Fetch full profile to get cv_url + certificates_url ──
+    try {
+      const profileRes  = await fetch(`${API_BASE}/auth/profile`, { headers: API_HEADERS });
+      const profileData = await profileRes.json();
+      STATE.cvUrl   = profileData.cv_url           || null;
+      STATE.certUrl = profileData.certificates_url || null;
+    } catch {
+      STATE.cvUrl   = null;
+      STATE.certUrl = null;
+    }
+
     const proposalUrl    = data.group.proposal_url;
     const proposalStatus = data.group.proposal_status;
-    STATE.cvUrl = data.student?.cv_url || null;
-    STATE.certUrl = data.student?.certificates_url || null;  
+
     if (proposalUrl) {
       STATE.proposalState = proposalStatus || "pending";
       STATE.proposalFile  = data.group.proposal_filename || proposalUrl;
@@ -169,6 +180,7 @@ async function loadDashboard() {
         role:         "Leader",
       });
     }
+
     if (data.group.members) {
       data.group.members.forEach(m => {
         if (m.student_code !== STATE.studentId) {
@@ -200,8 +212,6 @@ async function loadDashboard() {
         sup_code:       sup.sup_code,
         whatsapp:       sup.whatsapp       || "",
         avatar_url:     sup.avatar_url     || "",
-        cvUrl:    null,   
-        certUrl:  null, 
       };
     }
 
@@ -217,6 +227,7 @@ async function loadDashboard() {
     toast("Failed to load dashboard: " + error.message, "red");
   }
 }
+
 // Search for student by code
 async function searchStudentByCode(studentCode) {
   try {
