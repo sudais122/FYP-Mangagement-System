@@ -419,6 +419,12 @@
             <h2>Team Management</h2>
             <p>View all teams and reassign supervisors as needed</p>
           </div>
+                            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+  <button id="pf-all"      onclick="setProposalFilter('all')"      class="btn btn-sm btn-primary">All</button>
+  <button id="pf-pending"  onclick="setProposalFilter('pending')"  class="btn btn-sm btn-ghost">Pending</button>
+  <button id="pf-approved" onclick="setProposalFilter('approved')" class="btn btn-sm btn-ghost">Approved</button>
+  <button id="pf-rejected" onclick="setProposalFilter('rejected')" class="btn btn-sm btn-ghost">Rejected</button>
+</div>
         </div>
 
         <div class="filter-bar">
@@ -489,7 +495,6 @@
             />
           </div>
         </div>
-
         <div class="dash-panel">
           <div class="panel-body" style="padding: 0">
             <div class="data-table-wrap">
@@ -706,6 +711,16 @@
       <h2>Internship Submissions</h2>
       <p>All acceptance letters submitted by students via the public portal</p>
     </div>
+    <div class="filter-bar" style="margin-bottom:0">
+  <div class="filter-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"/>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="text" id="searchInternship" placeholder="Search by name…"
+           oninput="filterInternships(this.value)" />
+  </div>
+</div>
     <div class="section-head-actions">
       <button class="btn btn-ghost" onclick="renderInternships()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"

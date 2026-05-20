@@ -843,7 +843,21 @@ function hideInternError() {
   const el = document.getElementById("intern-error");
   el.style.display = "none";
 }
+function formatCnic(input) {
+  // Strip all non-digits
+  let digits = input.value.replace(/\D/g, "").slice(0, 13);
 
+  let formatted = "";
+  if (digits.length <= 5) {
+    formatted = digits;
+  } else if (digits.length <= 12) {
+    formatted = digits.slice(0, 5) + "-" + digits.slice(5);
+  } else {
+    formatted = digits.slice(0, 5) + "-" + digits.slice(5, 12) + "-" + digits.slice(12);
+  }
+
+  input.value = formatted;
+}
 async function submitInternshipLetter() {
   const name       = document.getElementById("intern-name").value.trim();
   const cnic       = document.getElementById("intern-cnic").value.trim();
@@ -854,8 +868,9 @@ async function submitInternshipLetter() {
 
   // Validate
   if (!name)       { showInternError("Please enter your full name."); return; }
-  if (!cnic || cnic.length !== 13) {
-    showInternError("Please enter a valid 13-digit CNIC (without dashes).");
+const rawCnic = cnic.replace(/\D/g, "");
+  if (rawCnic.length !== 13) {
+    showInternError("Please enter a valid 13-digit CNIC (e.g. 16102-1234567-8).");
     return;
   }
   if (!discipline) { showInternError("Please select your discipline."); return; }
@@ -864,7 +879,7 @@ async function submitInternshipLetter() {
   // Build form data
   const formData = new FormData();
   formData.append("full_name",   name);
-  formData.append("cnic",        cnic);
+  formData.append("cnic", rawCnic);
   formData.append("discipline",  discipline);
 
   // File saved as studentname.pdf on the server

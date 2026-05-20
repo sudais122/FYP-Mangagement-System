@@ -20,7 +20,7 @@ const internshipSchema = new mongoose.Schema(
       required: [true, "Discipline is required"],
       enum:     [
         "BS Computer Science (Hons)",
-        "Software Engineering",
+        "Software",
         "Artificial Intelligence",
         "Cyber Security",
       ],

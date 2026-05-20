@@ -789,7 +789,6 @@
         <!-- RIGHT: Upload Card -->
         <div class="intern-card">
           <h3>Upload Acceptance Letter</h3>
-          <p>Once the company approves your internship, upload their acceptance letter along with your basic details below.</p>
 
           <!-- Upload Form -->
           <div class="intern-form" id="intern-upload-form">
@@ -802,11 +801,10 @@
 
             <div class="intern-field">
               <label>CNIC <span style="color:#dc2626">*</span>
-                <small style="color:var(--text-mute);font-weight:400">(without dashes)</small>
               </label>
-              <input type="text" id="intern-cnic" class="intern-input"
-                     placeholder="e.g. 1610212345678" maxlength="13"
-                     oninput="this.value=this.value.replace(/\D/g,'')"/>
+<input type="text" id="intern-cnic" class="intern-input"
+       placeholder="e.g. 16102-1234567-8" maxlength="15"
+       oninput="formatCnic(this)"/>
               <span class="intern-field-hint" id="cnic-hint"></span>
             </div>
 
@@ -815,7 +813,7 @@
               <select id="intern-discipline" class="intern-select">
                 <option value="">— Select your discipline —</option>
                 <option value="BS Computer Science (Hons)">BS Computer Science (Hons)</option>
-                <option value="Software Engineering">Software Engineering</option>
+                <option value="Software">Software</option>
                 <option value="Artificial Intelligence">Artificial Intelligence (AI)</option>
                 <option value="Cyber Security">Cyber Security</option>
               </select>

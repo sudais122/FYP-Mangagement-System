@@ -41,6 +41,11 @@ const MAX_TOTAL = 200;
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
+function formatCnic(cnic) {
+  const d = (cnic || "").replace(/\D/g, "");
+  if (d.length !== 13) return cnic || "—";
+  return `${d.slice(0, 5)}-${d.slice(5, 12)}-${d.slice(12)}`;
+}
 const initials = (s) =>
   (s || "")
     .split(" ")
@@ -1666,29 +1671,7 @@ function filterSupervisors(query) {
 function filterTeams(query) {
   TEAMS_PAGE.current = 1;
   if (!Array.isArray(TEAMS_DATA)) return;
-
-  if (!query || !query.trim()) {
-    renderTeamsPage(1);
-    return;
-  }
-
-  const q       = query.trim().toLowerCase();
-  const matched = [], rest = [];
-
-  TEAMS_DATA.forEach(g => {
-    const hit = matches(g.group_code || g.team_code, q)
-      || matches(g.project_title, q)
-      || matches(g.supervisor?.name, q)
-      || matches(g.supervisor?.sup_code, q);
-    (hit ? matched : rest).push(g);
-  });
-
-  renderTeamsTable([...matched, ...rest]);
-
-  const pag = document.getElementById("teamsPagination");
-  if (pag) pag.innerHTML = matched.length
-    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${matched.length} result${matched.length !== 1 ? "s" : ""} found</div>`
-    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results</div>`;
+  applyTeamsFilter();
 }
 
 function filterStudents(query) {
@@ -2946,7 +2929,7 @@ function renderInternshipTable(list) {
     return `
       <tr>
         <td><strong>${escapeHtml(item.full_name || "—")}</strong></td>
-        <td><span style="font-family:monospace;font-size:.82rem">${escapeHtml(item.cnic || "—")}</span></td>
+        <td><span style="font-family:monospace;font-size:.82rem">${formatCnic(item.cnic)}</span></td>
         <td><span style="font-size:.8rem">${escapeHtml(item.discipline || "—")}</span></td>
         <td style="font-size:.78rem;color:var(--text-mute)">${dateStr}</td>
         <td>${letterBtn}</td>
@@ -3105,6 +3088,70 @@ function openStudentViewModal(studentId) {
 }
 function closeStudentViewModal() {
   document.getElementById("studentViewModal").classList.remove("open");
+}
+/* ════════════════════════════════════
+   INTERNSHIP SEARCH
+══════════════════════════════════════ */
+function filterInternships(query) {
+  const q = (query || "").trim().toLowerCase();
+  if (!q) {
+    renderInternshipPage(1);
+    return;
+  }
+  const filtered = INTERNSHIP_DATA.filter(item =>
+    (item.full_name || "").toLowerCase().includes(q)
+  );
+  renderInternshipTable(filtered);
+  const pag = document.getElementById("internshipPagination");
+  if (pag) pag.innerHTML = filtered.length
+    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${filtered.length} result${filtered.length !== 1 ? "s" : ""} found</div>`
+    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results found</div>`;
+}
+/* ════════════════════════════════════
+   TEAMS PROPOSAL FILTER
+══════════════════════════════════════ */
+let _activeProposalFilter = "all";
+
+function setProposalFilter(status) {
+  _activeProposalFilter = status;
+
+  // Update button styles
+  ["all","pending","approved","rejected"].forEach(s => {
+    const btn = document.getElementById(`pf-${s}`);
+    if (!btn) return;
+    btn.className = s === status ? "btn btn-sm btn-primary" : "btn btn-sm btn-ghost";
+  });
+
+  applyTeamsFilter();
+}
+
+function applyTeamsFilter() {
+  const searchQuery = (document.getElementById("searchTeams")?.value || "").trim().toLowerCase();
+  let filtered = [...TEAMS_DATA];
+
+  // Proposal status filter
+  if (_activeProposalFilter !== "all") {
+    filtered = filtered.filter(g =>
+      (g.proposal_status || "pending") === _activeProposalFilter
+    );
+  }
+
+  // Search filter
+  if (searchQuery) {
+    filtered = filtered.filter(g =>
+      matches(g.group_code || g.team_code, searchQuery)
+      || matches(g.project_title, searchQuery)
+      || matches(g.supervisor?.name, searchQuery)
+      || matches(g.supervisor?.sup_code, searchQuery)
+    );
+  }
+
+  renderTeamsTable(filtered);
+
+  const pag = document.getElementById("teamsPagination");
+  if (pag) pag.innerHTML = filtered.length
+    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${filtered.length} team${filtered.length !== 1 ? "s" : ""} found</div>`
+    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No teams found</div>`;
 }
 async function initDashboard() {
   displayAdminInfo();
