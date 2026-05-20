@@ -81,16 +81,18 @@ export const registerStudent = async (req, res) => {
   try {
     const { name, email, whatsapp, password, gender } = req.body;
 
+    // ── Files come from multer .fields() so use req.files ──
+    const cvFile   = req.files?.cv?.[0];
+    const certFile = req.files?.certificates?.[0];
+
     // 1. CV required
-    if (!req.file) {
+    if (!cvFile) {
       return res.status(400).json({ message: "CV is required" });
     }
 
-    // 2. PDF check 
-    const isPdfMime = req.file.mimetype === "application/pdf";
-    const filename  = req.file.originalname || req.file.key || "";
-    const isPdfExt  = filename.toLowerCase().endsWith(".pdf");
-
+    // 2. PDF check
+    const isPdfMime = cvFile.mimetype === "application/pdf";
+    const isPdfExt  = (cvFile.originalname || cvFile.key || "").toLowerCase().endsWith(".pdf");
     if (!isPdfMime && !isPdfExt) {
       return res.status(400).json({ message: "CV must be a PDF file" });
     }
@@ -107,27 +109,29 @@ export const registerStudent = async (req, res) => {
     // 5. Student ID
     const student_code = await generateStudentId();
 
-    // 6. Create student 
+    // 6. Create student
     const student = await Student.create({
       name,
       email,
       whatsapp,
       gender,
-      password: hashedPassword,
+      password:         hashedPassword,
       student_code,
-      cv_url: req.file.location,
+      cv_url:           cvFile.location,
+      certificates_url: certFile?.location || null,
     });
 
     // 7. Response
     res.status(201).json({
       message: "Student registered successfully",
       student: {
-        _id:          student._id,
-        name:         student.name,
-        email:        student.email,
-        gender:       student.gender,
-        student_code: student.student_code,
-        cv_url:       student.cv_url,
+        _id:              student._id,
+        name:             student.name,
+        email:            student.email,
+        gender:           student.gender,
+        student_code:     student.student_code,
+        cv_url:           student.cv_url,
+        certificates_url: student.certificates_url,
       },
     });
 
@@ -136,7 +140,6 @@ export const registerStudent = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 // ── FORGOT PASSWORD (sends OTP) ──────────────────────
 export const forgotPassword = async (req, res) => {
   try {

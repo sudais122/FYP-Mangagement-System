@@ -3,6 +3,7 @@ import multer         from "multer";
 import multerS3       from "multer-s3";
 import { createS3Client } from "../config/s3.js";
 import { protect }    from "../middleware/auth.js";
+import Internship     from "../Models/Internship.js";
 
 import {
   submitAcceptanceLetter,
@@ -15,9 +16,6 @@ import {
 
 const router = express.Router();
 
-/* ════════════════════════════════════
-   MULTER — Lazy init (env loads first)
-════════════════════════════════════ */
 let _upload = null;
 
 function getUpload() {
@@ -45,9 +43,7 @@ function getUpload() {
   return _upload;
 }
 
-/* ════════════════════════════════════
-   PUBLIC ROUTES — No login required
-════════════════════════════════════ */
+/* ── PUBLIC ─────────────────────────────────────── */
 router.get("/download-letter", downloadRequestLetter);
 
 router.post(
@@ -56,9 +52,19 @@ router.post(
   submitAcceptanceLetter
 );
 
-/* ════════════════════════════════════
-   ADMIN ROUTES — Admin auth required
-════════════════════════════════════ */
+/* ── STUDENT — view own submission ──────────────── */
+router.get("/my", protect, async (req, res) => {
+  try {
+    const submission = await Internship.findOne({ student: req.user.id })
+      .select("full_name discipline status acceptance_letter_url createdAt");
+    if (!submission) return res.json({ found: false, submission: null });
+    res.json({ found: true, submission });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+/* ── ADMIN ──────────────────────────────────────── */
 router.get("/admin/all",        protect, getAllSubmissions);
 router.get("/admin/:id",        protect, getSubmissionById);
 router.put("/admin/:id/status", protect, updateSubmissionStatus);

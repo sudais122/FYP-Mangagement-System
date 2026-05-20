@@ -196,7 +196,34 @@
       </div>
       <div class="err-msg" id="e-cv">Please upload your CV as a PDF file</div>
     </div>
+<!-- Certificates Upload -->
+<div class="fg">
+  <label>
+    Certificates
+    <span style="font-weight:500;color:#adb5bd;text-transform:none;font-size:.85em">
+      (Optional)
+    </span>
+  </label>
 
+  <div class="cv-zone" id="cert-zone">
+    <input type="file" id="r-cert" name="certificates" accept=".pdf,application/pdf">
+    <div class="cv-ic">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11l3 3L22 4"/>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+    </div>
+    <div class="cv-text">
+      <p id="cert-lbl">Click to upload or drag &amp; drop</p>
+      <span id="cert-sub">
+        Upload your internship certificate <strong>or</strong> all Coursera
+        certificates combined in one PDF &nbsp;<span class="pdf-pill">PDF only</span>
+      </span>
+    </div>
+  </div>
+  <div class="err-msg" id="e-cert">Only PDF files are accepted</div>
+</div>
     <!-- Submit -->
     <button class="btn-reg" id="rbtn" onclick="doReg()" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

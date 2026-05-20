@@ -148,6 +148,8 @@ async function loadDashboard() {
 
     const proposalUrl    = data.group.proposal_url;
     const proposalStatus = data.group.proposal_status;
+    STATE.cvUrl = data.student?.cv_url || null;
+    STATE.certUrl = data.student?.certificates_url || null;  
     if (proposalUrl) {
       STATE.proposalState = proposalStatus || "pending";
       STATE.proposalFile  = data.group.proposal_filename || proposalUrl;
@@ -198,6 +200,8 @@ async function loadDashboard() {
         sup_code:       sup.sup_code,
         whatsapp:       sup.whatsapp       || "",
         avatar_url:     sup.avatar_url     || "",
+        cvUrl:    null,   
+        certUrl:  null, 
       };
     }
 
@@ -358,6 +362,7 @@ const TITLES = {
   project: "My Project",
   supervisor: "Supervisor",
   progress: "Progress & Evaluation",
+  documents: "My Documents",          
 };
 const SUBS = {
   home: "Welcome back — here's your project overview",
@@ -365,6 +370,7 @@ const SUBS = {
   project: "Submit proposal, upload files, and track deadlines",
   supervisor: "Supervisor information and contact details",
   progress: "Marks breakdown, charts, and evaluation progress",
+  documents: "View and access all your uploaded documents",  
 };
 
 function switchTab(tab, el) {
@@ -394,9 +400,9 @@ function switchTab(tab, el) {
       }
     }, 150); 
   }
-  if (tab === "project") loadProposalSection();
+  if (tab === "project") { loadProposalSection(); renderMyDocuments();}
   if (tab === "supervisor") renderSupervisorTab();
-
+  if (tab === "documents") { renderMyDocuments(); }           
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -2161,4 +2167,137 @@ async function apiFetch(url, options = {}) {
   }
 
   return res;
+}
+
+/* ══════════════════════════════════
+   VIEW DOC (presigned S3 URL)
+══════════════════════════════════ */
+async function viewDoc(url) {
+  if (!url) return toast("No document available", "red");
+  try {
+    if (url.includes("amazonaws.com")) {
+      const res  = await fetch(
+        `${API_BASE}/uploads/signed-url?url=${encodeURIComponent(url)}`,
+        { headers: { Authorization: `Bearer ${user.token}` } }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      window.open(data.signedUrl, "_blank", "noopener");
+      return;
+    }
+    const final = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+    window.open(final, "_blank", "noopener");
+  } catch (err) {
+    toast("Could not open document", "red");
+    console.error("viewDoc error:", err);
+  }
+}
+
+/* ══════════════════════════════════
+   MY DOCUMENTS CARD
+══════════════════════════════════ */
+async function renderMyDocuments() {
+  const body = document.getElementById("my-docs-body");
+  if (!body) return;
+
+  // ── Proposal (only if approved) ──
+  const proposalApproved = STATE.groupData?.proposal_status === "approved";
+  const proposalUrl      = proposalApproved ? STATE.groupData?.proposal_url : null;
+
+  const docs = [
+    {
+      label:  "My CV",
+      desc:   "Your uploaded curriculum vitae",
+      url:    STATE.cvUrl || null,
+      status: STATE.cvUrl ? "uploaded" : "not_uploaded",
+      icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+             <polyline points="14 2 14 8 20 8"/>
+             <line x1="16" y1="13" x2="8" y2="13"/>
+             <line x1="16" y1="17" x2="8" y2="17"/>`,
+    },
+    {
+      label:  "Certificates",
+      desc:   "Internship / Coursera certificates",
+      url:    STATE.certUrl || null,
+      status: STATE.certUrl ? "uploaded" : "not_uploaded",
+      icon: `<path d="M9 11l3 3L22 4"/>
+             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
+    },
+    {
+      label:  "Project Proposal",
+      desc:   proposalApproved
+              ? "Your approved FYP proposal"
+              : "Only viewable once proposal is approved",
+      url:    proposalUrl,
+      status: proposalApproved
+              ? "approved"
+              : (STATE.groupData?.proposal_status || "not_submitted"),
+      icon: `<path d="M9 11l3 3L22 4"/>
+             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
+    },
+  ];
+
+  const statusConfig = {
+    uploaded:      { label: "Uploaded",       cls: "s-approved" },
+    submitted:     { label: "Submitted",      cls: "s-approved" },
+    approved:      { label: "Approved",       cls: "s-approved" },
+    not_uploaded:  { label: "Not Uploaded",   cls: "s-none"     },
+    not_submitted: { label: "Not Submitted",  cls: "s-none"     },
+    pending:       { label: "Pending Review", cls: "s-pending"  },
+    rejected:      { label: "Rejected",       cls: "s-rejected" },
+  };
+
+  body.innerHTML = docs.map((doc, i) => {
+    const sc  = statusConfig[doc.status] || { label: doc.status, cls: "s-none" };
+    const btn = doc.url
+      ? `<button onclick="viewDoc('${doc.url}')"
+           style="display:inline-flex;align-items:center;gap:6px;
+                  padding:7px 16px;border-radius:8px;font-size:.76rem;font-weight:700;
+                  cursor:pointer;border:1.5px solid rgba(0,75,45,.2);
+                  background:rgba(0,75,45,.06);color:var(--primary);
+                  font-family:inherit;transition:all .2s;white-space:nowrap"
+           onmouseover="this.style.background='rgba(0,75,45,.14)'"
+           onmouseout="this.style.background='rgba(0,75,45,.06)'">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+             <circle cx="12" cy="12" r="3"/>
+           </svg>
+           View
+         </button>`
+      : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic;padding:7px 0">
+           ${doc.status === "pending"  ? "Under Review" :
+             doc.status === "rejected" ? "Rejected"     : "—"}
+         </span>`;
+
+    return `
+      <div style="display:flex;align-items:center;gap:14px;
+                  padding:16px 22px;
+                  ${i < docs.length - 1 ? "border-bottom:1px solid var(--border-soft)" : ""}">
+
+        <div style="width:42px;height:42px;border-radius:12px;flex-shrink:0;
+                    background:${doc.url ? "rgba(0,75,45,.08)" : "rgba(107,114,128,.07)"};
+                    display:grid;place-items:center">
+          <svg viewBox="0 0 24 24" fill="none"
+               stroke="${doc.url ? "var(--primary)" : "var(--text-mute)"}"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               width="18" height="18">
+            ${doc.icon}
+          </svg>
+        </div>
+
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.86rem;font-weight:700;color:var(--text);margin-bottom:2px">
+            ${doc.label}
+          </div>
+          <div style="font-size:.74rem;color:var(--text-mute)">${doc.desc}</div>
+        </div>
+
+        <span class="status-badge ${sc.cls}" style="flex-shrink:0;white-space:nowrap">
+          ${sc.label}
+        </span>
+
+        <div style="flex-shrink:0">${btn}</div>
+      </div>`;
+  }).join("");
 }

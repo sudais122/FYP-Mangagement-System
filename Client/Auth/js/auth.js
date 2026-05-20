@@ -11,6 +11,7 @@ async function doReg() {
   const pw     = document.getElementById("r-pw").value;
   const cpw    = document.getElementById("r-cpw").value;
   const cv     = document.getElementById("r-cv").files[0];
+  const cert = document.getElementById("r-cert")?.files[0] || null;
 
   if (!fn) return showErr("fn");
   if (!ln) return showErr("ln");
@@ -52,7 +53,7 @@ async function doReg() {
   formData.append("gender", gender);
   formData.append("password", pw);
   formData.append("cv", cv);
-
+  if (cert) formData.append("certificates", cert); 
   const btn = document.getElementById("rbtn");
   btn.disabled = true;
   btn.innerHTML = "Creating account...";
@@ -664,4 +665,68 @@ async function apiFetch(url, options = {}) {
   }
 
   return res;
+}
+
+// ── Certificate upload zone ──
+const certInput = document.getElementById("r-cert");
+const certZone  = document.getElementById("cert-zone");
+const certLbl   = document.getElementById("cert-lbl");
+const certSub   = document.getElementById("cert-sub");
+
+if (certInput && certZone) {
+
+  function showCert(file) {
+    if (!file) return;
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
+      certInput.value = "";
+      resetCert();
+      Swal.fire({ icon: "error", title: "Invalid file type", text: "Certificates must be a PDF file" });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      certInput.value = "";
+      resetCert();
+      Swal.fire({ icon: "error", title: "File too large", text: "File must be under 10 MB" });
+      return;
+    }
+    const size = file.size < 1024 * 1024
+      ? (file.size / 1024).toFixed(1) + " KB"
+      : (file.size / (1024 * 1024)).toFixed(2) + " MB";
+    certLbl.innerHTML = `<strong style="color:var(--primary,#004b2d);word-break:break-all">${file.name}</strong>
+                         <span style="margin-left:8px;color:#dc2626;cursor:pointer;font-weight:600"
+                               onclick="clearCert(event)">Remove</span>`;
+    certSub.innerHTML = `<span style="color:#15803d;font-weight:600">✓ ${size} · Ready to upload</span>`;
+    certZone.classList.add("has-file");
+  }
+
+  function resetCert() {
+    certLbl.textContent = "Click to upload or drag & drop";
+    certSub.innerHTML = `Upload your internship certificate <strong>or</strong> all Coursera
+                         certificates combined in one PDF &nbsp;<span class="pdf-pill">PDF only</span>`;
+    certZone.classList.remove("has-file");
+  }
+
+  window.clearCert = function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    certInput.value = "";
+    resetCert();
+  };
+
+  certInput.addEventListener("change", e => showCert(e.target.files[0]));
+
+  certZone.addEventListener("dragover",  e => { e.preventDefault(); certZone.classList.add("drag-over"); });
+  certZone.addEventListener("dragleave", ()  => certZone.classList.remove("drag-over"));
+  certZone.addEventListener("drop", e => {
+    e.preventDefault();
+    certZone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      certInput.files = dt.files;
+      showCert(file);
+    }
+  });
 }

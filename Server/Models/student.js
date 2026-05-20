@@ -83,6 +83,10 @@ const studentSchema = new mongoose.Schema(
       type:    String,
       default: null,
     },
+    certificates_url: {
+      type:    String,
+      default: null,
+    },
 
     resetPasswordToken:  { type: String },
     resetPasswordExpire: { type: Date   },
