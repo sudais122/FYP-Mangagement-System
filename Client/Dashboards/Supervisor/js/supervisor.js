@@ -1054,8 +1054,8 @@ async function openGroupDetail(teamMongoId) {
     </button>
     <div class="gh-strip">
       <div class="gh-info">
+      <div class="gh-proj">${t.projectTitle}</div>
         <div class="gh-tid">${t.teamId}</div>
-        <div class="gh-proj">${t.projectTitle}</div>
         <div class="gh-sup">Category: ${t.category} · Supervisor: ${formatName(sup.prefix, SUPERVISOR.name)} (${SUPERVISOR.id})</div>
       </div>
       <div class="gh-stat-box">
