@@ -12,7 +12,7 @@ import Supervisor from "./Models/supervisor.js";
 import Counter from "./Models/counter.js";
 
 await mongoose.connect(process.env.MONGO_URI);
-console.log("✅ MongoDB connected");
+console.log("MongoDB connected");
 
 // ─── STUDENT counter ─────────────────────────────────
 const students = await Student.find().select("student_code");
@@ -26,7 +26,7 @@ await Counter.findOneAndUpdate(
   { value: maxStudent },
   { upsert: true }
 );
-console.log(`✅ Student counter set to ${maxStudent} → next ID: STD-${new Date().getFullYear()}${String(maxStudent + 1).padStart(4, "0")}`);
+console.log(`Student counter set to ${maxStudent} → next ID: STD-${new Date().getFullYear()}${String(maxStudent + 1).padStart(4, "0")}`);
 
 // ─── SUPERVISOR counter ──────────────────────────────
 const sups = await Supervisor.find().select("sup_code");
@@ -40,7 +40,7 @@ await Counter.findOneAndUpdate(
   { value: maxSup },
   { upsert: true }
 );
-console.log(`✅ Supervisor counter set to ${maxSup} → next ID: SUP-2026${String(maxSup + 1).padStart(5, "0")}`);
+console.log(`Supervisor counter set to ${maxSup} → next ID: SUP-2026${String(maxSup + 1).padStart(5, "0")}`);
 
-console.log("\n🎉 Done! You can delete this seedCounter.js file now.");
+console.log("\n Done! You can delete this seedCounter.js file now.");
 process.exit(0);
