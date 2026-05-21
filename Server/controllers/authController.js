@@ -56,12 +56,13 @@ export const login = async (req, res) => {
     if (role === "student") {
       userData.student_code = user.student_code;
       userData.group        = user.group;
+      userData.gender       = user.gender || "male";  
     }
 
 if (role === "supervisor" || role === "chairman") {
   userData.sup_code              = user.sup_code;
   userData.prefix                = user.prefix;
-  userData.designation           = user.designation;   // ← ADD
+  userData.designation           = user.designation;   
   userData.force_password_change = user.force_password_change;
   userData.is_chairman           = user.is_chairman;
   userData.whatsapp              = user.whatsapp;

@@ -473,14 +473,14 @@ async function handleLogin(e) {
     ═══════════════════════════════ */
     if (data.role === "student") {
 
-      localStorage.setItem("user", JSON.stringify({
-        id: data._id,
-        name: data.name,
-        student_code: data.student_code,
-        email: data.email,
-        gender: data.gender,   
-        token: data.token,
-      }));
+    localStorage.setItem("user", JSON.stringify({
+      id:           data._id,
+      name:         data.name,
+      student_code: data.student_code,
+      email:        data.email,
+      gender:       data.gender || "male",
+      token:        data.token,
+    }));
 
       setTimeout(() => {
         window.location.href =
