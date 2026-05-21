@@ -2589,3 +2589,7 @@ td > div[style*="display:flex"] {
 .mark-toggle input:checked + .toggle-slider::before {
   transform: translateX(24px);
 }
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}

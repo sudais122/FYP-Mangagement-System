@@ -3153,6 +3153,34 @@ function applyTeamsFilter() {
     ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${filtered.length} team${filtered.length !== 1 ? "s" : ""} found</div>`
     : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No teams found</div>`;
 }
+
+/* ════════════════════════════════════
+   GLOBAL REFRESH
+══════════════════════════════════════ */
+async function refreshDashboard() {
+  const icon = document.getElementById("refresh-icon");
+
+  // Spin animation
+  if (icon) icon.style.animation = "spin 0.8s linear infinite";
+
+  try {
+    await Promise.all([
+      fetchDashboardStats(),
+      renderSupervisors(),
+      renderTeams(),
+      renderStudents(),
+      renderDeadlines(),
+      renderRecentTeams(),
+      renderInternships(),
+      loadMaintenanceStatus(),
+    ]);
+    toast("Refreshed", "All data updated", "success");
+  } catch (err) {
+    toast("Refresh failed", err.message, "error");
+  } finally {
+    if (icon) icon.style.animation = "";
+  }
+}
 async function initDashboard() {
   displayAdminInfo();
   await fetchDashboardStats();
