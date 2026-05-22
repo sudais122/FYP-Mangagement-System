@@ -1,3 +1,46 @@
+
+/* ════════════ FOREST GREEN ═════════════ */
+:root {
+  --primary:      #1F7A3A;
+  --primary-dark: #14532D;
+  --primary-mid:  #2A9450;
+  --secondary:    #3FAF65;
+  --secondary-lt: #6FCC8B;
+  --bg:           #F4FAF6;
+  --surface:      #FFFFFF;
+  --gold:         #c9a227;
+  --gold-lt:      #DDB94A;
+  --text:         #1A1A1A;
+  --text-soft:    #4A4A4A;
+  --text-mute:    #6C757D;
+  --border:       #CFE5D7;
+  --border-soft:  #E5F2EA;
+  --danger:       #DC2626;
+  --warning:      #D97706;
+  --info:         #0284C7;
+  --success:      #15803D;
+
+  --pr:           var(--primary);
+  --pr-dk:        var(--primary-dark);
+  --sec:          var(--secondary);
+  --sur:          var(--surface);
+  --txt:          var(--text);
+  --txt-s:        var(--text-soft);
+  --txt-m:        var(--text-mute);
+  --bdr:          var(--border);
+
+  --shadow-sm:    0 1px 3px rgba(31,122,58,.08);
+  --shadow:       0 4px 18px rgba(31,122,58,.10);
+  --shadow-lg:    0 14px 40px rgba(31,122,58,.14);
+
+  --radius:       12px;
+  --radius-lg:    18px;
+  --font:         'Calibri','Segoe UI',Arial,sans-serif;
+  --font-display: 'Calibri','Segoe UI',Arial,sans-serif;
+  --tr:           .25s cubic-bezier(.4,0,.2,1);
+  --sidebar-w:    72px;
+  --sidebar-exp:  240px;
+}
 :root {
     --sidebar-w: 72px;
     --sidebar-exp: 240px;

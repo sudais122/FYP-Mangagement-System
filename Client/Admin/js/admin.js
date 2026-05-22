@@ -113,7 +113,7 @@ function toast(message, subtitle, type = "success") {
 ══════════════════════════════════════ */
 function displayAdminInfo() {
   const admin = JSON.parse(localStorage.getItem("admin"));
-  if (!admin) { window.location.href = "./login.html"; return; }
+  if (!admin) { window.location.href = "../Auth/login.html"; return; }
 
   const navName     = document.getElementById("nav-admin-name");
   const navInitials = document.getElementById("nav-admin-avatar-initials");
@@ -2844,9 +2844,6 @@ async function updateMaintenanceReason() {
 }
 
 /* INTERNSHIP SUBMISSIONS */
-/* ════════════════════════════════════
-   INTERNSHIP SUBMISSIONS
-══════════════════════════════════════ */
 let INTERNSHIP_DATA = [];
 const INTERNSHIP_PAGE = { current: 1, perPage: 25 };
 
@@ -2932,9 +2929,47 @@ function renderInternshipTable(list) {
         <td><span style="font-family:monospace;font-size:.82rem">${formatCnic(item.cnic)}</span></td>
         <td><span style="font-size:.8rem">${escapeHtml(item.discipline || "—")}</span></td>
         <td style="font-size:.78rem;color:var(--text-mute)">${dateStr}</td>
-        <td>${letterBtn}</td>
-      </tr>`;
+<td>${letterBtn}</td>
+        <td>
+          <button onclick="deleteInternship('${item._id}','${escapeHtml(item.full_name || '')}')"
+            style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+                   border-radius:7px;font-size:.74rem;font-weight:700;cursor:pointer;
+                   border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.06);
+                   color:#dc2626">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            Delete
+          </button>
+        </td>
+      </tr>`;;
   }).join("");
+}
+
+async function deleteInternship(id, name) {
+  const confirmed = confirm(`Delete internship submission for "${name}"?\n\nThis will permanently remove their record and acceptance letter file. This cannot be undone.`);
+  if (!confirmed) return;
+
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res = await fetch(`http://127.0.0.1:5001/api/internship/admin/${id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${admin.token}`
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed to delete");
+
+    toast("Deleted", `${name}'s submission has been removed`, "success");
+    await renderInternships(); 
+    await fetchDashboardStats(); 
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
 }
 /* GLOBAL DATA */
 let SUPERVISORS_DATA = [];

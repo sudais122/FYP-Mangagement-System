@@ -539,7 +539,7 @@ localStorage.setItem("supervisor", JSON.stringify({
 
       setTimeout(() => {
         window.location.href =
-          "../Dashboards/Admin/index.html";
+          "../../Admin/index.html";
       }, 1000);
     }
 

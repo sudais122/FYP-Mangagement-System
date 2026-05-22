@@ -102,7 +102,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     toast("Login successful!", "green");
 
     setTimeout(() => {
-      window.location.href = "../../Dashboards/Admin/index.html";
+      window.location.href = "./index.html";
     }, 1000);
   } catch (err) {
     btnLoad("btn-login", false);
