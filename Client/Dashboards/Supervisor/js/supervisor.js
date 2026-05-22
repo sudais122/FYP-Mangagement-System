@@ -209,7 +209,7 @@ function initials(name) {
 /* ═══════════════════════════════════
    PAGINATION
 ═══════════════════════════════════ */
-const GROUPS_PAGE = { current: 1, perPage: 10 };
+const GROUPS_PAGE = { current: 1, perPage: 5 };
 
 function renderSupPagination(containerId, totalItems, currentPage, perPage, onPageChange) {
   const container = document.getElementById(containerId);
@@ -557,6 +557,7 @@ async function loadTeams() {
     console.error(err);
     toast("Failed to load teams: " + err.message, "red");
     teamsLoaded = true;
+    renderDashboard();
   }
 }
 
@@ -736,7 +737,7 @@ async function uploadAvatar() {
     }
 
     closeAvatarModal();
-    toast("Profile picture updated ✓", "green");
+    toast("Profile picture updated", "green");
   } catch (err) {
     if (errEl) {
       errEl.textContent = err.message;
@@ -781,36 +782,52 @@ if (sup.avatar_url) setNavAvatar(sup.avatar_url);
 let teamsLoaded = false;
 
 function renderDashboard() {
-  document.getElementById("stat-groups").textContent = TEAMS.length;
-  document.getElementById("stat-students").textContent =
-    TEAMS.reduce((s, t) => s + t.students.length, 0);
-  filterDashGroups(document.getElementById("search-dash-groups")?.value || "");
-}
+  const statGroups   = document.getElementById("stat-groups");
+  const statStudents = document.getElementById("stat-students");
+  const dashTab      = document.getElementById("tab-dashboard");
 
-function filterDashGroups(query) {
-  const q = (query || "").trim().toLowerCase();
-  const filtered = TEAMS.filter(t =>
-    (t.teamId || "").toLowerCase().includes(q) ||
-    (t.projectTitle || "").toLowerCase().includes(q)
-  );
+  if (statGroups)   statGroups.textContent   = TEAMS.length;
+  if (statStudents) statStudents.textContent = TEAMS.reduce((s, t) => s + t.students.length, 0);
+
+  if (dashTab) filterDashGroups();
+}
+function filterDashGroups() {
   const tbody = document.getElementById("dash-groups-tbody");
   if (!tbody) return;
+
   if (TEAMS.length === 0) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-mute)">No teams assigned to you yet.</td></tr>`;
     return;
   }
-  if (filtered.length === 0) { tbody.innerHTML = emptySearchRow(4, query); return; }
-  tbody.innerHTML = filtered.map(t =>
-    `<tr onclick="openGroupDetail('${t._id}')">
-      <td><span class="tid">${highlightMatch(t.teamId, q)}</span></td>
-      <td><span class="g-proj">${highlightMatch(t.projectTitle, q)}</span></td>
+
+  const slice = TEAMS.slice(0, 3);
+  tbody.innerHTML = slice.map(t => `
+    <tr onclick="showTab('groups')">
+      <td><span class="tid">${t.teamId}</span></td>
+      <td><span class="g-proj">${t.projectTitle}</span></td>
       <td><span class="g-count">${t.students.length}</span></td>
       <td style="text-align:right"><span class="g-arrow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
-        </svg></span></td>
+        </svg>
+      </span></td>
     </tr>`
   ).join("");
+
+  if (TEAMS.length > 3) {
+    tbody.innerHTML += `
+      <tr>
+        <td colspan="4" style="text-align:center;padding:14px 0">
+          <button onclick="showTab('groups')"
+            style="padding:7px 20px;border-radius:9px;border:1.5px solid var(--primary);
+                   background:rgba(0,75,45,.06);color:var(--primary);font-size:.78rem;
+                   font-weight:700;cursor:pointer">
+            View all ${TEAMS.length} groups →
+          </button>
+        </td>
+      </tr>`;
+  }
 }
 
 function showGroupsList() {
@@ -976,6 +993,48 @@ function updateTotal(sid) {
   if (b) b.textContent = total;
 }
 
+async function loadGroupMarks(groupId) {
+  try {
+    const supData = JSON.parse(localStorage.getItem("supervisor"));
+    const res = await fetch(`${API_BASE}/marks/group/${groupId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${supData.token}`
+      }
+    });
+    const data = await res.json();
+    if (!res.ok) return;
+
+    const marksList = Array.isArray(data) ? data : (data?.marks || []);
+    const team = TEAMS.find(t => t._id === groupId);
+    if (!team) return;
+
+    marksList.forEach(m => {
+      const studentRefId = typeof m.student === "string" ? m.student : m.student?._id;
+      const student = team.students.find(s => s._id === studentRefId);
+      if (!student) return;
+      student.marks = {
+        oct:             m.monthly?.oct          ?? null,
+        nov:             m.monthly?.nov          ?? null,
+        dec:             m.monthly?.dec          ?? null,
+        feb:             m.monthly?.feb          ?? null,
+        mar:             m.monthly?.mar          ?? null,
+        proposal:        m.submissions?.proposal  ?? null,
+        progress_report: m.submissions?.progress  ?? null,
+        thesis:          m.documentation?.final   ?? null,
+        code:            m.submissions?.code      ?? null,
+        prog_sim:        m.submissions?.prog_sim  ?? null,
+        thesis_sim:      m.submissions?.thesis_sim ?? null,
+        iv1:             m.viva?.internal1        ?? null,
+        iv2:             m.viva?.internal2        ?? null,
+        ext:             m.viva?.external         ?? null,
+      };
+    });
+  } catch (err) {
+    console.error("Marks reload error:", err);
+  }
+}
+
 async function saveMarks(teamMongoId, studentMongoId) {
   const team    = TEAMS.find(t => t._id === teamMongoId);
   const student = team?.students.find(s => s._id === studentMongoId);
@@ -1001,7 +1060,7 @@ async function saveMarks(teamMongoId, studentMongoId) {
     const res = await fetch(`${API_BASE}/marks/save`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` },
-      body: JSON.stringify({ student_id: studentMongoId, monthly, submissions, viva, documentation })
+      body: JSON.stringify({ student_id: studentMongoId, supervisor_id: sup.id, monthly, submissions, viva, documentation })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -1016,6 +1075,7 @@ async function saveMarks(teamMongoId, studentMongoId) {
     if (gtEl) gtEl.textContent = newTotal;
     renderDashboard();
     toast(`${student.name} — saved (${newTotal}/${TOTAL_MARKS})`, "green");
+    await loadGroupMarks(teamMongoId);
   } catch (err) {
     console.error(err);
     toast("Save failed: " + err.message, "red");
@@ -1186,11 +1246,13 @@ async function submitChangePw() {
     const data = await res.json();
     if (!res.ok) { err.textContent = data.message || "Failed"; err.style.display = "block"; return; }
     document.getElementById("change-pw-modal").remove();
-    toast("Password updated successfully ✓", "green");
+    toast("Password updated successfully", "green");
   } catch { err.textContent = "Server error"; err.style.display = "block"; }
 }
 
 /* ═══════════════════════════════════
    INIT
 ═══════════════════════════════════ */
-loadTeams();
+document.addEventListener("DOMContentLoaded", () => {
+  loadTeams();
+});

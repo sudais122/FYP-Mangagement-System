@@ -175,13 +175,6 @@
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
                 </svg>My Groups
               </h3>
-              <div class="search-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="11" cy="11" r="8"/>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input type="text" id="search-dash-groups" placeholder="Search by Team ID or project title…" oninput="filterDashGroups(this.value)">
-              </div>
             </div>
             <div class="card">
 </div>
@@ -195,7 +188,7 @@
                     <th></th>
                   </tr>
                 </thead>
-                <tbody id="dash-groups-tbody"></tbody>
+                  <tbody id="dash-groups-tbody"></tbody>
               </table>
             </div>
           </div>
@@ -235,19 +228,20 @@
                   <input type="text" id="search-groups" placeholder="Search by Team ID or project title…" oninput="filterGroupsList(this.value)">
                 </div>
               </div>
-              <div class="card-body">
-                <table class="g-table">
-                  <thead>
-                    <tr>
-                      <th>Group ID</th>
-                      <th>Project Title</th>
-                      <th>Students</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                    <tbody id="dash-groups-tbody"></tbody>
-                </table>
-              </div>
+<div class="card-body">
+  <table class="g-table">
+    <thead>
+      <tr>
+        <th>Group ID</th>
+        <th>Project Title</th>
+        <th>Students</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="groups-list-tbody"></tbody>
+  </table>
+  <div id="groupsListPagination"></div>
+</div>
             </div>
           </div>
           <div id="group-detail-view" style="display: none"></div>

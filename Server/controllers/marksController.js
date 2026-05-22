@@ -15,14 +15,18 @@ export const saveMarks = async (req, res) => {
     });
   }
 
-  const { student_id, monthly, submissions, viva, documentation } = req.body;
+  const { student_id, supervisor_id, monthly, submissions, viva, documentation } = req.body;
 
   try {
-    let marks = await Marks.findOne({ student: student_id });
+      let marks = await Marks.findOne({ student: student_id });
+      if (!marks) {
+        return res.status(404).json({ message: "Marks record not found for this student" });
+      }
 
-    if (!marks) {
-      return res.status(404).json({ message: "Marks record not found for this student" });
-    }
+      // ── Ensure supervisor is always set ──
+      if (!marks.supervisor) {
+        marks.supervisor = supervisor_id || req.user.id;
+}
 
     // Track which fields actually changed
     const updatedSections = [];

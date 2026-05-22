@@ -2968,15 +2968,6 @@ function openStudentViewModal(studentId) {
 
   body.innerHTML = `
     <!-- Avatar + name header -->
-    <div style="display:flex;align-items:center;gap:14px;
-                padding:16px;background:rgba(0,75,45,.04);
-                border-radius:12px;margin-bottom:20px;
-                border:1px solid rgba(0,75,45,.1)">
-      <div style="width:52px;height:52px;border-radius:14px;flex-shrink:0;
-                  background:linear-gradient(135deg,var(--primary),var(--secondary));
-                  display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.1rem">
-        ${initials(s.name)}
-      </div>
       <div>
         <div style="font-weight:800;font-size:1rem;color:var(--primary-dark)">${escapeHtml(s.name)}</div>
         <div style="font-size:.74rem;color:var(--text-mute);margin-top:2px">${escapeHtml(s.email || "—")}</div>

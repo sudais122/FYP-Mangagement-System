@@ -249,6 +249,16 @@ export const addMemberToGroup = async (req, res) => {
     newMember.team_role = "Member";
     await newMember.save();
 
+    await Marks.findOneAndUpdate(
+      { student: newMember._id, group: group._id },
+      {
+        student:    newMember._id,
+        group:      group._id,
+        supervisor: group.supervisor || null,
+      },
+      { upsert: true, new: true }
+    );
+
     const updated = await Group.findById(id)
       .populate("leader", "name student_code email avatar_url gender")
       .populate("members", "name student_code email avatar_url gender")

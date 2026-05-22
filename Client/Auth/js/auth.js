@@ -21,6 +21,7 @@ async function doReg() {
   if (pw.length < 8) return showErr("pw");
   if (pw !== cpw) return showErr("cpw");
   if (!cv) return showErr("cv");
+  if (!cert) return showErr("cert", "Please upload your certificates as a PDF file");
 
   // ── PDF-only check ──
   const isPdf =
