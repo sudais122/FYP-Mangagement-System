@@ -172,7 +172,7 @@
       return;
     }
 
-    const res = await fetch("http://127.0.0.1:5001/api/supervisors/change-password", {
+    const res = await fetch(`${API_BASE}/api/supervisors/change-password`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

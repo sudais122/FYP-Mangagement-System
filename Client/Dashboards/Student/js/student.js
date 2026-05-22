@@ -1870,7 +1870,7 @@ async function loadStudentDeadlines() {
   if (!container) return;
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/deadlines", {
+    const res = await fetch(`${API_BASE}/api/deadlines`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${user.token}` }
     });
     const data = await res.json();
@@ -2196,7 +2196,7 @@ async function viewDoc(url) {
       window.open(data.signedUrl, "_blank", "noopener");
       return;
     }
-    const final = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+    const final = url.startsWith("http") ? url : `${API_BASE}${url}`;
     window.open(final, "_blank", "noopener");
   } catch (err) {
     toast("Could not open document", "red");

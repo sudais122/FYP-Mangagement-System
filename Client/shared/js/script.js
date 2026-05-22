@@ -1,3 +1,5 @@
+
+const API_BASE = "http://127.0.0.1:5001"
 // -------- Mobile nav toggle --------
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.querySelector(".nav-toggle");
@@ -695,7 +697,7 @@ async function loadHomepageDeadlines() {
   const colors = ["var(--primary)", "var(--secondary)", "var(--gold)", "#5B4A9E", "#A0522D", "#2D6A9E"];
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/deadlines");
+    const res = await fetch(`${API_BASE}/api/deadlines`);
     const data = await res.json();
 
     if (!data || !data.length) {
@@ -892,7 +894,7 @@ const rawCnic = cnic.replace(/\D/g, "");
   btn.textContent = "Uploading…";
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/internship/submit", {
+    const res = await fetch(`${API_BASE}/api/internship/submit`, {
       method: "POST",
       body: formData,
     });

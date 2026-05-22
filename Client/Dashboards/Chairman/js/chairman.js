@@ -22,7 +22,7 @@ if (!sup)            window.location.href = "../../Auth/login.html";
 if (!sup.is_chairman) { alert("Access denied — Chairman only"); window.location.href = "../Supervisor/index.html"; }
 if (sup.force_password_change) window.location.href = "../Supervisor/change-password.html";
 
-const API_BASE    = "http://127.0.0.1:5001/api";
+const API_BASE    = `${API_BASE}/api`;
 const TOTAL_MARKS = 200;
 const authHeaders = { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` };
 

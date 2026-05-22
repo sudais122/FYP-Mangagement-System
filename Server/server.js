@@ -38,6 +38,7 @@ app.use(cors({
     "http://localhost:5501",
     "http://127.0.0.1:5001",
     "http://localhost:5001",
+    "https://fyp-management.vercel.app",
   ],
   credentials:    true,
   methods:        ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
