@@ -16,6 +16,7 @@ import {
   saveMarks,
   getMaintenanceStatus,
   toggleMaintenanceMode,
+  downloadAllProposals,
 } from "../controllers/adminController.js";
 import { getSupervisorDetail } from "../controllers/supervisorController.js";
 import { protect }             from "../middleware/authMiddleware.js";
@@ -50,5 +51,8 @@ router.post("/mark-toggles", protect, saveMarkToggles);
 // ── Maintenance ────────────────────────────────────────────────
 router.get("/maintenance",  getMaintenanceStatus);
 router.post("/maintenance", protect, toggleMaintenanceMode);
+
+// ── Download proposals ZIP ─────────────────────────────────────
+router.get("/download-proposals", protect, downloadAllProposals);
 
 export default router;

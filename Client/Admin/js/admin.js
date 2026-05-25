@@ -3203,6 +3203,68 @@ async function refreshDashboard() {
     if (icon) icon.style.animation = "";
   }
 }
+
+/* ════════════════════════════════════
+   DOWNLOAD ALL PROPOSALS
+══════════════════════════════════════ */
+function toggleDlMenu() {
+  const menu = document.getElementById("dl-menu");
+  if (!menu) return;
+  const isOpen = menu.style.display === "block";
+  menu.style.display = isOpen ? "none" : "block";
+
+  // Close when clicking outside
+  if (!isOpen) {
+    setTimeout(() => {
+      document.addEventListener("click", function closeDl(e) {
+        if (!document.getElementById("dl-wrap")?.contains(e.target)) {
+          menu.style.display = "none";
+          document.removeEventListener("click", closeDl);
+        }
+      });
+    }, 50);
+  }
+}
+
+async function downloadProposals(status = "all") {
+  document.getElementById("dl-menu").style.display = "none";
+
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin?.token) return toast("Not authenticated", "Please log in again", "error");
+
+  toast("Preparing ZIP…", `Fetching ${status} proposals from S3`, "success");
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/download-proposals?status=${status}`, {
+      headers: { "Authorization": `Bearer ${admin.token}` }
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || `Server error ${res.status}`);
+    }
+
+    // Stream blob → trigger browser download
+    const blob     = await res.blob();
+    const url      = URL.createObjectURL(blob);
+    const label    = status === "all" ? "all" : status;
+    const filename = `fyp-proposals-${label}-${new Date().getFullYear()}.zip`;
+
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast("Download started", filename, "success");
+
+  } catch (err) {
+    console.error("downloadProposals error:", err);
+    toast("Download failed", err.message, "error");
+  }
+}
 async function initDashboard() {
   displayAdminInfo();
   await fetchDashboardStats();

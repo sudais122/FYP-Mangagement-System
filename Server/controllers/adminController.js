@@ -1,15 +1,21 @@
-import Admin      from "../Models/admin.js";
-import Supervisor from "../Models/supervisor.js";
-import Student    from "../Models/student.js";
-import Group      from "../Models/group.js";
-import Marks      from "../Models/marks.js";
-import Settings   from "../Models/Settings.js";
-import Maintaince from "../Models/Maintaince.js";
-import { generateSupCode }              from "../utils/generateSupCode.js";
-import { sendEmail }                    from "../utils/sendEmail.js";
+import { GetObjectCommand }              from "@aws-sdk/client-s3";
+import { createS3Client }                from "../config/s3.js";
+import Admin                             from "../Models/admin.js";
+import Supervisor                        from "../Models/supervisor.js";
+import Student                           from "../Models/student.js";
+import Group                             from "../Models/group.js";
+import Marks                             from "../Models/marks.js";
+import Settings                          from "../Models/Settings.js";
+import Maintaince                        from "../Models/Maintaince.js";
+import { generateSupCode }               from "../utils/generateSupCode.js";
+import { sendEmail }                     from "../utils/sendEmail.js";
 import { supervisorCredentialsTemplate } from "../utils/emailTemplates/supervisorCredentials.js";
-import { logAudit }                     from "../utils/auditLogger.js";
-import bcrypt from "bcryptjs";
+import JSZip                             from "jszip";
+import https                             from "https";
+import http                              from "http";
+import { logAudit }                      from "../utils/auditLogger.js";
+import bcrypt                             from "bcryptjs";
+
 
 // ── ADD SUPERVISOR ─────────────────────────────────────────────
 export const addSupervisor = async (req, res) => {
@@ -461,5 +467,102 @@ export const toggleMaintenanceMode = async (req, res) => {
   } catch (err) {
     console.error("Toggle maintenance error:", err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+//Download Proposals
+export const downloadAllProposals = async (req, res) => {
+  try {
+    const { status = "all" } = req.query;
+
+    const query = { proposal_url: { $exists: true, $ne: null, $nin: ["", null] } };
+    if (status !== "all") query.proposal_status = status;
+
+    const groups = await Group.find(query)
+      .select("team_code project_title proposal_url proposal_status")
+      .lean();
+
+    console.log("Groups found:", groups.length);
+
+    if (!groups.length) {
+      return res.status(404).json({ message: "No proposals found" });
+    }
+
+    const zip = new JSZip();
+
+    for (const group of groups) {
+      try {
+        const url = group.proposal_url;
+        if (!url) continue;
+
+        const teamCode = group.team_code || "UNKNOWN";
+        const title    = (group.project_title || "untitled")
+          .replace(/[^\w\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .slice(0, 50);
+
+        // Keep original extension (some files are .docx)
+        const ext      = url.split(".").pop().split("?")[0].toLowerCase();
+        const filename = `${teamCode}-${title}.${ext}`;
+
+        let fileBuffer;
+
+        if (url.includes("amazonaws.com")) {
+          const urlObj = new URL(url);
+          const key    = decodeURIComponent(urlObj.pathname.slice(1));
+
+          console.log("Fetching from S3:", key);
+
+          const s3Res  = await createS3Client().send(
+            new GetObjectCommand({
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key:    key,
+            })
+          );
+
+          const chunks = [];
+          for await (const chunk of s3Res.Body) chunks.push(chunk);
+          fileBuffer = Buffer.concat(chunks);
+
+        } else {
+          const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+          fileBuffer = await new Promise((resolve, reject) => {
+            const protocol = finalUrl.startsWith("https") ? https : http;
+            protocol.get(finalUrl, response => {
+              const chunks = [];
+              response.on("data", chunk => chunks.push(chunk));
+              response.on("end",  ()    => resolve(Buffer.concat(chunks)));
+              response.on("error", reject);
+            }).on("error", reject);
+          });
+        }
+
+        console.log(`Added: ${filename} (${fileBuffer?.length} bytes)`);
+        zip.file(filename, fileBuffer);
+
+      } catch (fileErr) {
+        console.error("Skipped", group.team_code, ":", fileErr.message);
+      }
+    }
+
+    console.log("Total files in ZIP:", Object.keys(zip.files).length);
+
+    const label     = status === "all" ? "all" : status;
+    const zipName   = `fyp-proposals-${label}-${new Date().getFullYear()}.zip`;
+    const zipBuffer = await zip.generateAsync({
+      type:               "nodebuffer",
+      compression:        "DEFLATE",
+      compressionOptions: { level: 6 },
+    });
+
+    res.setHeader("Content-Type",        "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${zipName}"`);
+    res.setHeader("Content-Length",       zipBuffer.length);
+    res.send(zipBuffer);
+
+  } catch (err) {
+    console.error("downloadAllProposals error:", err);
+    if (!res.headersSent) res.status(500).json({ message: err.message });
   }
 };

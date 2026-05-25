@@ -442,11 +442,91 @@
             <h2>Team Management</h2>
             <p>View all teams and reassign supervisors as needed</p>
           </div>
-                            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-  <button id="pf-all"      onclick="setProposalFilter('all')"      class="btn btn-sm btn-primary">All</button>
-  <button id="pf-pending"  onclick="setProposalFilter('pending')"  class="btn btn-sm btn-ghost">Pending</button>
-  <button id="pf-approved" onclick="setProposalFilter('approved')" class="btn btn-sm btn-ghost">Approved</button>
-  <button id="pf-rejected" onclick="setProposalFilter('rejected')" class="btn btn-sm btn-ghost">Rejected</button>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+
+  <!-- Left: proposal filter buttons -->
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button id="pf-all"      onclick="setProposalFilter('all')"      class="btn btn-sm btn-primary">All</button>
+    <button id="pf-pending"  onclick="setProposalFilter('pending')"  class="btn btn-sm btn-ghost">Pending</button>
+    <button id="pf-approved" onclick="setProposalFilter('approved')" class="btn btn-sm btn-ghost">Approved</button>
+    <button id="pf-rejected" onclick="setProposalFilter('rejected')" class="btn btn-sm btn-ghost">Rejected</button>
+  </div>
+
+  <!-- Right: download dropdown -->
+  <div style="position:relative" id="dl-wrap">
+    <button onclick="toggleDlMenu()"
+      style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+             border-radius:9px;border:1.5px solid rgba(0,75,45,.25);
+             background:rgba(0,75,45,.07);color:var(--primary);
+             font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s"
+      onmouseover="this.style.background='rgba(0,75,45,.13)'"
+      onmouseout="this.style.background='rgba(0,75,45,.07)'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+           width="14" height="14">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Download Proposals
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" width="12" height="12">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+
+    <div id="dl-menu" style="display:none;position:absolute;right:0;top:calc(100% + 6px);
+         background:var(--surface);border:1px solid var(--border);border-radius:11px;
+         box-shadow:0 8px 28px rgba(0,0,0,.12);z-index:200;min-width:190px;overflow:hidden">
+
+      <div style="padding:8px 14px 6px;font-size:.65rem;font-weight:800;
+                  text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute)">
+        Download as ZIP
+      </div>
+
+      <button onclick="downloadProposals('all')"
+        style="width:100%;text-align:left;padding:9px 16px;font-size:.82rem;font-weight:600;
+               cursor:pointer;border:none;background:none;color:var(--text);
+               display:flex;align-items:center;gap:9px;transition:background .15s"
+        onmouseover="this.style.background='var(--bg)'"
+        onmouseout="this.style.background='none'">
+        <span style="width:8px;height:8px;border-radius:50%;background:#6b7280;flex-shrink:0"></span>
+        All Proposals
+      </button>
+
+      <button onclick="downloadProposals('approved')"
+        style="width:100%;text-align:left;padding:9px 16px;font-size:.82rem;font-weight:600;
+               cursor:pointer;border:none;background:none;color:var(--text);
+               display:flex;align-items:center;gap:9px;transition:background .15s"
+        onmouseover="this.style.background='var(--bg)'"
+        onmouseout="this.style.background='none'">
+        <span style="width:8px;height:8px;border-radius:50%;background:#15803d;flex-shrink:0"></span>
+        Approved Only
+      </button>
+
+      <button onclick="downloadProposals('pending')"
+        style="width:100%;text-align:left;padding:9px 16px;font-size:.82rem;font-weight:600;
+               cursor:pointer;border:none;background:none;color:var(--text);
+               display:flex;align-items:center;gap:9px;transition:background .15s"
+        onmouseover="this.style.background='var(--bg)'"
+        onmouseout="this.style.background='none'">
+        <span style="width:8px;height:8px;border-radius:50%;background:#a16207;flex-shrink:0"></span>
+        Pending Only
+      </button>
+
+      <button onclick="downloadProposals('rejected')"
+        style="width:100%;text-align:left;padding:9px 16px 10px;font-size:.82rem;font-weight:600;
+               cursor:pointer;border:none;background:none;color:var(--text);
+               display:flex;align-items:center;gap:9px;transition:background .15s"
+        onmouseover="this.style.background='var(--bg)'"
+        onmouseout="this.style.background='none'">
+        <span style="width:8px;height:8px;border-radius:50%;background:#dc2626;flex-shrink:0"></span>
+        Rejected Only
+      </button>
+
+    </div>
+  </div>
+
 </div>
         </div>
 
