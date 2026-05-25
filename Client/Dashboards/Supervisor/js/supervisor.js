@@ -34,7 +34,7 @@ if (IS_CHAIRMAN) {
   }
 }
 const SUPERVISOR = { id: sup.sup_code, name: sup.name, prefix: sup.prefix };
-const API_BASE = `${API_BASE}/api`;
+const API_BASE = "http://localhost:5001/api"; 
 
 function initials(name) {
   return (name || "")

@@ -1870,7 +1870,7 @@ async function loadStudentDeadlines() {
   if (!container) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/deadlines`, {
+    const res = await fetch(`${API_BASE}/deadlines`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${user.token}` }
     });
     const data = await res.json();

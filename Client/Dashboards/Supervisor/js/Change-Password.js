@@ -1,4 +1,4 @@
-
+const API_BASE = "http://localhost:5001"; 
   const newPasswordInput = document.getElementById('newPassword');
   const confirmPasswordInput = document.getElementById('confirmPassword');
   const strengthIndicator = document.getElementById('strengthIndicator');

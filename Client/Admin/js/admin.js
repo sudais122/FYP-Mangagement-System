@@ -1,6 +1,5 @@
-/* ════════════════════════════════════
-   MARKS SCHEMA
-══════════════════════════════════════ */
+const API_BASE = window.API_BASE || "http://127.0.0.1:5001";
+
 const MARKS_SCHEMA = [
   {
     section: "Monthly Meetings",
@@ -213,7 +212,7 @@ async function fetchDashboardStats() {
   if (!admin?.token) return;
 
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/admin/stats", {
+    const res  = await fetch(`${API_BASE}/api/admin/stats`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -226,7 +225,7 @@ async function fetchDashboardStats() {
   }
     // ── Internship count ──
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/internship/admin/all", {
+    const res  = await fetch(`${API_BASE}/api/internship/admin/all`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -266,7 +265,7 @@ async function renderRecentTeams() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/groups", {
+    const res  = await fetch(`${API_BASE}/api/groups`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -426,7 +425,7 @@ async function renderSupervisors() {
   grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-mute)">Loading...</div>`;
 
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
+    const res  = await fetch(`${API_BASE}/api/admin/supervisors`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -629,7 +628,7 @@ async function openSupDetail(supId) {
     <div style="padding:60px 20px;text-align:center;color:var(--text-mute)">Loading supervisor details...</div>`;
 
   try {
-    const res  = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${supId}`, {
+    const res  = await fetch(`${API_BASE}/api/admin/supervisors/${supId}`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -641,7 +640,7 @@ async function openSupDetail(supId) {
     // Fetch marks for every group
     for (const group of groups) {
       try {
-        const mRes = await fetch(`http://127.0.0.1:5001/api/admin/marks/group/${group._id}`, {
+        const mRes = await fetch(`${API_BASE}/api/admin/marks/group/${group._id}`, {
           headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
         });
         if (!mRes.ok) continue;
@@ -946,7 +945,7 @@ async function saveTeamMarks(groupId) {
         }
       });
 
-      const res = await fetch("http://127.0.0.1:5001/api/admin/marks", {
+      const res = await fetch(`${API_BASE}/api/admin/marks`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
         body: JSON.stringify({ student_id: studentId, monthly, submissions, viva, documentation })
@@ -983,7 +982,7 @@ async function renderTeams() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/groups", {
+    const res = await fetch(`${API_BASE}/api/groups`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const ct = res.headers.get("content-type") || "";
@@ -1351,7 +1350,7 @@ async function confirmReassign() {
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`http://127.0.0.1:5001/api/groups/${reassignTeamId}/reassign`, {
+    const res  = await fetch(`${API_BASE}/api/groups/${reassignTeamId}/reassign`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ supervisor_id: newSupId })
@@ -1379,7 +1378,7 @@ async function renderStudents() {
   tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/admin/students", {
+    const res  = await fetch(`${API_BASE}/api/admin/students`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -1445,7 +1444,7 @@ async function viewDoc(url) {
                    || JSON.parse(localStorage.getItem("supervisor"));
 
       const res  = await fetch(
-        `http://127.0.0.1:5001/api/uploads/signed-url?url=${encodeURIComponent(url)}`,
+        `${API_BASE}/api/uploads/signed-url?url=${encodeURIComponent(url)}`,
         { headers: { "Authorization": `Bearer ${admin?.token}` } }
       );
       const data = await res.json();
@@ -1527,7 +1526,7 @@ async function confirmRejectProposal() {
   if (btn) { btn.disabled = true; btn.textContent = "Deleting…"; }
 
   try {
-    const res = await fetch(`http://127.0.0.1:5001/api/groups/${pendingRejectGroupId}/proposal-status`, {
+    const res = await fetch(`${API_BASE}/api/groups/${pendingRejectGroupId}/proposal-status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ status: "rejected", reason })
@@ -1549,7 +1548,7 @@ async function confirmRejectProposal() {
 async function approveProposal(groupId) {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch(`http://127.0.0.1:5001/api/groups/${groupId}/proposal-status`, {
+    const res = await fetch(`${API_BASE}/api/groups/${groupId}/proposal-status`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ status: "approved" })
@@ -1580,7 +1579,7 @@ async function deleteStudent(studentId, studentName) {
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`http://127.0.0.1:5001/api/admin/student/${studentId}`, {
+    const res  = await fetch(`${API_BASE}/api/admin/student/${studentId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
@@ -1781,7 +1780,7 @@ async function submitSupervisor() {
   }
 
   try {
-    const res = await fetch("http://127.0.0.1:5001/api/admin/supervisors", {
+    const res = await fetch(`${API_BASE}/api/admin/supervisors`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ prefix, name, email, password: pwd, whatsapp, is_chairman: isChairman }) // ← prefix added
@@ -1831,7 +1830,7 @@ async function submitEditSupervisor() {
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${id}`, {
+    const res = await fetch(`${API_BASE}/api/admin/supervisors/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ prefix, name, email, whatsapp, is_chairman: role === "chairman" }) // ← prefix added
@@ -1869,7 +1868,7 @@ async function confirmDeleteSupervisor() {
   const supName = document.getElementById("deleteSupName").textContent;
 
   try {
-    const res  = await fetch(`http://127.0.0.1:5001/api/admin/supervisors/${deleteSupId}`, {
+    const res  = await fetch(`${API_BASE}/api/admin/supervisors/${deleteSupId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
@@ -1893,7 +1892,7 @@ let GLOBAL_TOGGLES = {};
 async function loadGlobalToggles() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/admin/mark-toggles", {
+    const res  = await fetch(`${API_BASE}/api/admin/mark-toggles`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     if (!res.ok) return;
@@ -1953,7 +1952,7 @@ function onGlobalToggleChange(key, enabled) {
 async function saveGlobalToggles() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/admin/mark-toggles", {
+    const res  = await fetch(`${API_BASE}/api/admin/mark-toggles`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
       body: JSON.stringify({ toggles: GLOBAL_TOGGLES })
@@ -1993,7 +1992,7 @@ async function renderDeadlines() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/deadlines", {
+    const res  = await fetch(`${API_BASE}/api/deadlines`, {
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
     const data = await res.json();
@@ -2094,7 +2093,7 @@ async function submitDeadline() {
 
   const admin  = JSON.parse(localStorage.getItem("admin"));
   const id     = document.getElementById("editDeadlineId").value;
-  const url    = id ? `http://127.0.0.1:5001/api/deadlines/${id}` : "http://127.0.0.1:5001/api/deadlines";
+  const url    = id ? `${API_BASE}/api/deadlines/${id}` : `${API_BASE}/api/deadlines`;
   const method = id ? "PUT" : "POST";
 
   try {
@@ -2131,7 +2130,7 @@ async function confirmDeleteDeadline() {
   const admin = JSON.parse(localStorage.getItem("admin"));
 
   try {
-    const res  = await fetch(`http://127.0.0.1:5001/api/deadlines/${deleteDeadlineId}`, {
+    const res  = await fetch(`${API_BASE}/api/deadlines/${deleteDeadlineId}`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
     });
@@ -2255,9 +2254,6 @@ function renderPagination(containerId, totalItems, currentPage, perPage, onPageC
 /* ════════════════════════════════════
    ADMIN AVATAR UPLOAD
 ════════════════════════════════════ */
-
-
-const API_BASE = "http://127.0.0.1:5001";
 let adminAvatarFileToUpload = null;
 
 function openAdminAvatarModal() {
@@ -2855,7 +2851,7 @@ async function renderInternships() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch("http://127.0.0.1:5001/api/internship/admin/all", {
+    const res  = await fetch(`${API_BASE}/api/internship/admin/all`, {
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${admin.token}`
@@ -2954,7 +2950,7 @@ async function deleteInternship(id, name) {
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch(`http://127.0.0.1:5001/api/internship/admin/${id}`, {
+    const res = await fetch(`${API_BASE}/api/internship/admin/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",

@@ -1,4 +1,4 @@
-// Intercept all 503 responses → redirect to maintenance page
+ // Intercept all 503 responses → redirect to maintenance page
 const _origFetch = window.fetch;
 window.fetch = async function(...args) {
   const res = await _origFetch(...args);
@@ -22,7 +22,7 @@ if (!sup)            window.location.href = "../../Auth/login.html";
 if (!sup.is_chairman) { alert("Access denied — Chairman only"); window.location.href = "../Supervisor/index.html"; }
 if (sup.force_password_change) window.location.href = "../Supervisor/change-password.html";
 
-const API_BASE    = `${API_BASE}/api`;
+const API_BASE = "http://localhost:5001/api"; 
 const TOTAL_MARKS = 200;
 const authHeaders = { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` };
 
