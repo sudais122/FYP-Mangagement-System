@@ -7,6 +7,7 @@ import Group                             from "../Models/group.js";
 import Marks                             from "../Models/marks.js";
 import Settings                          from "../Models/Settings.js";
 import Maintaince                        from "../Models/Maintaince.js";
+import Internship                         from"../Models/internship.js";
 import { generateSupCode }               from "../utils/generateSupCode.js";
 import { sendEmail }                     from "../utils/sendEmail.js";
 import { supervisorCredentialsTemplate } from "../utils/emailTemplates/supervisorCredentials.js";
@@ -563,6 +564,98 @@ export const downloadAllProposals = async (req, res) => {
 
   } catch (err) {
     console.error("downloadAllProposals error:", err);
+    if (!res.headersSent) res.status(500).json({ message: err.message });
+  }
+};
+// ── DOWNLOAD ALL INTERNSHIP LETTERS ZIP ───────────────────────────
+export const downloadInternships = async (req, res) => {
+  try {
+
+    const submissions = await Internship.find({
+      acceptance_letter_url: { $exists: true, $ne: null, $nin: ["", null] }
+    })
+      .select("full_name cnic discipline acceptance_letter_url")
+      .lean();
+
+    console.log("Internship submissions found:", submissions.length);
+
+    if (!submissions.length) {
+      return res.status(404).json({ message: "No internship letters found" });
+    }
+
+    const zip = new JSZip();
+
+    for (const item of submissions) {
+      try {
+        const url = item.acceptance_letter_url;
+        if (!url) continue;
+
+        const name = (item.full_name || "unknown")
+          .replace(/[^\w\s-]/g, "")
+          .trim()
+          .replace(/\s+/g, "-")
+          .slice(0, 40);
+
+        const cnic = (item.cnic || "").replace(/[^\d]/g, "").slice(0, 13);
+        const ext  = url.split(".").pop().split("?")[0].toLowerCase();
+        const filename = `${name}-${cnic}.${ext}`;
+
+        let fileBuffer;
+
+        if (url.includes("amazonaws.com")) {
+          const urlObj = new URL(url);
+          const key    = decodeURIComponent(urlObj.pathname.slice(1));
+
+          console.log("Fetching from S3:", key);
+
+          const s3Res = await createS3Client().send(
+            new GetObjectCommand({
+              Bucket: process.env.AWS_BUCKET_NAME,
+              Key:    key,
+            })
+          );
+
+          const chunks = [];
+          for await (const chunk of s3Res.Body) chunks.push(chunk);
+          fileBuffer = Buffer.concat(chunks);
+
+        } else {
+          const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+          fileBuffer = await new Promise((resolve, reject) => {
+            const protocol = finalUrl.startsWith("https") ? https : http;
+            protocol.get(finalUrl, response => {
+              const chunks = [];
+              response.on("data", chunk => chunks.push(chunk));
+              response.on("end",  ()    => resolve(Buffer.concat(chunks)));
+              response.on("error", reject);
+            }).on("error", reject);
+          });
+        }
+
+        console.log(`Added: ${filename} (${fileBuffer?.length} bytes)`);
+        zip.file(filename, fileBuffer);
+
+      } catch (fileErr) {
+        console.error("Skipped", item.full_name, ":", fileErr.message);
+      }
+    }
+
+    console.log("Total letters in ZIP:", Object.keys(zip.files).length);
+
+    const zipName   = `fyp-internship-letters-${new Date().getFullYear()}.zip`;
+    const zipBuffer = await zip.generateAsync({
+      type:               "nodebuffer",
+      compression:        "DEFLATE",
+      compressionOptions: { level: 6 },
+    });
+
+    res.setHeader("Content-Type",        "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${zipName}"`);
+    res.setHeader("Content-Length",       zipBuffer.length);
+    res.send(zipBuffer);
+
+  } catch (err) {
+    console.error("downloadInternships error:", err);
     if (!res.headersSent) res.status(500).json({ message: err.message });
   }
 };

@@ -17,6 +17,7 @@ import {
   getMaintenanceStatus,
   toggleMaintenanceMode,
   downloadAllProposals,
+  downloadInternships,
 } from "../controllers/adminController.js";
 import { getSupervisorDetail } from "../controllers/supervisorController.js";
 import { protect }             from "../middleware/authMiddleware.js";
@@ -55,4 +56,6 @@ router.post("/maintenance", protect, toggleMaintenanceMode);
 // ── Download proposals ZIP ─────────────────────────────────────
 router.get("/download-proposals", protect, downloadAllProposals);
 
+// ── Download Letters /Ceritificates ZIP ─────────────────────────────────────
+router.get("/download-internships", protect, downloadInternships);
 export default router;

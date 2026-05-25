@@ -3265,6 +3265,43 @@ async function downloadProposals(status = "all") {
     toast("Download failed", err.message, "error");
   }
 }
+
+/*DOWNLOAD ALL INTERNSHIP LETTERS*/
+async function downloadInternships() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin?.token) return toast("Not authenticated", "Please log in again", "error");
+
+  toast("Preparing ZIP…", "Fetching internship letters from S3", "success");
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/download-internships`, {
+      headers: { "Authorization": `Bearer ${admin.token}` }
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || `Server error ${res.status}`);
+    }
+
+    const blob     = await res.blob();
+    const url      = URL.createObjectURL(blob);
+    const filename = `fyp-internship-letters-${new Date().getFullYear()}.zip`;
+
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast("Download started", filename, "success");
+
+  } catch (err) {
+    console.error("downloadInternships error:", err);
+    toast("Download failed", err.message, "error");
+  }
+}
 async function initDashboard() {
   displayAdminInfo();
   await fetchDashboardStats();

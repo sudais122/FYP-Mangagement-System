@@ -468,7 +468,7 @@
         <polyline points="7 10 12 15 17 10"/>
         <line x1="12" y1="15" x2="12" y2="3"/>
       </svg>
-      Download Proposals
+      Download Proposals (ZIP)
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
            stroke-width="2.5" width="12" height="12">
         <polyline points="6 9 12 15 18 9"/>
@@ -824,16 +824,33 @@
            oninput="filterInternships(this.value)" />
   </div>
 </div>
-    <div class="section-head-actions">
-      <button class="btn btn-ghost" onclick="renderInternships()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
-             stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
-          <polyline points="1 4 1 10 7 10"/>
-          <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
-        </svg>
-        Refresh
-      </button>
-    </div>
+  <div class="section-head-actions" style="display:flex;gap:8px;align-items:center">
+  <button class="btn btn-ghost" onclick="renderInternships()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round" width="15" height="15">
+      <polyline points="1 4 1 10 7 10"/>
+      <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
+    </svg>
+    Refresh
+  </button>
+
+  <button onclick="downloadInternships()"
+    style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;
+           border-radius:9px;border:1.5px solid rgba(0,75,45,.25);
+           background:rgba(0,75,45,.07);color:var(--primary);
+           font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s"
+    onmouseover="this.style.background='rgba(0,75,45,.13)'"
+    onmouseout="this.style.background='rgba(0,75,45,.07)'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+         width="14" height="14">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Download All Letters (ZIP)
+  </button>
+</div>
   </div>
   <div class="dash-panel">
     <div class="panel-body" style="padding:0">
