@@ -20,8 +20,14 @@
   </head>
   <body>
     <!-- ══════════════ NAVBAR ══════════════ -->
+     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <nav class="navbar">
       <div class="nav-inner">
+        <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
         <div class="nav-logo-mark">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round">
@@ -897,6 +903,14 @@
   border-color: var(--primary, #004b2d);
   box-shadow: 0 0 0 3px rgba(0,75,45,.12);
 }
+  @media (max-width: 768px) {
+    body {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .dash-layout {
+      min-height: calc(100vh - 60px - 65px);
+    }
+  }
 </style>
     <div class="toast" id="toast"></div>
     <script src="../../shared/js/config.js"></script>

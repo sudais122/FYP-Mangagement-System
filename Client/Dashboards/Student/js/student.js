@@ -31,6 +31,26 @@ const API_HEADERS = {
   Authorization: `Bearer ${user.token}`, 
 };
 
+function toggleSidebar() {
+  const sidebar  = document.getElementById("dash-sidebar") 
+                || document.querySelector(".dash-sidebar");
+  const overlay  = document.getElementById("sidebarOverlay");
+  const hamburger = document.getElementById("hamburgerBtn");
+  sidebar?.classList.toggle("open");
+  overlay?.classList.toggle("show");
+  hamburger?.classList.toggle("open");
+}
+
+function closeSidebar() {
+  const sidebar   = document.getElementById("dash-sidebar")
+                 || document.querySelector(".dash-sidebar");
+  const overlay   = document.getElementById("sidebarOverlay");
+  const hamburger = document.getElementById("hamburgerBtn");
+  sidebar?.classList.remove("open");
+  overlay?.classList.remove("show");
+  hamburger?.classList.remove("open");
+}
+
 // STATE MANAGEMENT
 const STATE = {
   studentId: user.student_code,
@@ -385,6 +405,7 @@ const SUBS = {
 };
 
 function switchTab(tab, el) {
+    closeSidebar();
   // 1. Hide all subpages, show the selected one
   document.querySelectorAll(".dash-subpage")
           .forEach(p => p.classList.remove("active"));
@@ -498,7 +519,7 @@ function setProposalState(state) {
         </div>
         <div class="pstate-info">
           <strong>Proposal Approved</strong>
-          <span>Your FYP proposal has been officially approved by the Department od Computer Science.</span>
+          <span>Your FYP proposal has been officially approved by the Department of Computer Science.</span>
         </div>
       </div>`;
   } else if (state === "rejected") {
