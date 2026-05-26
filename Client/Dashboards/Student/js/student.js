@@ -32,24 +32,59 @@ const API_HEADERS = {
 };
 
 function toggleSidebar() {
-  const sidebar  = document.getElementById("dash-sidebar") 
-                || document.querySelector(".dash-sidebar");
-  const overlay  = document.getElementById("sidebarOverlay");
+  const overlay   = document.getElementById("sidebarOverlay");
   const hamburger = document.getElementById("hamburgerBtn");
-  sidebar?.classList.toggle("open");
-  overlay?.classList.toggle("show");
-  hamburger?.classList.toggle("open");
+
+  if (overlay.classList.contains("show")) {
+    closeSidebar();
+    return;
+  }
+  overlay.classList.remove("show");
+  void overlay.offsetWidth; 
+  overlay.classList.add("show");
+  hamburger?.classList.add("open");
+
+  const dName = document.getElementById("drawer-name");
+  const dId   = document.getElementById("drawer-std-id");
+  const dAv   = document.getElementById("drawer-initials");
+  if (dName) dName.textContent = STATE.studentName || "";
+  if (dId)   dId.textContent   = STATE.studentId   || "";
+  if (dAv)   dAv.textContent   = initials(STATE.studentName || "");
 }
 
 function closeSidebar() {
-  const sidebar   = document.getElementById("dash-sidebar")
-                 || document.querySelector(".dash-sidebar");
   const overlay   = document.getElementById("sidebarOverlay");
+  const drawer    = document.getElementById("sidebarDrawer");
   const hamburger = document.getElementById("hamburgerBtn");
-  sidebar?.classList.remove("open");
-  overlay?.classList.remove("show");
-  hamburger?.classList.remove("open");
+
+  if (!overlay.classList.contains("show")) return;
+
+  if (drawer) {
+    drawer.style.transition = "transform .25s cubic-bezier(.4, 0, .2, 1)";
+    drawer.style.transform  = "translateX(-100%)";
+  }
+
+  const backdrop = overlay.querySelector(".sidebar-backdrop");
+  if (backdrop) {
+    backdrop.style.transition = "opacity .25s ease";
+    backdrop.style.opacity    = "0";
+  }
+
+  setTimeout(() => {
+    overlay.classList.remove("show");
+    hamburger?.classList.remove("open");
+
+    if (drawer) {
+      drawer.style.transition = "";
+      drawer.style.transform  = "";
+    }
+    if (backdrop) {
+      backdrop.style.transition = "";
+      backdrop.style.opacity    = "";
+    }
+  }, 260);
 }
+
 
 // STATE MANAGEMENT
 const STATE = {
@@ -406,6 +441,8 @@ const SUBS = {
 
 function switchTab(tab, el) {
     closeSidebar();
+    document.querySelectorAll(".drawer-item").forEach(i => i.classList.remove("active"));
+    document.querySelectorAll(`.drawer-item[onclick*="'${tab}'"]`).forEach(i => i.classList.add("active"));
   // 1. Hide all subpages, show the selected one
   document.querySelectorAll(".dash-subpage")
           .forEach(p => p.classList.remove("active"));

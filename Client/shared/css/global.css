@@ -2064,8 +2064,6 @@ footer {
 }
 .intern-download-btn:hover {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,75,45,.3);
 }
 
 /* ── Note ── */
@@ -2175,8 +2173,8 @@ footer {
   box-shadow: 0 4px 16px rgba(191,161,74,.3);
 }
 .intern-submit-btn:hover {
-  transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(191,161,74,.4);
+  background-color: 9a7e2a;
 }
 .intern-submit-btn:disabled {
   opacity: .6;
