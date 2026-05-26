@@ -1253,6 +1253,9 @@ a {
 .btn-sm {
     padding: 8px 14px;
     font-size: .76rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-primary {

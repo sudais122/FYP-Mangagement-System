@@ -4,22 +4,22 @@ const MARKS_SCHEMA = [
   {
     section: "Monthly Meetings",
     items: [
-      { key: "oct", label: "October",  max: 10 },
+      { key: "oct", label: "October", max: 10 },
       { key: "nov", label: "November", max: 10 },
       { key: "dec", label: "December", max: 10 },
       { key: "feb", label: "February", max: 10 },
-      { key: "mar", label: "March",    max: 10 },
+      { key: "mar", label: "March", max: 10 },
     ],
   },
   {
     section: "Submissions",
     items: [
-      { key: "proposal",        label: "Proposal Submission",   max: 10 },
-      { key: "progress_report", label: "Progress Report",       max: 20 },
-      { key: "thesis",          label: "Thesis / Report",       max: 20 },
-      { key: "code",            label: "Code / Practical Work", max: 10 },
-      { key: "prog_sim",        label: "Progress Similarity",   max: 5  },
-      { key: "thesis_sim",      label: "Thesis Similarity",     max: 5  },
+      { key: "proposal", label: "Proposal Submission", max: 10 },
+      { key: "progress_report", label: "Progress Report", max: 20 },
+      { key: "thesis", label: "Thesis / Report", max: 20 },
+      { key: "code", label: "Code / Practical Work", max: 10 },
+      { key: "prog_sim", label: "Progress Similarity", max: 5 },
+      { key: "thesis_sim", label: "Thesis Similarity", max: 5 },
     ],
   },
   {
@@ -27,7 +27,7 @@ const MARKS_SCHEMA = [
     items: [
       { key: "iv1", label: "Internal Viva 1", max: 25 },
       { key: "iv2", label: "Internal Viva 2", max: 25 },
-      { key: "ext", label: "External Viva",   max: 30 },
+      { key: "ext", label: "External Viva", max: 30 },
     ],
   },
 ];
@@ -54,8 +54,12 @@ const initials = (s) =>
     .join("");
 
 function escapeHtml(s) {
-  return String(s ?? "").replace(/[&<>"']/g, c =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
+  return String(s ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
   );
 }
 
@@ -64,7 +68,9 @@ function withPrefix(name, isChairman = false) {
   if (!name) return "—";
   const trimmed = String(name).trim();
 
-  if (/^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?|Engr\.?|Sir|Madam)\s/i.test(trimmed)) {
+  if (
+    /^(Dr\.?|Prof\.?|Mr\.?|Ms\.?|Mrs\.?|Engr\.?|Sir|Madam)\s/i.test(trimmed)
+  ) {
     return trimmed;
   }
 
@@ -82,7 +88,9 @@ function highlightText(text, query) {
 
 function matches(haystack, query) {
   if (!query) return true;
-  return String(haystack ?? "").toLowerCase().includes(query.trim().toLowerCase());
+  return String(haystack ?? "")
+    .toLowerCase()
+    .includes(query.trim().toLowerCase());
 }
 
 /* ════════════════════════════════════
@@ -94,9 +102,11 @@ function toast(message, subtitle, type = "success") {
   const t = document.createElement("div");
   t.className = `toast ${type}`;
   const icons = {
-    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
-    error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-    warn:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>',
+    success:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    error:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/></svg>',
   };
   t.innerHTML = `<div class="toast-icon">${icons[type] || icons.success}</div><div class="toast-text"><strong>${message}</strong><span>${subtitle || ""}</span></div>`;
   wrap.appendChild(t);
@@ -112,15 +122,21 @@ function toast(message, subtitle, type = "success") {
 ══════════════════════════════════════ */
 function displayAdminInfo() {
   const admin = JSON.parse(localStorage.getItem("admin"));
-  if (!admin) { window.location.href = "../Auth/login.html"; return; }
+  if (!admin) {
+    window.location.href = "../Auth/login.html";
+    return;
+  }
 
-  const navName     = document.getElementById("nav-admin-name");
+  const navName = document.getElementById("nav-admin-name");
   const navInitials = document.getElementById("nav-admin-avatar-initials");
-  const greeting    = document.getElementById("admin-banner-greeting");
+  const greeting = document.getElementById("admin-banner-greeting");
 
-if (navName)     navName.textContent     = formatName(admin.prefix, admin.name);
-if (navInitials) navInitials.textContent = initials(admin.name);
-if (greeting)    greeting.textContent    = getAdminGreeting(formatName(admin.prefix, admin.name));
+  if (navName) navName.textContent = formatName(admin.prefix, admin.name);
+  if (navInitials) navInitials.textContent = initials(admin.name);
+  if (greeting)
+    greeting.textContent = getAdminGreeting(
+      formatName(admin.prefix, admin.name),
+    );
 
   if (admin.avatar_url) setAdminNavAvatar(admin.avatar_url);
 
@@ -130,10 +146,19 @@ if (greeting)    greeting.textContent    = getAdminGreeting(formatName(admin.pre
 function getAdminGreeting(name) {
   const hour = new Date().getHours();
   let g, icon;
-  if      (hour >= 5  && hour < 12) { g = "Good Morning";   icon = "☀️"; }
-  else if (hour >= 12 && hour < 17) { g = "Good Afternoon"; icon = "🌤️"; }
-  else if (hour >= 17 && hour < 21) { g = "Good Evening";   icon = "🌆"; }
-  else                               { g = "Good Night";     icon = "🌙"; }
+  if (hour >= 5 && hour < 12) {
+    g = "Good Morning";
+    icon = "☀️";
+  } else if (hour >= 12 && hour < 17) {
+    g = "Good Afternoon";
+    icon = "🌤️";
+  } else if (hour >= 17 && hour < 21) {
+    g = "Good Evening";
+    icon = "🌆";
+  } else {
+    g = "Good Night";
+    icon = "🌙";
+  }
   return `${g}, ${name} ${icon}`;
 }
 
@@ -141,16 +166,37 @@ function startAdminClock() {
   function update() {
     const el = document.getElementById("admin-datetime");
     if (!el) return;
-    const now    = new Date();
-    const days   = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const day    = days[now.getDay()];
-    const date   = now.getDate();
-    const month  = months[now.getMonth()];
-    const year   = now.getFullYear();
-    let hours    = now.getHours();
-    const mins   = String(now.getMinutes()).padStart(2, "0");
-    const ampm   = hours >= 12 ? "PM" : "AM";
+    const now = new Date();
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const day = days[now.getDay()];
+    const date = now.getDate();
+    const month = months[now.getMonth()];
+    const year = now.getFullYear();
+    let hours = now.getHours();
+    const mins = String(now.getMinutes()).padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
     el.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -181,15 +227,17 @@ function switchView(view) {
   $$(".nav-item").forEach((n) => n.classList.remove("active"));
   const target = $(`#view-${view}`);
   if (target) target.classList.add("active");
-  $$(`.nav-item[data-view="${view}"]`).forEach((n) => n.classList.add("active"));
+  $$(`.nav-item[data-view="${view}"]`).forEach((n) =>
+    n.classList.add("active"),
+  );
   $("#sidebar").classList.remove("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  if (view === "deadlines")    renderDeadlines();
-  if (view === "settings")     loadGlobalToggles();
-  if (view === "supervisors")  renderSupervisors();
-  if (view === "teams")        renderTeams();
-  if (view === "students")     renderStudents();
+  if (view === "deadlines") renderDeadlines();
+  if (view === "settings") loadGlobalToggles();
+  if (view === "supervisors") renderSupervisors();
+  if (view === "teams") renderTeams();
+  if (view === "students") renderStudents();
 }
 
 $$(".nav-item").forEach((item) => {
@@ -212,8 +260,11 @@ async function fetchDashboardStats() {
   if (!admin?.token) return;
 
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/stats`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/admin/stats`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) return console.error("Stats fetch failed:", data.message);
@@ -223,14 +274,17 @@ async function fetchDashboardStats() {
   } catch (err) {
     console.error("Error fetching dashboard stats:", err);
   }
-    // ── Internship count ──
+  // ── Internship count ──
   try {
-    const res  = await fetch(`${API_BASE}/api/internship/admin/all`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/internship/admin/all`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
-    const el   = document.getElementById("stat-internship-count");
-    if (el) el.textContent = data.total ?? (data.data?.length ?? 0);
+    const el = document.getElementById("stat-internship-count");
+    if (el) el.textContent = data.total ?? data.data?.length ?? 0;
   } catch (err) {
     console.error("Internship count error:", err);
   }
@@ -238,18 +292,21 @@ async function fetchDashboardStats() {
 
 function updateDashboardStats(stats) {
   const cards = document.querySelectorAll(".dstat-card");
-  if (cards[0]) cards[0].querySelector(".dstat-value").textContent = stats.students;
-  if (cards[1]) cards[1].querySelector(".dstat-value").textContent = stats.supervisors;
-  if (cards[2]) cards[2].querySelector(".dstat-value").textContent = stats.teams;
+  if (cards[0])
+    cards[0].querySelector(".dstat-value").textContent = stats.students;
+  if (cards[1])
+    cards[1].querySelector(".dstat-value").textContent = stats.supervisors;
+  if (cards[2])
+    cards[2].querySelector(".dstat-value").textContent = stats.teams;
 }
 
 function updateSidebarBadges(stats) {
-  document.querySelectorAll(".nav-item").forEach(item => {
-    const view  = item.dataset.view;
+  document.querySelectorAll(".nav-item").forEach((item) => {
+    const view = item.dataset.view;
     const badge = item.querySelector(".nav-item-badge");
     if (!badge) return;
     if (view === "supervisors") badge.textContent = stats.supervisors;
-    else if (view === "teams")  badge.textContent = stats.teams;
+    else if (view === "teams") badge.textContent = stats.teams;
     else if (view === "students") badge.textContent = stats.students;
   });
 }
@@ -265,8 +322,11 @@ async function renderRecentTeams() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/api/groups`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/groups`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -278,21 +338,22 @@ async function renderRecentTeams() {
       return;
     }
 
-    tbody.innerHTML = teams.map(g => {
-      const code    = g.team_code || g.group_code || "—";
-      const title   = g.project_title || "—";
-      const members = 1 + (g.members?.length || 0);
-      const supName = g.supervisor
-        ? formatName(g.supervisor.prefix, g.supervisor.name)
-        : "Unassigned";
+    tbody.innerHTML = teams
+      .map((g) => {
+        const code = g.team_code || g.group_code || "—";
+        const title = g.project_title || "—";
+        const members = 1 + (g.members?.length || 0);
+        const supName = g.supervisor
+          ? formatName(g.supervisor.prefix, g.supervisor.name)
+          : "Unassigned";
 
-      const proposalUrl    = g.proposal_url    || "";
-      const proposalStatus = g.proposal_status || "pending";
+        const proposalUrl = g.proposal_url || "";
+        const proposalStatus = g.proposal_status || "pending";
 
-      // ── Proposal badge ──
-      let proposalBadge = "";
-      if (proposalStatus === "approved") {
-        proposalBadge = `
+        // ── Proposal badge ──
+        let proposalBadge = "";
+        if (proposalStatus === "approved") {
+          proposalBadge = `
           <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                        border-radius:6px;font-size:.7rem;font-weight:700;
                        background:rgba(21,128,61,.1);color:#15803d">
@@ -302,8 +363,8 @@ async function renderRecentTeams() {
             </svg>
             Approved
           </span>`;
-      } else if (proposalStatus === "rejected") {
-        proposalBadge = `
+        } else if (proposalStatus === "rejected") {
+          proposalBadge = `
           <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                        border-radius:6px;font-size:.7rem;font-weight:700;
                        background:rgba(220,38,38,.08);color:#dc2626">
@@ -314,8 +375,8 @@ async function renderRecentTeams() {
             </svg>
             Rejected
           </span>`;
-      } else {
-        proposalBadge = `
+        } else {
+          proposalBadge = `
           <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                        border-radius:6px;font-size:.7rem;font-weight:700;
                        background:rgba(234,179,8,.1);color:#a16207">
@@ -326,12 +387,12 @@ async function renderRecentTeams() {
             </svg>
             Pending
           </span>`;
-      }
+        }
 
-      // ── Proposal actions (only if pending + has file) ──
-      let proposalActions = "";
-      if (proposalUrl && proposalStatus === "pending") {
-        proposalActions = `
+        // ── Proposal actions (only if pending + has file) ──
+        let proposalActions = "";
+        if (proposalUrl && proposalStatus === "pending") {
+          proposalActions = `
           <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
 
             <button onclick="viewDoc('${proposalUrl}')"
@@ -370,9 +431,9 @@ async function renderRecentTeams() {
             </button>
 
           </div>`;
-      }
+        }
 
-      return `
+        return `
         <tr>
           <td>
             <div class="team-info">
@@ -408,8 +469,8 @@ async function renderRecentTeams() {
             </div>
           </td>
         </tr>`;
-    }).join("");
-
+      })
+      .join("");
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
   }
@@ -421,12 +482,15 @@ const SUPERVISORS_PAGE = { current: 1, perPage: 8 };
 
 async function renderSupervisors() {
   const admin = JSON.parse(localStorage.getItem("admin"));
-  const grid  = $("#supervisorCards");
+  const grid = $("#supervisorCards");
   grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-mute)">Loading...</div>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/supervisors`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/admin/supervisors`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -443,7 +507,13 @@ function renderSupervisorPage(page) {
   const { perPage } = SUPERVISORS_PAGE;
   const slice = SUPERVISORS_DATA.slice((page - 1) * perPage, page * perPage);
   renderSupervisorCards(slice);
-  renderPagination("supervisorsPagination", SUPERVISORS_DATA.length, page, perPage, "renderSupervisorPage");
+  renderPagination(
+    "supervisorsPagination",
+    SUPERVISORS_DATA.length,
+    page,
+    perPage,
+    "renderSupervisorPage",
+  );
 }
 
 function renderTeamsPage(page) {
@@ -451,7 +521,13 @@ function renderTeamsPage(page) {
   const { perPage } = TEAMS_PAGE;
   const slice = TEAMS_DATA.slice((page - 1) * perPage, page * perPage);
   renderTeamsTable(slice);
-  renderPagination("teamsPagination", TEAMS_DATA.length, page, perPage, "renderTeamsPage");
+  renderPagination(
+    "teamsPagination",
+    TEAMS_DATA.length,
+    page,
+    perPage,
+    "renderTeamsPage",
+  );
 }
 
 function renderStudentsPage(page) {
@@ -459,9 +535,14 @@ function renderStudentsPage(page) {
   const { perPage } = STUDENTS_PAGE;
   const slice = STUDENTS_DATA.slice((page - 1) * perPage, page * perPage);
   renderStudentsTable(slice);
-  renderPagination("studentsPagination", STUDENTS_DATA.length, page, perPage, "renderStudentsPage");
+  renderPagination(
+    "studentsPagination",
+    STUDENTS_DATA.length,
+    page,
+    perPage,
+    "renderStudentsPage",
+  );
 }
-
 
 function renderSupervisorCards(list) {
   const grid = $("#supervisorCards");
@@ -471,7 +552,9 @@ function renderSupervisorCards(list) {
     return;
   }
 
-  grid.innerHTML = list.map(sup => `
+  grid.innerHTML = list
+    .map(
+      (sup) => `
     <div class="entity-card" data-chairman="${sup.is_chairman === true}">
 
       <div class="entity-card-head">
@@ -491,7 +574,7 @@ function renderSupervisorCards(list) {
           margin-left:6px;
           background:${sup.is_chairman ? "rgba(191,161,74,.15)" : "rgba(99,102,241,.1)"};
           color:${sup.is_chairman ? "#9a7e2a" : "#4f46e5"}">
-          ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
+          ${sup.is_chairman ? "Chairman / HOD" : sup.designation || "Supervisor"}
         </span>
       </div>
 
@@ -511,36 +594,40 @@ function renderSupervisorCards(list) {
           onclick="openSupDetail('${sup._id}')">View</button>
         <button class="btn btn-sm"
           style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
-          onclick="openEditSupModal('${sup._id}','${(sup.prefix||"Mr").replace(/'/g,"\\'")}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">
+          onclick="openEditSupModal('${sup._id}','${(sup.prefix || "Mr").replace(/'/g, "\\'")}','${(sup.name || "").replace(/'/g, "\\'")}','${(sup.email || "").replace(/'/g, "\\'")}','${(sup.whatsapp || "").replace(/'/g, "\\'")}','${sup.is_chairman ? "chairman" : "supervisor"}')">
           Edit
         </button>
         <button class="btn btn-sm"
           style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
-          onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${formatName(sup.prefix,sup.name).replace(/'/g,"\\'")}')">
+          onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${formatName(sup.prefix, sup.name).replace(/'/g, "\\'")}')">
           Delete
         </button>
       </div>
     </div>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function renderSupDetailTeamPage(groups, page) {
-  const perPage    = 5;
+  const perPage = 5;
   const totalPages = Math.ceil(groups.length / perPage);
-  const start      = (page - 1) * perPage;
-  const slice      = groups.slice(start, start + perPage);
+  const start = (page - 1) * perPage;
+  const slice = groups.slice(start, start + perPage);
 
   // Store globally for pagination button access
   window._supGroups = groups;
 
   // Remove old team blocks + old pagination
-  document.querySelectorAll(".team-block, #sup-team-pagination").forEach(el => el.remove());
+  document
+    .querySelectorAll(".team-block, #sup-team-pagination")
+    .forEach((el) => el.remove());
 
   const container = document.getElementById("supDetailContent");
   if (!container) return;
 
   // Render this page's team blocks
-  slice.forEach(group => {
+  slice.forEach((group) => {
     container.insertAdjacentHTML("beforeend", renderTeamBlockFromDB(group));
   });
 
@@ -599,7 +686,7 @@ function renderSupDetailTeamPage(groups, page) {
     </button>`;
 
   const showing_start = start + 1;
-  const showing_end   = Math.min(start + perPage, groups.length);
+  const showing_end = Math.min(start + perPage, groups.length);
 
   pag.innerHTML = `
     <span style="font-size:.76rem;color:var(--text-mute);font-weight:600">
@@ -622,38 +709,53 @@ function renderSupDetailTeamPage(groups, page) {
 async function openSupDetail(supId) {
   const admin = JSON.parse(localStorage.getItem("admin"));
 
-  $$(".view").forEach(v => v.classList.remove("active"));
+  $$(".view").forEach((v) => v.classList.remove("active"));
   $("#view-sup-detail").classList.add("active");
   $("#supDetailContent").innerHTML = `
     <div style="padding:60px 20px;text-align:center;color:var(--text-mute)">Loading supervisor details...</div>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/supervisors/${supId}`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/admin/supervisors/${supId}`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
-    const sup    = data.supervisor;
+    const sup = data.supervisor;
     const groups = data.groups || [];
 
     // Fetch marks for every group
     for (const group of groups) {
       try {
-        const mRes = await fetch(`${API_BASE}/api/admin/marks/group/${group._id}`, {
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
-        });
+        const mRes = await fetch(
+          `${API_BASE}/api/admin/marks/group/${group._id}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${admin.token}`,
+            },
+          },
+        );
         if (!mRes.ok) continue;
 
         const marksData = await mRes.json();
-        const marksList = Array.isArray(marksData) ? marksData
-          : (Array.isArray(marksData?.marks) ? marksData.marks : []);
+        const marksList = Array.isArray(marksData)
+          ? marksData
+          : Array.isArray(marksData?.marks)
+            ? marksData.marks
+            : [];
 
-        const allStudents = [group.leader, ...(group.members || [])].filter(Boolean);
+        const allStudents = [group.leader, ...(group.members || [])].filter(
+          Boolean,
+        );
 
-        allStudents.forEach(student => {
-          const markRecord = marksList.find(m => {
-            const ref = (typeof m.student === "string") ? m.student : m.student?._id;
+        allStudents.forEach((student) => {
+          const markRecord = marksList.find((m) => {
+            const ref =
+              typeof m.student === "string" ? m.student : m.student?._id;
             return ref === student._id;
           });
 
@@ -664,19 +766,19 @@ async function openSupDetail(supId) {
               dec: markRecord.monthly?.dec ?? null,
               feb: markRecord.monthly?.feb ?? null,
               mar: markRecord.monthly?.mar ?? null,
-              proposal:        markRecord.submissions?.proposal  ?? null,
-              progress_report: markRecord.submissions?.progress  ?? null,
-              thesis:          markRecord.documentation?.final   ?? null,
-              code:            markRecord.submissions?.code      ?? null,
-              prog_sim:        markRecord.submissions?.prog_sim  ?? null,
-              thesis_sim:      markRecord.submissions?.thesis_sim ?? null,
+              proposal: markRecord.submissions?.proposal ?? null,
+              progress_report: markRecord.submissions?.progress ?? null,
+              thesis: markRecord.documentation?.final ?? null,
+              code: markRecord.submissions?.code ?? null,
+              prog_sim: markRecord.submissions?.prog_sim ?? null,
+              thesis_sim: markRecord.submissions?.thesis_sim ?? null,
               iv1: markRecord.viva?.internal1 ?? null,
               iv2: markRecord.viva?.internal2 ?? null,
-              ext: markRecord.viva?.external  ?? null,
+              ext: markRecord.viva?.external ?? null,
             };
             student.total_marks = markRecord.total ?? 0;
           } else {
-            student.marks       = {};
+            student.marks = {};
             student.total_marks = 0;
           }
         });
@@ -685,8 +787,10 @@ async function openSupDetail(supId) {
       }
     }
 
-const totalStudents = groups.reduce((sum, g) =>
-      sum + (g.members?.length || 0) + (g.leader ? 1 : 0), 0);
+    const totalStudents = groups.reduce(
+      (sum, g) => sum + (g.members?.length || 0) + (g.leader ? 1 : 0),
+      0,
+    );
 
     // ── Build avatar HTML ──
     const avatarHtml = (() => {
@@ -709,7 +813,7 @@ const totalStudents = groups.reduce((sum, g) =>
           </span>
         </div>`;
     })();
-let html = `
+    let html = `
   <div class="sup-detail-header">
     ${avatarHtml}
     <div class="sup-detail-info">
@@ -723,21 +827,21 @@ let html = `
     </div>
   </div>`;
 
-$("#supDetailContent").innerHTML = html;
+    $("#supDetailContent").innerHTML = html;
 
     if (groups.length === 0) {
-      $("#supDetailContent").insertAdjacentHTML("beforeend",
+      $("#supDetailContent").insertAdjacentHTML(
+        "beforeend",
         `<div class="dash-panel">
            <div class="panel-body" style="text-align:center;padding:40px;color:var(--text-mute)">
              No teams assigned yet.
            </div>
-         </div>`
+         </div>`,
       );
     } else {
       window._supGroups = groups;
       renderSupDetailTeamPage(groups, 1);
     }
-
   } catch (err) {
     console.error(err);
     $("#supDetailContent").innerHTML = `
@@ -753,12 +857,12 @@ $("#supDetailContent").innerHTML = html;
 function renderTeamBlockFromDB(group) {
   const allStudents = [
     group.leader ? { ...group.leader, role: "Leader" } : null,
-    ...(group.members || []).map(m => ({ ...m, role: "Member" }))
+    ...(group.members || []).map((m) => ({ ...m, role: "Member" })),
   ].filter(Boolean);
 
   // ── Empty team (no students) ──
- if (allStudents.length === 0) {
-  return `
+  if (allStudents.length === 0) {
+    return `
     <div class="team-block">
       <div class="team-block-head">
         <div class="team-block-head-left">
@@ -778,26 +882,29 @@ function renderTeamBlockFromDB(group) {
         </div>
       </div>
     </div>`;
-}
+  }
 
   // ── Build component headers ──
-  const componentHeaders = MARKS_SCHEMA.flatMap(sec =>
-    sec.items.map(it => `
+  const componentHeaders = MARKS_SCHEMA.flatMap((sec) =>
+    sec.items.map(
+      (it) => `
       <th title="${sec.section} · max ${it.max}">
         <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
           <span>${it.label}</span>
           <small style="color:var(--text-mute);font-weight:600">/${it.max}</small>
         </div>
-      </th>`)
+      </th>`,
+    ),
   ).join("");
 
   // ── Build student rows ──
-  const rows = allStudents.map(s => {
-    const cells = MARKS_SCHEMA.flatMap(sec =>
-      sec.items.map(it => {
-        const val = s.marks?.[it.key];
-        const displayValue = (val !== null && val !== undefined) ? val : "";
-        return `
+  const rows = allStudents
+    .map((s) => {
+      const cells = MARKS_SCHEMA.flatMap((sec) =>
+        sec.items.map((it) => {
+          const val = s.marks?.[it.key];
+          const displayValue = val !== null && val !== undefined ? val : "";
+          return `
           <td class="mark-input-cell">
             <input type="number" min="0" max="${it.max}"
               class="mark-input"
@@ -809,10 +916,10 @@ function renderTeamBlockFromDB(group) {
               placeholder="—"
               oninput="onMarkChange(this)">
           </td>`;
-      })
-    ).join("");
+        }),
+      ).join("");
 
-    return `
+      return `
       <tr>
         <td>
           <strong>${s.name}</strong>
@@ -829,10 +936,11 @@ function renderTeamBlockFromDB(group) {
         ${cells}
         <td><span class="mark-total-display" id="total-${s._id}">${s.total_marks || 0}<span class="out">/${MAX_TOTAL}</span></span></td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 
   // ── Final return with new header (Team ID → Title → member count) ──
-return `
+  return `
   <div class="team-block">
     <div class="team-block-head">
       <div class="team-block-head-left">
@@ -879,7 +987,7 @@ return `
 ══════════════════════════════════════ */
 function onMarkChange(input) {
   const max = parseInt(input.dataset.max);
-  let val   = parseInt(input.value);
+  let val = parseInt(input.value);
 
   if (input.value === "") {
     input.classList.remove("invalid");
@@ -888,7 +996,7 @@ function onMarkChange(input) {
   }
 
   if (isNaN(val)) val = 0;
-  if (val < 0)    val = 0;
+  if (val < 0) val = 0;
   if (val > max) {
     input.classList.add("invalid");
     toast("Invalid mark", `Maximum allowed is ${max}`, "warn");
@@ -903,22 +1011,26 @@ function onMarkChange(input) {
 
 function updateStudentTotal(studentId) {
   let total = 0;
-  document.querySelectorAll(`.mark-input[data-student="${studentId}"]`).forEach(inp => {
-    if (inp.value !== "") {
-      const v = parseInt(inp.value);
-      if (!isNaN(v) && v >= 0) total += v;
-    }
-  });
+  document
+    .querySelectorAll(`.mark-input[data-student="${studentId}"]`)
+    .forEach((inp) => {
+      if (inp.value !== "") {
+        const v = parseInt(inp.value);
+        if (!isNaN(v) && v >= 0) total += v;
+      }
+    });
   const el = document.getElementById(`total-${studentId}`);
   if (el) el.innerHTML = `${total}<span class="out">/${MAX_TOTAL}</span>`;
 }
 
 async function saveTeamMarks(groupId) {
-  const admin  = JSON.parse(localStorage.getItem("admin"));
-  const inputs = document.querySelectorAll(`.mark-input[data-group="${groupId}"]`);
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const inputs = document.querySelectorAll(
+    `.mark-input[data-group="${groupId}"]`,
+  );
 
   const marksByStudent = {};
-  inputs.forEach(inp => {
+  inputs.forEach((inp) => {
     const sid = inp.dataset.student;
     const key = inp.dataset.key;
     if (!marksByStudent[sid]) marksByStudent[sid] = {};
@@ -927,19 +1039,33 @@ async function saveTeamMarks(groupId) {
 
   try {
     for (const studentId in marksByStudent) {
-      const marks        = marksByStudent[studentId];
-      const monthly      = {};
-      const submissions  = {};
-      const viva         = {};
+      const marks = marksByStudent[studentId];
+      const monthly = {};
+      const submissions = {};
+      const viva = {};
       const documentation = {};
 
       Object.entries(marks).forEach(([key, value]) => {
-        if (["oct","nov","dec","feb","mar"].includes(key)) {
+        if (["oct", "nov", "dec", "feb", "mar"].includes(key)) {
           monthly[key] = value;
-        } else if (["proposal","progress_report","code","prog_sim","thesis_sim"].includes(key)) {
+        } else if (
+          [
+            "proposal",
+            "progress_report",
+            "code",
+            "prog_sim",
+            "thesis_sim",
+          ].includes(key)
+        ) {
           submissions[key === "progress_report" ? "progress" : key] = value;
-        } else if (["iv1","iv2","ext"].includes(key)) {
-          viva[key === "iv1" ? "internal1" : key === "iv2" ? "internal2" : "external"] = value;
+        } else if (["iv1", "iv2", "ext"].includes(key)) {
+          viva[
+            key === "iv1"
+              ? "internal1"
+              : key === "iv2"
+                ? "internal2"
+                : "external"
+          ] = value;
         } else if (key === "thesis") {
           documentation.final = value;
         }
@@ -947,8 +1073,17 @@ async function saveTeamMarks(groupId) {
 
       const res = await fetch(`${API_BASE}/api/admin/marks`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-        body: JSON.stringify({ student_id: studentId, monthly, submissions, viva, documentation })
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+        body: JSON.stringify({
+          student_id: studentId,
+          monthly,
+          submissions,
+          viva,
+          documentation,
+        }),
       });
 
       if (!res.ok) {
@@ -963,8 +1098,11 @@ async function saveTeamMarks(groupId) {
       }
     }
 
-    toast("Saved", `Marks saved for ${Object.keys(marksByStudent).length} students`, "success");
-
+    toast(
+      "Saved",
+      `Marks saved for ${Object.keys(marksByStudent).length} students`,
+      "success",
+    );
   } catch (err) {
     console.error(err);
     toast("Error", err.message, "error");
@@ -983,10 +1121,14 @@ async function renderTeams() {
 
   try {
     const res = await fetch(`${API_BASE}/api/groups`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const ct = res.headers.get("content-type") || "";
-    if (!ct.includes("application/json")) throw new Error("Server returned HTML — route not registered");
+    if (!ct.includes("application/json"))
+      throw new Error("Server returned HTML — route not registered");
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -1001,10 +1143,17 @@ async function renderTeams() {
 function renderTeamsPage(page) {
   TEAMS_PAGE.current = page;
   const perPage = TEAMS_PAGE.perPage;
-  const start   = (page - 1) * perPage;
-  const slice   = TEAMS_DATA.slice(start, start + perPage);
+  const start = (page - 1) * perPage;
+  const slice = TEAMS_DATA.slice(start, start + perPage);
   renderTeamsTable(slice);
-  renderPagination("teamsPagination", TEAMS_DATA.length, page, perPage, "renderTeamsPage", "changeTeamsPerPage");
+  renderPagination(
+    "teamsPagination",
+    TEAMS_DATA.length,
+    page,
+    perPage,
+    "renderTeamsPage",
+    "changeTeamsPerPage",
+  );
 }
 
 //TEAMS TABLE — now includes Proposal status + approve/reject
@@ -1026,15 +1175,18 @@ function renderTeamsTable(list) {
     return;
   }
 
-  tbody.innerHTML = list.map(g => {
-    const supName        = withPrefix(g.supervisor);
-    const teamCode       = g.team_code || "—";
-    const proposalUrl    = g.proposal_url || "";
-    const proposalStatus = g.proposal_status || "pending";
-    const attempt        = g.proposal_attempt || 1;
+  tbody.innerHTML = list
+    .map((g) => {
+      const supName = withPrefix(g.supervisor);
+      const teamCode = g.team_code || "—";
+      const proposalUrl = g.proposal_url || "";
+      const proposalStatus = g.proposal_status || "pending";
+      const attempt = g.proposal_attempt || 1;
 
-    // ── Attempt badge ──
-    const attemptBadge = attempt > 1 ? `
+      // ── Attempt badge ──
+      const attemptBadge =
+        attempt > 1
+          ? `
       <span style="display:inline-flex;align-items:center;gap:4px;margin-left:6px;
                    padding:2px 7px;border-radius:5px;font-size:.62rem;font-weight:800;
                    background:rgba(99,102,241,.12);color:#4f46e5">
@@ -1044,10 +1196,13 @@ function renderTeamsTable(list) {
           <path d="M3.51 15a9 9 0 1 0 .49-3.51"/>
         </svg>
         Attempt ${attempt}
-      </span>` : "";
+      </span>`
+          : "";
 
-    // ── Second attempt warning ──
-    const secondAttemptWarning = attempt > 1 ? `
+      // ── Second attempt warning ──
+      const secondAttemptWarning =
+        attempt > 1
+          ? `
       <div style="margin-top:5px;font-size:.65rem;color:#a16207;
                   background:rgba(234,179,8,.08);padding:4px 8px;
                   border-radius:5px;border:1px solid rgba(234,179,8,.2);
@@ -1059,13 +1214,14 @@ function renderTeamsTable(list) {
           <line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
         Previously rejected proposal exists
-      </div>` : "";
+      </div>`
+          : "";
 
-    // ── Proposal badge ──
-    let proposalBadge = "";
+      // ── Proposal badge ──
+      let proposalBadge = "";
 
-    if (proposalStatus === "approved") {
-      proposalBadge = `
+      if (proposalStatus === "approved") {
+        proposalBadge = `
         <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                      border-radius:6px;font-size:.7rem;font-weight:700;
                      background:rgba(21,128,61,.1);color:#15803d">
@@ -1076,9 +1232,8 @@ function renderTeamsTable(list) {
           Approved
         </span>
         ${attemptBadge}`;
-
-    } else if (proposalStatus === "rejected") {
-      proposalBadge = `
+      } else if (proposalStatus === "rejected") {
+        proposalBadge = `
         <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                      border-radius:6px;font-size:.7rem;font-weight:700;
                      background:rgba(220,38,38,.08);color:#dc2626">
@@ -1090,9 +1245,8 @@ function renderTeamsTable(list) {
           Rejected
         </span>
         ${attemptBadge}`;
-
-    } else {
-      proposalBadge = `
+      } else {
+        proposalBadge = `
         <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                      border-radius:6px;font-size:.7rem;font-weight:700;
                      background:rgba(234,179,8,.1);color:#a16207">
@@ -1104,14 +1258,14 @@ function renderTeamsTable(list) {
           Pending
         </span>
         ${attemptBadge}`;
-    }
+      }
 
-    // ── Proposal actions ──
-    // ── Proposal actions ──
-    let proposalActions = "";
-    if (proposalUrl) {
-      // View + Download always visible when file exists
-      const viewDownload = `
+      // ── Proposal actions ──
+      // ── Proposal actions ──
+      let proposalActions = "";
+      if (proposalUrl) {
+        // View + Download always visible when file exists
+        const viewDownload = `
         <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
           <button onclick="viewDoc('${proposalUrl}')"
             style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
@@ -1126,9 +1280,9 @@ function renderTeamsTable(list) {
           </button>
         </div>`;
 
-      // Accept + Reject only when pending
-      if (proposalStatus === "pending") {
-        proposalActions = `
+        // Accept + Reject only when pending
+        if (proposalStatus === "pending") {
+          proposalActions = `
           ${viewDownload}
           <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">
             <button onclick="updateProposalStatus('${g._id}','approved')"
@@ -1154,14 +1308,14 @@ function renderTeamsTable(list) {
             </button>
           </div>
           ${secondAttemptWarning}`;
-      } else {
-        // Approved or rejected — only view/download, no action buttons
-        proposalActions = viewDownload;
+        } else {
+          // Approved or rejected — only view/download, no action buttons
+          proposalActions = viewDownload;
+        }
       }
-    }
 
-    // ── Table row ──
-    return `
+      // ── Table row ──
+      return `
       <tr>
         <td><span class="id-pill gold">${teamCode}</span></td>
 
@@ -1196,9 +1350,9 @@ function renderTeamsTable(list) {
           </div>
         </td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 }
-
 
 function renderStudentsTable(list, query = "", matchSet = new Set()) {
   const tbody = $("#studentsTable tbody");
@@ -1208,22 +1362,23 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
     return;
   }
 
-  tbody.innerHTML = list.map(s => {
-    const isMatch          = query && matchSet.has(s._id);
-    const supId            = s.group?.supervisor?._id || "";
-    const supName = s.group?.supervisor
-    ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
-    : "—";
-    const totalMarks       = s.total_marks || 0;
-    const safeName         = (s.name || "").replace(/'/g, "\\'");
-    const whatsapp         = s.whatsapp || "—";
-    const cvUrl            = s.cv_url || "";
-    const certUrl = s.certificates_url || "";
-    const proposalUrl      = s.group?.proposal_url || "";
-    const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
-    const proposalStatus   = s.group?.proposal_status || "";
+  tbody.innerHTML = list
+    .map((s) => {
+      const isMatch = query && matchSet.has(s._id);
+      const supId = s.group?.supervisor?._id || "";
+      const supName = s.group?.supervisor
+        ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
+        : "—";
+      const totalMarks = s.total_marks || 0;
+      const safeName = (s.name || "").replace(/'/g, "\\'");
+      const whatsapp = s.whatsapp || "—";
+      const cvUrl = s.cv_url || "";
+      const certUrl = s.certificates_url || "";
+      const proposalUrl = s.group?.proposal_url || "";
+      const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
+      const proposalStatus = s.group?.proposal_status || "";
 
-    return `
+      return `
       <tr class="${isMatch ? "search-match" : ""}">
         <td>
           <div class="team-info">
@@ -1299,11 +1454,15 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
   </div>
 </td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 }
 async function openTeamDetail(teamId) {
-  const team = TEAMS_DATA.find(t => t._id === teamId);
-  if (!team) { toast("Error", "Team not found", "error"); return; }
+  const team = TEAMS_DATA.find((t) => t._id === teamId);
+  if (!team) {
+    toast("Error", "Team not found", "error");
+    return;
+  }
   if (team.supervisor?._id) {
     openSupDetail(team.supervisor._id);
   } else {
@@ -1318,7 +1477,7 @@ let reassignTeamId = null;
 
 function openReassignModal(teamId) {
   reassignTeamId = teamId;
-  const team = TEAMS_DATA.find(t => t._id === teamId);
+  const team = TEAMS_DATA.find((t) => t._id === teamId);
   if (!team) return;
 
   const currentSup = team.supervisor;
@@ -1333,9 +1492,10 @@ function openReassignModal(teamId) {
 
   select.innerHTML =
     '<option value="">— Choose a supervisor —</option>' +
-    SUPERVISORS_DATA
-      .map(s => `<option value="${s._id}">${formatName(s.prefix, s.name)} · ${s.sup_code}</option>`)
-      .join("");
+    SUPERVISORS_DATA.map(
+      (s) =>
+        `<option value="${s._id}">${formatName(s.prefix, s.name)} · ${s.sup_code}</option>`,
+    ).join("");
 
   $("#reassignModal").classList.add("open");
 }
@@ -1346,15 +1506,24 @@ function closeReassignModal() {
 
 async function confirmReassign() {
   const newSupId = $("#newSup").value;
-  if (!newSupId) { toast("Select a supervisor", "Please choose a new supervisor", "error"); return; }
+  if (!newSupId) {
+    toast("Select a supervisor", "Please choose a new supervisor", "error");
+    return;
+  }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`${API_BASE}/api/groups/${reassignTeamId}/reassign`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ supervisor_id: newSupId })
-    });
+    const res = await fetch(
+      `${API_BASE}/api/groups/${reassignTeamId}/reassign`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+        body: JSON.stringify({ supervisor_id: newSupId }),
+      },
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
@@ -1378,8 +1547,11 @@ async function renderStudents() {
   tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/students`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/admin/students`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -1394,14 +1566,28 @@ async function renderStudents() {
 function renderStudentsPage(page) {
   STUDENTS_PAGE.current = page;
   const perPage = STUDENTS_PAGE.perPage;
-  const start   = (page - 1) * perPage;
-  const slice   = STUDENTS_DATA.slice(start, start + perPage);
+  const start = (page - 1) * perPage;
+  const slice = STUDENTS_DATA.slice(start, start + perPage);
   renderStudentsTable(slice);
-  renderPagination("studentsPagination", STUDENTS_DATA.length, page, perPage, "renderStudentsPage", "changeStudentsPerPage");
+  renderPagination(
+    "studentsPagination",
+    STUDENTS_DATA.length,
+    page,
+    perPage,
+    "renderStudentsPage",
+    "changeStudentsPerPage",
+  );
 }
 
 //   DOCUMENT BADGES
-function renderDocBadge(label, url, required, studentName, uploaderName = "", status = "") {
+function renderDocBadge(
+  label,
+  url,
+  required,
+  studentName,
+  uploaderName = "",
+  status = "",
+) {
   if (!url) {
     return `
       <span class="doc-badge missing" title="${required ? label + " missing — required" : label + " not yet submitted"}">
@@ -1439,13 +1625,14 @@ async function viewDoc(url) {
   try {
     // S3 private files need a presigned URL
     if (url.includes("amazonaws.com")) {
-      const admin   = JSON.parse(localStorage.getItem("admin"))
-                   || JSON.parse(localStorage.getItem("student"))
-                   || JSON.parse(localStorage.getItem("supervisor"));
+      const admin =
+        JSON.parse(localStorage.getItem("admin")) ||
+        JSON.parse(localStorage.getItem("student")) ||
+        JSON.parse(localStorage.getItem("supervisor"));
 
-      const res  = await fetch(
+      const res = await fetch(
         `${API_BASE}/api/uploads/signed-url?url=${encodeURIComponent(url)}`,
-        { headers: { "Authorization": `Bearer ${admin?.token}` } }
+        { headers: { Authorization: `Bearer ${admin?.token}` } },
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -1455,9 +1642,10 @@ async function viewDoc(url) {
     }
 
     // Local files — open directly
-    const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+    const finalUrl = url.startsWith("http")
+      ? url
+      : `http://127.0.0.1:5001${url}`;
     window.open(finalUrl, "_blank", "noopener");
-
   } catch (err) {
     console.error("viewDoc error:", err);
     toast("Error", "Could not open document", "error");
@@ -1501,8 +1689,6 @@ async function downloadDoc(url, filename) {
   }
 }
 
-
-
 //   PROPOSAL STATUS
 let pendingRejectGroupId = null;
 
@@ -1523,14 +1709,23 @@ async function confirmRejectProposal() {
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   const btn = document.getElementById("confirmRejectBtn");
-  if (btn) { btn.disabled = true; btn.textContent = "Deleting…"; }
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Deleting…";
+  }
 
   try {
-    const res = await fetch(`${API_BASE}/api/groups/${pendingRejectGroupId}/proposal-status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ status: "rejected", reason })
-    });
+    const res = await fetch(
+      `${API_BASE}/api/groups/${pendingRejectGroupId}/proposal-status`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+        body: JSON.stringify({ status: "rejected", reason }),
+      },
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
@@ -1541,18 +1736,27 @@ async function confirmRejectProposal() {
   } catch (err) {
     toast("Error", err.message, "error");
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = "Confirm Reject"; }
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Confirm Reject";
+    }
   }
 }
 
 async function approveProposal(groupId) {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch(`${API_BASE}/api/groups/${groupId}/proposal-status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ status: "approved" })
-    });
+    const res = await fetch(
+      `${API_BASE}/api/groups/${groupId}/proposal-status`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+        body: JSON.stringify({ status: "approved" }),
+      },
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
@@ -1575,13 +1779,21 @@ function updateProposalStatus(groupId, status) {
    DELETE STUDENT
 ══════════════════════════════════════ */
 async function deleteStudent(studentId, studentName) {
-  if (!confirm(`Delete ${studentName}?\n\nThis will also remove them from their team. If they're the team leader, the entire team will be deleted.`)) return;
+  if (
+    !confirm(
+      `Delete ${studentName}?\n\nThis will also remove them from their team. If they're the team leader, the entire team will be deleted.`,
+    )
+  )
+    return;
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/student/${studentId}`, {
+    const res = await fetch(`${API_BASE}/api/admin/student/${studentId}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -1603,24 +1815,29 @@ function filterSupervisors(query) {
   SUPERVISORS_PAGE.current = 1;
   if (!Array.isArray(SUPERVISORS_DATA)) return;
 
-  const q       = (query || "").trim().toLowerCase();
+  const q = (query || "").trim().toLowerCase();
   const matched = [];
-  const rest    = [];
+  const rest = [];
 
-  SUPERVISORS_DATA.forEach(sup => {
-    const hit = !q
-      || (sup.name     || "").toLowerCase().includes(q)
-      || (sup.sup_code || "").toLowerCase().includes(q)
-      || (sup.email    || "").toLowerCase().includes(q);
+  SUPERVISORS_DATA.forEach((sup) => {
+    const hit =
+      !q ||
+      (sup.name || "").toLowerCase().includes(q) ||
+      (sup.sup_code || "").toLowerCase().includes(q) ||
+      (sup.email || "").toLowerCase().includes(q);
     (hit ? matched : rest).push(sup);
   });
 
-  if (!q) { renderSupervisorPage(1); return; }
+  if (!q) {
+    renderSupervisorPage(1);
+    return;
+  }
 
   const grid = $("#supervisorCards");
-  grid.innerHTML = [...matched, ...rest].map(sup => {
-    const isMatch = matched.some(m => m._id === sup._id);
-    return `
+  grid.innerHTML = [...matched, ...rest]
+    .map((sup) => {
+      const isMatch = matched.some((m) => m._id === sup._id);
+      return `
       <div class="entity-card ${isMatch ? "search-match" : ""}">
         <div class="entity-card-head">
           <div class="entity-avatar"
@@ -1637,7 +1854,7 @@ function filterSupervisors(query) {
           <span class="id-pill" style="margin-left:6px;
             background:${sup.is_chairman ? "rgba(191,161,74,.15)" : "rgba(99,102,241,.1)"};
             color:${sup.is_chairman ? "#9a7e2a" : "#4f46e5"}">
-            ${sup.is_chairman ? "Chairman / HOD" : (sup.designation || "Supervisor")}
+            ${sup.is_chairman ? "Chairman / HOD" : sup.designation || "Supervisor"}
           </span>
         </div>
         <div class="entity-stats">
@@ -1649,22 +1866,24 @@ function filterSupervisors(query) {
             onclick="openSupDetail('${sup._id}')">View</button>
           <button class="btn btn-sm"
             style="flex:1;background:rgba(59,130,246,.08);color:#2563eb;border:1px solid rgba(59,130,246,.2)"
-            onclick="openEditSupModal('${sup._id}','${(sup.prefix||"Mr").replace(/'/g,"\\'")}','${(sup.name||"").replace(/'/g,"\\'")}','${(sup.email||"").replace(/'/g,"\\'")}','${(sup.whatsapp||"").replace(/'/g,"\\'")}','${sup.is_chairman?"chairman":"supervisor"}')">
+            onclick="openEditSupModal('${sup._id}','${(sup.prefix || "Mr").replace(/'/g, "\\'")}','${(sup.name || "").replace(/'/g, "\\'")}','${(sup.email || "").replace(/'/g, "\\'")}','${(sup.whatsapp || "").replace(/'/g, "\\'")}','${sup.is_chairman ? "chairman" : "supervisor"}')">
             Edit
           </button>
           <button class="btn btn-sm"
             style="flex:1;background:rgba(220,38,38,.08);color:#dc2626;border:1px solid rgba(220,38,38,.2)"
-            onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${formatName(sup.prefix,sup.name).replace(/'/g,"\\'")}')">
+            onclick="event.stopPropagation();openDeleteSupModal('${sup._id}','${formatName(sup.prefix, sup.name).replace(/'/g, "\\'")}')">
             Delete
           </button>
         </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
   const pag = document.getElementById("supervisorsPagination");
-  if (pag) pag.innerHTML = matched.length
-    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${matched.length} result${matched.length !== 1 ? "s" : ""} found</div>`
-    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results</div>`;
+  if (pag)
+    pag.innerHTML = matched.length
+      ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${matched.length} result${matched.length !== 1 ? "s" : ""} found</div>`
+      : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results</div>`;
 }
 
 function filterTeams(query) {
@@ -1682,23 +1901,24 @@ function filterStudents(query) {
     return;
   }
 
-  const q       = query.trim().toLowerCase();
-  const matched = [], rest = [];
+  const q = query.trim().toLowerCase();
+  const matched = [],
+    rest = [];
 
-  STUDENTS_DATA.forEach(s => {
-    const hit = matches(s.name, q)
-      || matches(s.email, q)
-      || matches(s.student_code, q);
+  STUDENTS_DATA.forEach((s) => {
+    const hit =
+      matches(s.name, q) || matches(s.email, q) || matches(s.student_code, q);
     (hit ? matched : rest).push(s);
   });
 
-  const matchSet = new Set(matched.map(s => s._id));
+  const matchSet = new Set(matched.map((s) => s._id));
   renderStudentsTable([...matched, ...rest], q, matchSet);
 
   const pag = document.getElementById("studentsPagination");
-  if (pag) pag.innerHTML = matched.length
-    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${matched.length} result${matched.length !== 1 ? "s" : ""} found</div>`
-    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results</div>`;
+  if (pag)
+    pag.innerHTML = matched.length
+      ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${matched.length} result${matched.length !== 1 ? "s" : ""} found</div>`
+      : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results</div>`;
 }
 
 /* ════════════════════════════════════
@@ -1710,11 +1930,11 @@ function generateSupId() {
   if (!list.length) return `SUP-${year}0001`;
 
   const numbers = list
-    .map(s => {
+    .map((s) => {
       const match = (s.sup_code || "").match(/SUP-\d{4}(\d+)/);
       return match ? parseInt(match[1]) : 0;
     })
-    .filter(n => !isNaN(n));
+    .filter((n) => !isNaN(n));
 
   const max = numbers.length ? Math.max(...numbers) : 0;
   return `SUP-${year}${String(max + 1).padStart(4, "0")}`;
@@ -1723,8 +1943,8 @@ function generateSupId() {
 function generatePassword() {
   const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
   const lower = "abcdefghjkmnpqrstuvwxyz";
-  const nums  = "23456789";
-  const syms  = "!@#$%&*";
+  const nums = "23456789";
+  const syms = "!@#$%&*";
 
   let pwd = "";
   pwd += upper[Math.floor(Math.random() * upper.length)];
@@ -1735,26 +1955,30 @@ function generatePassword() {
   pwd += nums[Math.floor(Math.random() * nums.length)];
   pwd += syms[Math.floor(Math.random() * syms.length)];
   pwd += lower[Math.floor(Math.random() * lower.length)];
-  pwd = pwd.split("").sort(() => Math.random() - 0.5).join("");
+  pwd = pwd
+    .split("")
+    .sort(() => Math.random() - 0.5)
+    .join("");
 
-  $("#supPassword").value   = pwd;
+  $("#supPassword").value = pwd;
   $("#pwdHelp").textContent = "✓ Password generated — copy it before saving";
-  $("#pwdHelp").className   = "form-help success";
+  $("#pwdHelp").className = "form-help success";
 }
 
 function openSupervisorModal() {
   $("#generatedSupId").textContent = generateSupId();
-  $("#supPrefix").value  = "";           
-  $("#supName").value    = "";
-  $("#supEmail").value   = "";
+  $("#supPrefix").value = "";
+  $("#supName").value = "";
+  $("#supEmail").value = "";
   const preview = $("#supNamePreview");
-  if (preview) preview.textContent = ""; 
-  if ($("#supPassword"))  $("#supPassword").value   = "";
-  if ($("#forceChange"))  $("#forceChange").checked = true;
+  if (preview) preview.textContent = "";
+  if ($("#supPassword")) $("#supPassword").value = "";
+  if ($("#forceChange")) $("#forceChange").checked = true;
   const pwdHelp = $("#pwdHelp");
   if (pwdHelp) {
-    pwdHelp.textContent = "Minimum 8 characters · Will be sent to supervisor via email";
-    pwdHelp.className   = "form-help";
+    pwdHelp.textContent =
+      "Minimum 8 characters · Will be sent to supervisor via email";
+    pwdHelp.className = "form-help";
   }
   $("#supervisorModal").classList.add("open");
 }
@@ -1766,14 +1990,17 @@ function closeSupervisorModal() {
 async function submitSupervisor() {
   const admin = JSON.parse(localStorage.getItem("admin"));
 
-  const prefix     = $("#supPrefix").value.trim();       
-  const name       = $("#supName").value.trim();
-  const email      = $("#supEmail").value.trim();
-  const pwd        = $("#supPassword").value.trim();
-  const whatsapp   = $("#supWhatsapp")?.value.trim() || "";
+  const prefix = $("#supPrefix").value.trim();
+  const name = $("#supName").value.trim();
+  const email = $("#supEmail").value.trim();
+  const pwd = $("#supPassword").value.trim();
+  const whatsapp = $("#supWhatsapp")?.value.trim() || "";
   const isChairman = $("#supRole")?.value === "chairman";
 
-  if (!prefix) { toast("Missing field", "Please select a title/prefix", "error"); return; } // ← ADD
+  if (!prefix) {
+    toast("Missing field", "Please select a title/prefix", "error");
+    return;
+  } // ← ADD
   if (!name || !email || !pwd) {
     toast("Missing fields", "Name, email and password are required", "error");
     return;
@@ -1782,13 +2009,27 @@ async function submitSupervisor() {
   try {
     const res = await fetch(`${API_BASE}/api/admin/supervisors`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ prefix, name, email, password: pwd, whatsapp, is_chairman: isChairman }) // ← prefix added
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
+      body: JSON.stringify({
+        prefix,
+        name,
+        email,
+        password: pwd,
+        whatsapp,
+        is_chairman: isChairman,
+      }), // ← prefix added
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    toast("Success", `${formatName(prefix, name)} added successfully`, "success"); // ← formatted
+    toast(
+      "Success",
+      `${formatName(prefix, name)} added successfully`,
+      "success",
+    ); // ← formatted
     closeSupervisorModal();
     await renderSupervisors();
     await fetchDashboardStats();
@@ -1802,14 +2043,17 @@ async function submitSupervisor() {
 ══════════════════════════════════════ */
 function openEditSupModal(id, prefix, name, email, whatsapp, role) {
   const get = (elId) => document.getElementById(elId);
-  if (!get("editSupModal")) { console.error("editSupModal not found in DOM"); return; }
+  if (!get("editSupModal")) {
+    console.error("editSupModal not found in DOM");
+    return;
+  }
 
-  if (get("editSupId"))       get("editSupId").value       = id;
-  if (get("editSupPrefix"))   get("editSupPrefix").value   = prefix || "";
-  if (get("editSupName"))     get("editSupName").value     = name;
-  if (get("editSupEmail"))    get("editSupEmail").value    = email;
+  if (get("editSupId")) get("editSupId").value = id;
+  if (get("editSupPrefix")) get("editSupPrefix").value = prefix || "";
+  if (get("editSupName")) get("editSupName").value = name;
+  if (get("editSupEmail")) get("editSupEmail").value = email;
   if (get("editSupWhatsapp")) get("editSupWhatsapp").value = whatsapp;
-  if (get("editSupRole"))     get("editSupRole").value     = role;
+  if (get("editSupRole")) get("editSupRole").value = role;
 
   get("editSupModal").classList.add("open");
 }
@@ -1818,29 +2062,48 @@ function closeEditSupModal() {
 }
 
 async function submitEditSupervisor() {
-  const id       = document.getElementById("editSupId").value;
-  const prefix   = document.getElementById("editSupPrefix").value.trim(); // ← ADD
-  const name     = document.getElementById("editSupName").value.trim();
-  const email    = document.getElementById("editSupEmail").value.trim();
+  const id = document.getElementById("editSupId").value;
+  const prefix = document.getElementById("editSupPrefix").value.trim(); // ← ADD
+  const name = document.getElementById("editSupName").value.trim();
+  const email = document.getElementById("editSupEmail").value.trim();
   const whatsapp = document.getElementById("editSupWhatsapp").value.trim();
-  const role     = document.getElementById("editSupRole").value;
+  const role = document.getElementById("editSupRole").value;
 
-  if (!prefix) { toast("Missing field", "Please select a prefix", "error"); return; } // ← ADD
-  if (!name || !email) { toast("Missing fields", "Name and email are required", "error"); return; }
+  if (!prefix) {
+    toast("Missing field", "Please select a prefix", "error");
+    return;
+  } // ← ADD
+  if (!name || !email) {
+    toast("Missing fields", "Name and email are required", "error");
+    return;
+  }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
     const res = await fetch(`${API_BASE}/api/admin/supervisors/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ prefix, name, email, whatsapp, is_chairman: role === "chairman" }) // ← prefix added
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
+      body: JSON.stringify({
+        prefix,
+        name,
+        email,
+        whatsapp,
+        is_chairman: role === "chairman",
+      }), // ← prefix added
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to update");
 
     closeEditSupModal();
     await renderSupervisors();
-    toast("Supervisor updated", `${formatName(prefix, name)} has been updated`, "success"); // ← formatted
+    toast(
+      "Supervisor updated",
+      `${formatName(prefix, name)} has been updated`,
+      "success",
+    ); // ← formatted
   } catch (err) {
     toast("Error", err.message, "error");
   }
@@ -1854,7 +2117,10 @@ let deleteSupId = null;
 function openDeleteSupModal(supId, supName) {
   deleteSupId = supId;
   document.getElementById("deleteSupName").textContent = supName;
-  setTimeout(() => document.getElementById("deleteSupModal").classList.add("open"), 10);
+  setTimeout(
+    () => document.getElementById("deleteSupModal").classList.add("open"),
+    10,
+  );
 }
 
 function closeDeleteSupModal() {
@@ -1864,14 +2130,20 @@ function closeDeleteSupModal() {
 
 async function confirmDeleteSupervisor() {
   if (!deleteSupId) return;
-  const admin   = JSON.parse(localStorage.getItem("admin"));
+  const admin = JSON.parse(localStorage.getItem("admin"));
   const supName = document.getElementById("deleteSupName").textContent;
 
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/supervisors/${deleteSupId}`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
-    });
+    const res = await fetch(
+      `${API_BASE}/api/admin/supervisors/${deleteSupId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+      },
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to delete");
 
@@ -1892,11 +2164,14 @@ let GLOBAL_TOGGLES = {};
 async function loadGlobalToggles() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/mark-toggles`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/admin/mark-toggles`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     if (!res.ok) return;
-    const data     = await res.json();
+    const data = await res.json();
     GLOBAL_TOGGLES = data.toggles || {};
   } catch (err) {
     console.error("Failed to load toggles:", err);
@@ -1909,15 +2184,17 @@ function renderGlobalToggles() {
   const body = $("#global-toggles-body");
   if (!body) return;
 
-  body.innerHTML = MARKS_SCHEMA.map(sec => `
+  body.innerHTML = MARKS_SCHEMA.map(
+    (sec) => `
     <div style="margin-bottom:28px">
       <div style="font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-mute);margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border-soft)">
         ${sec.section}
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px">
-        ${sec.items.map(it => {
-          const enabled = GLOBAL_TOGGLES[it.key] === true;
-          return `
+        ${sec.items
+          .map((it) => {
+            const enabled = GLOBAL_TOGGLES[it.key] === true;
+            return `
             <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border:1.5px solid var(--border-soft);border-radius:12px;background:var(--surface)">
               <div>
                 <div style="font-size:.85rem;font-weight:600;color:var(--text)">${it.label}</div>
@@ -1934,10 +2211,12 @@ function renderGlobalToggles() {
                 <span class="toggle-slider"></span>
               </label>
             </div>`;
-        }).join("")}
+          })
+          .join("")}
       </div>
     </div>
-  `).join("");
+  `,
+  ).join("");
 }
 
 function onGlobalToggleChange(key, enabled) {
@@ -1952,14 +2231,21 @@ function onGlobalToggleChange(key, enabled) {
 async function saveGlobalToggles() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/mark-toggles`, {
+    const res = await fetch(`${API_BASE}/api/admin/mark-toggles`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ toggles: GLOBAL_TOGGLES })
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
+      body: JSON.stringify({ toggles: GLOBAL_TOGGLES }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
-    toast("Settings saved", "Supervisor mark access updated for all teams", "success");
+    toast(
+      "Settings saved",
+      "Supervisor mark access updated for all teams",
+      "success",
+    );
   } catch (err) {
     toast("Error", err.message, "error");
   }
@@ -1968,8 +2254,8 @@ async function saveGlobalToggles() {
 /* ════════════════════════════════════
    DEADLINES
 ══════════════════════════════════════ */
-let DEADLINES_DATA    = [];
-let deleteDeadlineId  = null;
+let DEADLINES_DATA = [];
+let deleteDeadlineId = null;
 let editingDeadlineId = null;
 
 function getDeadlineLabel(d) {
@@ -1977,13 +2263,23 @@ function getDeadlineLabel(d) {
 }
 
 function getDeadlineStatus(dueDate) {
-  const now      = new Date();
-  const due      = new Date(dueDate);
-  const diffMs   = due - now;
+  const now = new Date();
+  const due = new Date(dueDate);
+  const diffMs = due - now;
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  if (diffMs < 0)       return { label: "Expired",        color: "#dc2626", bg: "rgba(220,38,38,.1)"   };
-  if (diffDays <= 2)    return { label: `${diffDays}d left`, color: "#a16207", bg: "rgba(234,179,8,.12)" };
-  return                       { label: `${diffDays}d left`, color: "#15803d", bg: "rgba(34,197,94,.1)"  };
+  if (diffMs < 0)
+    return { label: "Expired", color: "#dc2626", bg: "rgba(220,38,38,.1)" };
+  if (diffDays <= 2)
+    return {
+      label: `${diffDays}d left`,
+      color: "#a16207",
+      bg: "rgba(234,179,8,.12)",
+    };
+  return {
+    label: `${diffDays}d left`,
+    color: "#15803d",
+    bg: "rgba(34,197,94,.1)",
+  };
 }
 
 async function renderDeadlines() {
@@ -1992,8 +2288,11 @@ async function renderDeadlines() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/api/deadlines`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/deadlines`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -2005,15 +2304,22 @@ async function renderDeadlines() {
       return;
     }
 
-    tbody.innerHTML = DEADLINES_DATA.map(d => {
-      const status  = getDeadlineStatus(d.dueDate);
-      const label   = getDeadlineLabel(d);
-      const dateStr = new Date(d.dueDate).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" });
+    tbody.innerHTML = DEADLINES_DATA.map((d) => {
+      const status = getDeadlineStatus(d.dueDate);
+      const label = getDeadlineLabel(d);
+      const dateStr = new Date(d.dueDate).toLocaleDateString("en-PK", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
       return `
         <tr>
           <td><strong>${label}</strong></td>
           <td>${dateStr} · 11:59 PM</td>
-          <td style="max-width:200px;color:var(--text-mute);font-size:.78rem">${d.description || "—"}</td>
+<td style="max-width:180px;color:var(--text-mute);font-size:.78rem;
+           word-break:break-word;white-space:normal;line-height:1.4">
+  ${d.description || "—"}
+</td>
           <td>
             <span style="padding:3px 10px;border-radius:6px;font-size:.72rem;font-weight:700;background:${status.bg};color:${status.color}">
               ${status.label}
@@ -2028,7 +2334,7 @@ async function renderDeadlines() {
                 </svg>
               </button>
               <button class="icon-action danger" title="Delete" style="color:#dc2626"
-                      onclick="openDeleteDeadlineModal('${d._id}','${label.replace(/'/g,"\\'")}')">
+                      onclick="openDeleteDeadlineModal('${d._id}','${label.replace(/'/g, "\\'")}')">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -2038,7 +2344,6 @@ async function renderDeadlines() {
           </td>
         </tr>`;
     }).join("");
-
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
   }
@@ -2046,35 +2351,46 @@ async function renderDeadlines() {
 
 function onDeadlineTypeChange() {
   const val = document.getElementById("deadlineType").value;
-  document.getElementById("customNameGroup").style.display = val === "Other" ? "block" : "none";
+  document.getElementById("customNameGroup").style.display =
+    val === "Other" ? "block" : "none";
 }
 
 function openDeadlineModal() {
   editingDeadlineId = null;
-  document.getElementById("deadlineModalTitle").textContent  = "Create Deadline";
-  document.getElementById("deadlineSubmitLabel").textContent = "Create Deadline";
-  document.getElementById("editDeadlineId").value    = "";
-  document.getElementById("deadlineType").value      = "";
+  document.getElementById("deadlineModalTitle").textContent = "Create Deadline";
+  document.getElementById("deadlineSubmitLabel").textContent =
+    "Create Deadline";
+  document.getElementById("editDeadlineId").value = "";
+  document.getElementById("deadlineType").value = "";
   document.getElementById("deadlineCustomName").value = "";
-  document.getElementById("deadlineDesc").value      = "";
-  document.getElementById("deadlineDate").value      = "";
+  document.getElementById("deadlineDesc").value = "";
+  document.getElementById("deadlineDate").value = "";
   document.getElementById("customNameGroup").style.display = "none";
-  setTimeout(() => document.getElementById("deadlineModal").classList.add("open"), 50);
+  setTimeout(
+    () => document.getElementById("deadlineModal").classList.add("open"),
+    50,
+  );
 }
 
 function openEditDeadlineModal(id) {
-  const d = DEADLINES_DATA.find(x => x._id === id);
+  const d = DEADLINES_DATA.find((x) => x._id === id);
   if (!d) return;
   editingDeadlineId = id;
-  document.getElementById("deadlineModalTitle").textContent  = "Edit Deadline";
+  document.getElementById("deadlineModalTitle").textContent = "Edit Deadline";
   document.getElementById("deadlineSubmitLabel").textContent = "Save Changes";
-  document.getElementById("editDeadlineId").value    = id;
-  document.getElementById("deadlineType").value      = d.type;
+  document.getElementById("editDeadlineId").value = id;
+  document.getElementById("deadlineType").value = d.type;
   document.getElementById("deadlineCustomName").value = d.customName || "";
-  document.getElementById("deadlineDesc").value      = d.description || "";
-  document.getElementById("deadlineDate").value      = new Date(d.dueDate).toISOString().split("T")[0];
-  document.getElementById("customNameGroup").style.display = d.type === "Other" ? "block" : "none";
-  setTimeout(() => document.getElementById("deadlineModal").classList.add("open"), 50);
+  document.getElementById("deadlineDesc").value = d.description || "";
+  document.getElementById("deadlineDate").value = new Date(d.dueDate)
+    .toISOString()
+    .split("T")[0];
+  document.getElementById("customNameGroup").style.display =
+    d.type === "Other" ? "block" : "none";
+  setTimeout(
+    () => document.getElementById("deadlineModal").classList.add("open"),
+    50,
+  );
 }
 
 function closeDeadlineModal() {
@@ -2082,32 +2398,50 @@ function closeDeadlineModal() {
 }
 
 async function submitDeadline() {
-  const type        = document.getElementById("deadlineType").value;
-  const customName  = document.getElementById("deadlineCustomName").value.trim();
+  const type = document.getElementById("deadlineType").value;
+  const customName = document.getElementById("deadlineCustomName").value.trim();
   const description = document.getElementById("deadlineDesc").value.trim();
-  const dueDate     = document.getElementById("deadlineDate").value;
+  const dueDate = document.getElementById("deadlineDate").value;
 
-  if (!type)                          { toast("Missing field", "Please select a deadline type", "error"); return; }
-  if (type === "Other" && !customName){ toast("Missing field", "Please enter a custom name",    "error"); return; }
-  if (!dueDate)                       { toast("Missing field", "Please select a due date",       "error"); return; }
+  if (!type) {
+    toast("Missing field", "Please select a deadline type", "error");
+    return;
+  }
+  if (type === "Other" && !customName) {
+    toast("Missing field", "Please enter a custom name", "error");
+    return;
+  }
+  if (!dueDate) {
+    toast("Missing field", "Please select a due date", "error");
+    return;
+  }
 
-  const admin  = JSON.parse(localStorage.getItem("admin"));
-  const id     = document.getElementById("editDeadlineId").value;
-  const url    = id ? `${API_BASE}/api/deadlines/${id}` : `${API_BASE}/api/deadlines`;
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const id = document.getElementById("editDeadlineId").value;
+  const url = id
+    ? `${API_BASE}/api/deadlines/${id}`
+    : `${API_BASE}/api/deadlines`;
   const method = id ? "PUT" : "POST";
 
   try {
-    const res  = await fetch(url, {
+    const res = await fetch(url, {
       method,
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` },
-      body: JSON.stringify({ type, customName, description, dueDate })
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
+      body: JSON.stringify({ type, customName, description, dueDate }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
     closeDeadlineModal();
     await renderDeadlines();
-    toast(id ? "Deadline updated" : "Deadline created", data.deadline ? getDeadlineLabel(data.deadline) : "", "success");
+    toast(
+      id ? "Deadline updated" : "Deadline created",
+      data.deadline ? getDeadlineLabel(data.deadline) : "",
+      "success",
+    );
   } catch (err) {
     toast("Error", err.message, "error");
   }
@@ -2116,7 +2450,10 @@ async function submitDeadline() {
 function openDeleteDeadlineModal(id, name) {
   deleteDeadlineId = id;
   document.getElementById("deleteDeadlineName").textContent = name;
-  setTimeout(() => document.getElementById("deleteDeadlineModal").classList.add("open"), 50);
+  setTimeout(
+    () => document.getElementById("deleteDeadlineModal").classList.add("open"),
+    50,
+  );
 }
 
 function closeDeleteDeadlineModal() {
@@ -2126,13 +2463,16 @@ function closeDeleteDeadlineModal() {
 
 async function confirmDeleteDeadline() {
   if (!deleteDeadlineId) return;
-  const name  = document.getElementById("deleteDeadlineName").textContent;
+  const name = document.getElementById("deleteDeadlineName").textContent;
   const admin = JSON.parse(localStorage.getItem("admin"));
 
   try {
-    const res  = await fetch(`${API_BASE}/api/deadlines/${deleteDeadlineId}`, {
+    const res = await fetch(`${API_BASE}/api/deadlines/${deleteDeadlineId}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -2148,54 +2488,72 @@ async function confirmDeleteDeadline() {
 /* ════════════════════════════════════
    MODAL — CLICK OUTSIDE + ESC
 ══════════════════════════════════════ */
-$$(".modal-overlay").forEach(overlay => {
-  overlay.addEventListener("click", e => {
+$$(".modal-overlay").forEach((overlay) => {
+  overlay.addEventListener("click", (e) => {
     if (e.target === overlay) overlay.classList.remove("open");
   });
 });
 
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") $$(".modal-overlay.open").forEach(m => m.classList.remove("open"));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape")
+    $$(".modal-overlay.open").forEach((m) => m.classList.remove("open"));
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("searchSupervisors")?.addEventListener("input", e => filterSupervisors(e.target.value));
-  document.getElementById("searchTeams")?.addEventListener("input",       e => filterTeams(e.target.value));
-  document.getElementById("searchStudents")?.addEventListener("input",    e => filterStudents(e.target.value));
+  document
+    .getElementById("searchSupervisors")
+    ?.addEventListener("input", (e) => filterSupervisors(e.target.value));
+  document
+    .getElementById("searchTeams")
+    ?.addEventListener("input", (e) => filterTeams(e.target.value));
+  document
+    .getElementById("searchStudents")
+    ?.addEventListener("input", (e) => filterStudents(e.target.value));
 
-  document.getElementById("supPrefix")?.addEventListener("change", updateSupNamePreview);
-  document.getElementById("supName")?.addEventListener("input", updateSupNamePreview);
+  document
+    .getElementById("supPrefix")
+    ?.addEventListener("change", updateSupNamePreview);
+  document
+    .getElementById("supName")
+    ?.addEventListener("input", updateSupNamePreview);
 
   function updateSupNamePreview() {
-  const prefix  = document.getElementById("supPrefix")?.value;
-  const name    = document.getElementById("supName")?.value.trim();
-  const preview = document.getElementById("supNamePreview");
-  if (!preview) return;
-  if (prefix && name) {
-    preview.textContent    = `Will appear as: ${formatName(prefix, name)}`;
-    preview.style.display  = "block";
-  } else {
-    preview.textContent    = "";
-    preview.style.display  = "none";
+    const prefix = document.getElementById("supPrefix")?.value;
+    const name = document.getElementById("supName")?.value.trim();
+    const preview = document.getElementById("supNamePreview");
+    if (!preview) return;
+    if (prefix && name) {
+      preview.textContent = `Will appear as: ${formatName(prefix, name)}`;
+      preview.style.display = "block";
+    } else {
+      preview.textContent = "";
+      preview.style.display = "none";
+    }
   }
-}
 });
 
 /* ════════════════════════════════════
    PAGINATION HELPER
 ══════════════════════════════════════ */
-function renderPagination(containerId, totalItems, currentPage, perPage, onPageChange) {
+function renderPagination(
+  containerId,
+  totalItems,
+  currentPage,
+  perPage,
+  onPageChange,
+) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   const totalPages = Math.ceil(totalItems / perPage);
-  const start      = Math.min((currentPage - 1) * perPage + 1, totalItems);
-  const end        = Math.min(currentPage * perPage, totalItems);
+  const start = Math.min((currentPage - 1) * perPage + 1, totalItems);
+  const end = Math.min(currentPage * perPage, totalItems);
 
   if (totalPages <= 1) {
-    container.innerHTML = totalItems > 0
-      ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">Showing all ${totalItems}</div>`
-      : "";
+    container.innerHTML =
+      totalItems > 0
+        ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">Showing all ${totalItems}</div>`
+        : "";
     return;
   }
 
@@ -2206,7 +2564,11 @@ function renderPagination(containerId, totalItems, currentPage, perPage, onPageC
   } else {
     visiblePages.push(1);
     if (currentPage > 3) visiblePages.push("...");
-    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+    for (
+      let i = Math.max(2, currentPage - 1);
+      i <= Math.min(totalPages - 1, currentPage + 1);
+      i++
+    ) {
       visiblePages.push(i);
     }
     if (currentPage < totalPages - 2) visiblePages.push("...");
@@ -2222,10 +2584,13 @@ function renderPagination(containerId, totalItems, currentPage, perPage, onPageC
     cursor:pointer;transition:background .15s
   `;
 
-  const numbersHtml = visiblePages.map(p => {
-    if (p === "...") return `<span style="width:32px;height:32px;display:grid;place-items:center;color:var(--text-mute);font-size:.82rem">…</span>`;
-    return `<button onclick="${onPageChange}(${p})" style="${btnStyle(p === currentPage)}">${p}</button>`;
-  }).join("");
+  const numbersHtml = visiblePages
+    .map((p) => {
+      if (p === "...")
+        return `<span style="width:32px;height:32px;display:grid;place-items:center;color:var(--text-mute);font-size:.82rem">…</span>`;
+      return `<button onclick="${onPageChange}(${p})" style="${btnStyle(p === currentPage)}">${p}</button>`;
+    })
+    .join("");
 
   container.innerHTML = `
     <div style="
@@ -2257,32 +2622,42 @@ function renderPagination(containerId, totalItems, currentPage, perPage, onPageC
 let adminAvatarFileToUpload = null;
 
 function openAdminAvatarModal() {
-  const modal   = document.getElementById("adminAvatarModal");
-  const modalImg  = document.getElementById("admin-modal-avatar-img");
+  const modal = document.getElementById("adminAvatarModal");
+  const modalImg = document.getElementById("admin-modal-avatar-img");
   const modalInit = document.getElementById("admin-modal-avatar-initials");
-  const navImg    = document.getElementById("nav-admin-avatar-img");
-  const navInit   = document.getElementById("nav-admin-avatar-initials");
+  const navImg = document.getElementById("nav-admin-avatar-img");
+  const navInit = document.getElementById("nav-admin-avatar-initials");
 
   if (!modal) return;
 
   // Reset state
   adminAvatarFileToUpload = null;
-  const btn   = document.getElementById("admin-avatar-save-btn");
+  const btn = document.getElementById("admin-avatar-save-btn");
   const errEl = document.getElementById("admin-avatar-error");
-  if (btn)   { btn.disabled = true; btn.style.opacity = ".5"; btn.textContent = ""; btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Save Photo'; }
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = ".5";
+    btn.textContent = "";
+    btn.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Save Photo';
+  }
   if (errEl) errEl.style.display = "none";
 
   // Sync preview with current nav avatar
-  const hasRealImage = navImg && navImg.style.display === "block" && navImg.src && !navImg.src.endsWith(window.location.href);
+  const hasRealImage =
+    navImg &&
+    navImg.style.display === "block" &&
+    navImg.src &&
+    !navImg.src.endsWith(window.location.href);
   if (hasRealImage) {
-    modalImg.src            = navImg.src;
-    modalImg.style.display  = "block";
+    modalImg.src = navImg.src;
+    modalImg.style.display = "block";
     modalInit.style.display = "none";
   } else {
-    modalImg.src            = "";
-    modalImg.style.display  = "none";
+    modalImg.src = "";
+    modalImg.style.display = "none";
     modalInit.style.display = "";
-    modalInit.textContent   = navInit ? navInit.textContent : "";
+    modalInit.textContent = navInit ? navInit.textContent : "";
   }
 
   // Reset file input
@@ -2301,7 +2676,10 @@ function closeAdminAvatarModal() {
 function handleAdminAvatarDrop(e) {
   e.preventDefault();
   const dz = document.getElementById("admin-avatar-dropzone");
-  if (dz) { dz.style.borderColor = "var(--border)"; dz.style.background = ""; }
+  if (dz) {
+    dz.style.borderColor = "var(--border)";
+    dz.style.background = "";
+  }
   const file = e.dataTransfer?.files?.[0];
   if (file) previewAdminAvatar(file);
 }
@@ -2313,11 +2691,17 @@ function previewAdminAvatar(file) {
 
   const allowed = ["image/jpeg", "image/png", "image/webp"];
   if (!allowed.includes(file.type)) {
-    if (errEl) { errEl.textContent = "Only JPG, PNG or WEBP files are allowed."; errEl.style.display = "block"; }
+    if (errEl) {
+      errEl.textContent = "Only JPG, PNG or WEBP files are allowed.";
+      errEl.style.display = "block";
+    }
     return;
   }
   if (file.size > 3 * 1024 * 1024) {
-    if (errEl) { errEl.textContent = "File must be under 3 MB."; errEl.style.display = "block"; }
+    if (errEl) {
+      errEl.textContent = "File must be under 3 MB.";
+      errEl.style.display = "block";
+    }
     return;
   }
 
@@ -2325,34 +2709,44 @@ function previewAdminAvatar(file) {
 
   const reader = new FileReader();
   reader.onload = (ev) => {
-    const modalImg  = document.getElementById("admin-modal-avatar-img");
+    const modalImg = document.getElementById("admin-modal-avatar-img");
     const modalInit = document.getElementById("admin-modal-avatar-initials");
-    if (modalImg)  { modalImg.src = ev.target.result; modalImg.style.display = "block"; }
+    if (modalImg) {
+      modalImg.src = ev.target.result;
+      modalImg.style.display = "block";
+    }
     if (modalInit) modalInit.style.display = "none";
   };
   reader.readAsDataURL(file);
 
   const btn = document.getElementById("admin-avatar-save-btn");
-  if (btn) { btn.disabled = false; btn.style.opacity = "1"; }
+  if (btn) {
+    btn.disabled = false;
+    btn.style.opacity = "1";
+  }
 }
 
 async function uploadAdminAvatar() {
   if (!adminAvatarFileToUpload) return;
 
   const admin = JSON.parse(localStorage.getItem("admin"));
-  const btn   = document.getElementById("admin-avatar-save-btn");
+  const btn = document.getElementById("admin-avatar-save-btn");
   const errEl = document.getElementById("admin-avatar-error");
 
-  if (btn)   { btn.innerHTML = "Uploading…"; btn.disabled = true; btn.style.opacity = ".6"; }
+  if (btn) {
+    btn.innerHTML = "Uploading…";
+    btn.disabled = true;
+    btn.style.opacity = ".6";
+  }
   if (errEl) errEl.style.display = "none";
 
   const formData = new FormData();
   formData.append("avatar", adminAvatarFileToUpload);
 
   try {
-    const res  = await fetch(`${API_BASE}/api/uploads/admin/avatar`, {
+    const res = await fetch(`${API_BASE}/api/uploads/admin/avatar`, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${admin.token}` },
+      headers: { Authorization: `Bearer ${admin.token}` },
       body: formData,
     });
     const data = await res.json();
@@ -2371,13 +2765,21 @@ async function uploadAdminAvatar() {
     closeAdminAvatarModal();
     toast("Profile picture updated ✓", "", "success");
   } catch (err) {
-    if (errEl) { errEl.textContent = err.message; errEl.style.display = "block"; }
-    if (btn)   { btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Save Photo'; btn.disabled = false; btn.style.opacity = "1"; }
+    if (errEl) {
+      errEl.textContent = err.message;
+      errEl.style.display = "block";
+    }
+    if (btn) {
+      btn.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg> Save Photo';
+      btn.disabled = false;
+      btn.style.opacity = "1";
+    }
   }
 }
 
 function setAdminNavAvatar(url) {
-  const img  = document.getElementById("nav-admin-avatar-img");
+  const img = document.getElementById("nav-admin-avatar-img");
   const init = document.getElementById("nav-admin-avatar-initials");
   if (!img) return;
 
@@ -2390,10 +2792,10 @@ function setAdminNavAvatar(url) {
   // Resolve relative URLs from the API
   const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`;
 
-  const testImg   = new Image();
-  testImg.onload  = () => {
-    img.src            = fullUrl;
-    img.style.display  = "block";
+  const testImg = new Image();
+  testImg.onload = () => {
+    img.src = fullUrl;
+    img.style.display = "block";
     if (init) init.style.display = "none";
   };
   testImg.onerror = () => {
@@ -2429,10 +2831,12 @@ function supAvatar(sup, size = 48, radius = 12) {
 ══════════════════════════════════════ */
 
 function runStudentLookup() {
-  const field   = document.getElementById("lookupField")?.value   || "name";
-  const query   = (document.getElementById("lookupQuery")?.value  || "").trim().toLowerCase();
+  const field = document.getElementById("lookupField")?.value || "name";
+  const query = (document.getElementById("lookupQuery")?.value || "")
+    .trim()
+    .toLowerCase();
   const results = document.getElementById("lookupResults");
-  const count   = document.getElementById("lookupResultCount");
+  const count = document.getElementById("lookupResultCount");
 
   if (!results) return;
 
@@ -2465,24 +2869,33 @@ function runStudentLookup() {
   }
 
   // Filter based on selected field
-  const matched = STUDENTS_DATA.filter(s => {
+  const matched = STUDENTS_DATA.filter((s) => {
     switch (field) {
-      case "name":          return matches(s.name, query);
-      case "email":         return matches(s.email, query);
-      case "student_code":  return matches(s.student_code, query);
-      case "team_id":       return matches(s.group?.team_code || s.group?.group_code, query);
-      case "project_title": return matches(s.group?.project_title, query);
-      case "supervisor":    return matches(s.group?.supervisor?.name, query)
-                                || matches(s.group?.supervisor?.sup_code, query);
-      default:              return matches(s.name, query);
+      case "name":
+        return matches(s.name, query);
+      case "email":
+        return matches(s.email, query);
+      case "student_code":
+        return matches(s.student_code, query);
+      case "team_id":
+        return matches(s.group?.team_code || s.group?.group_code, query);
+      case "project_title":
+        return matches(s.group?.project_title, query);
+      case "supervisor":
+        return (
+          matches(s.group?.supervisor?.name, query) ||
+          matches(s.group?.supervisor?.sup_code, query)
+        );
+      default:
+        return matches(s.name, query);
     }
   });
 
   // Show count
   if (count) {
-    count.textContent  = `${matched.length} student${matched.length !== 1 ? "s" : ""} found`;
+    count.textContent = `${matched.length} student${matched.length !== 1 ? "s" : ""} found`;
     count.style.display = "block";
-    count.style.color   = matched.length ? "var(--primary)" : "#dc2626";
+    count.style.color = matched.length ? "var(--primary)" : "#dc2626";
   }
 
   if (!matched.length) {
@@ -2495,7 +2908,9 @@ function runStudentLookup() {
     return;
   }
 
-  results.innerHTML = matched.map(s => renderStudentLookupCard(s, query)).join("");
+  results.innerHTML = matched
+    .map((s) => renderStudentLookupCard(s, query))
+    .join("");
 }
 
 function clearStudentLookup() {
@@ -2509,19 +2924,19 @@ function clearStudentLookup() {
 }
 
 function renderStudentLookupCard(s, query = "") {
-  const sup          = s.group?.supervisor;
-  const supName      = sup ? formatName(sup.prefix, sup.name) : "Not assigned";
-  const supCode      = sup?.sup_code  || "—";
-  const supEmail     = sup?.email     || "—";
-  const supWhatsapp  = sup?.whatsapp  || "—";
-  const teamCode     = s.group?.team_code || s.group?.group_code || "—";
-  const projTitle    = s.group?.project_title || "—";
-  const category     = s.group?.category || "—";
-  const totalMarks   = s.total_marks || 0;
-  const cvUrl        = s.cv_url || "";
-  const proposalUrl  = s.group?.proposal_url || "";
-  const propStatus   = s.group?.proposal_status || "";
-  const memberCount  = (s.group?.members?.length || 0) + 1;
+  const sup = s.group?.supervisor;
+  const supName = sup ? formatName(sup.prefix, sup.name) : "Not assigned";
+  const supCode = sup?.sup_code || "—";
+  const supEmail = sup?.email || "—";
+  const supWhatsapp = sup?.whatsapp || "—";
+  const teamCode = s.group?.team_code || s.group?.group_code || "—";
+  const projTitle = s.group?.project_title || "—";
+  const category = s.group?.category || "—";
+  const totalMarks = s.total_marks || 0;
+  const cvUrl = s.cv_url || "";
+  const proposalUrl = s.group?.proposal_url || "";
+  const propStatus = s.group?.proposal_status || "";
+  const memberCount = (s.group?.members?.length || 0) + 1;
 
   // Proposal status badge
   const propBadge = !proposalUrl
@@ -2533,8 +2948,9 @@ function renderStudentLookupCard(s, query = "") {
         : `<span style="padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(234,179,8,.1);color:#a16207">⏳ Pending</span>`;
 
   // Mark color
-  const markPct   = Math.round((totalMarks / MAX_TOTAL) * 100);
-  const markColor = markPct >= 75 ? "#15803d" : markPct >= 50 ? "#a16207" : "#dc2626";
+  const markPct = Math.round((totalMarks / MAX_TOTAL) * 100);
+  const markColor =
+    markPct >= 75 ? "#15803d" : markPct >= 50 ? "#a16207" : "#dc2626";
 
   return `
     <div class="dash-panel" style="margin-bottom:16px;overflow:hidden">
@@ -2575,7 +2991,7 @@ function renderStudentLookupCard(s, query = "") {
             ${s.team_role || "Member"}
           </span>
           <span style="padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:700;
-                       background:rgba(${markColor === '#15803d' ? '21,128,61' : markColor === '#a16207' ? '161,98,7' : '220,38,38'},.1);
+                       background:rgba(${markColor === "#15803d" ? "21,128,61" : markColor === "#a16207" ? "161,98,7" : "220,38,38"},.1);
                        color:${markColor}">
             ${totalMarks}/${MAX_TOTAL} marks
           </span>
@@ -2583,14 +2999,18 @@ function renderStudentLookupCard(s, query = "") {
 
         <!-- Action buttons -->
         <div style="display:flex;gap:8px;margin-left:auto">
-          ${sup?._id ? `
+          ${
+            sup?._id
+              ? `
             <button onclick="openSupDetail('${sup._id}')"
               style="padding:8px 14px;border-radius:9px;font-size:.76rem;font-weight:700;
                      cursor:pointer;border:1px solid rgba(0,75,45,.2);
                      background:rgba(0,75,45,.06);color:var(--primary)">
               View Marks
-            </button>` : ""}
-          <button onclick="deleteStudent('${s._id}','${(s.name||"").replace(/'/g,"\\'")}')"
+            </button>`
+              : ""
+          }
+          <button onclick="deleteStudent('${s._id}','${(s.name || "").replace(/'/g, "\\'")}')"
             style="padding:8px 14px;border-radius:9px;font-size:.76rem;font-weight:700;
                    cursor:pointer;border:1px solid rgba(220,38,38,.2);
                    background:rgba(220,38,38,.06);color:#dc2626">
@@ -2624,13 +3044,17 @@ function renderStudentLookupCard(s, query = "") {
             <span class="proj-key">Proposal</span>
             <span class="proj-val">
               ${propBadge}
-              ${proposalUrl ? `
+              ${
+                proposalUrl
+                  ? `
                 <button onclick="viewDoc('${proposalUrl}')"
                   style="margin-left:6px;padding:2px 8px;border-radius:5px;font-size:.66rem;
                          font-weight:700;cursor:pointer;border:1px solid rgba(0,75,45,.2);
                          background:rgba(0,75,45,.06);color:var(--primary)">
                   View
-                </button>` : ""}
+                </button>`
+                  : ""
+              }
             </span>
           </div>
         </div>
@@ -2658,13 +3082,15 @@ function renderStudentLookupCard(s, query = "") {
           <div class="proj-row">
             <span class="proj-key">WhatsApp</span>
             <span class="proj-val">
-              ${sup?.whatsapp
-                ? `<a href="https://wa.me/${sup.whatsapp.replace(/^0/,'92').replace(/\D/g,'')}"
+              ${
+                sup?.whatsapp
+                  ? `<a href="https://wa.me/${sup.whatsapp.replace(/^0/, "92").replace(/\D/g, "")}"
                       target="_blank"
                       style="color:#15803d;font-weight:600;text-decoration:none;font-size:.8rem">
                      ${sup.whatsapp}
                    </a>`
-                : `<span style="color:var(--text-mute)">—</span>`}
+                  : `<span style="color:var(--text-mute)">—</span>`
+              }
             </span>
           </div>
         </div>
@@ -2681,8 +3107,9 @@ function renderStudentLookupCard(s, query = "") {
           <div class="proj-row">
             <span class="proj-key">CV</span>
             <span class="proj-val">
-              ${cvUrl
-                ? `<div class="doc-badge available" style="display:inline-flex">
+              ${
+                cvUrl
+                  ? `<div class="doc-badge available" style="display:inline-flex">
                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                           stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -2697,7 +3124,8 @@ function renderStudentLookupCard(s, query = "") {
                        </svg>
                      </button>
                    </div>`
-                : `<span style="font-size:.72rem;color:var(--text-mute);font-style:italic">Not uploaded</span>`}
+                  : `<span style="font-size:.72rem;color:var(--text-mute);font-style:italic">Not uploaded</span>`
+              }
             </span>
           </div>
 
@@ -2725,7 +3153,7 @@ function renderStudentLookupCard(s, query = "") {
 ══════════════════════════════════════ */
 async function loadMaintenanceStatus() {
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/maintenance`);
+    const res = await fetch(`${API_BASE}/api/admin/maintenance`);
     const data = await res.json();
     updateMaintenanceUI(data);
   } catch (err) {
@@ -2734,27 +3162,27 @@ async function loadMaintenanceStatus() {
 }
 
 function updateMaintenanceUI(data) {
-  const dot       = document.getElementById("maintenance-status-dot");
-  const text      = document.getElementById("maintenance-status-text");
-  const toggle    = document.getElementById("maintenance-toggle");
-  const body      = document.getElementById("maintenance-detail-body");
-  const card      = document.getElementById("maintenance-card");
-  const reasonIn  = document.getElementById("maintenance-reason-input");
+  const dot = document.getElementById("maintenance-status-dot");
+  const text = document.getElementById("maintenance-status-text");
+  const toggle = document.getElementById("maintenance-toggle");
+  const body = document.getElementById("maintenance-detail-body");
+  const card = document.getElementById("maintenance-card");
+  const reasonIn = document.getElementById("maintenance-reason-input");
   const startedEl = document.getElementById("maintenance-started-info");
 
   if (!dot) return;
 
   if (data.maintenance_mode) {
     dot.style.background = "#dc2626";
-    dot.style.boxShadow  = "0 0 0 4px rgba(220,38,38,.18)";
-    text.textContent     = "Site is in MAINTENANCE MODE — only Admin can access";
-    text.style.color     = "#dc2626";
+    dot.style.boxShadow = "0 0 0 4px rgba(220,38,38,.18)";
+    text.textContent = "Site is in MAINTENANCE MODE — only Admin can access";
+    text.style.color = "#dc2626";
     text.style.fontWeight = "700";
-    toggle.checked       = true;
-    body.style.display   = "block";
+    toggle.checked = true;
+    body.style.display = "block";
     card.style.borderColor = "rgba(220,38,38,.3)";
-    card.style.background  = "rgba(220,38,38,.02)";
-    reasonIn.value       = data.maintenance_reason || "";
+    card.style.background = "rgba(220,38,38,.02)";
+    reasonIn.value = data.maintenance_reason || "";
 
     if (data.maintenance_started_at && startedEl) {
       const started = new Date(data.maintenance_started_at);
@@ -2762,14 +3190,14 @@ function updateMaintenanceUI(data) {
     }
   } else {
     dot.style.background = "#15803d";
-    dot.style.boxShadow  = "0 0 0 4px rgba(21,128,61,.18)";
-    text.textContent     = "Site is LIVE — all users have full access";
-    text.style.color     = "";
+    dot.style.boxShadow = "0 0 0 4px rgba(21,128,61,.18)";
+    text.textContent = "Site is LIVE — all users have full access";
+    text.style.color = "";
     text.style.fontWeight = "";
-    toggle.checked       = false;
-    body.style.display   = "none";
+    toggle.checked = false;
+    body.style.display = "none";
     card.style.borderColor = "transparent";
-    card.style.background  = "";
+    card.style.background = "";
   }
 }
 
@@ -2778,21 +3206,24 @@ async function toggleMaintenance(enabled) {
 
   // Confirm before enabling
   if (enabled) {
-    const ok = confirm("⚠️ Enable Maintenance Mode?\n\nAll students, supervisors, and the chairman will be locked out of the system. Only you will be able to access the admin dashboard.\n\nContinue?");
+    const ok = confirm(
+      "⚠️ Enable Maintenance Mode?\n\nAll students, supervisors, and the chairman will be locked out of the system. Only you will be able to access the admin dashboard.\n\nContinue?",
+    );
     if (!ok) {
       document.getElementById("maintenance-toggle").checked = false;
       return;
     }
   }
 
-  const reason = document.getElementById("maintenance-reason-input")?.value.trim() || "";
+  const reason =
+    document.getElementById("maintenance-reason-input")?.value.trim() || "";
 
   try {
     const res = await fetch(`${API_BASE}/api/admin/maintenance`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`,
+        Authorization: `Bearer ${admin.token}`,
       },
       body: JSON.stringify({ enabled, reason }),
     });
@@ -2803,7 +3234,7 @@ async function toggleMaintenance(enabled) {
     toast(
       enabled ? "Maintenance Mode ENABLED" : "Maintenance Mode DISABLED",
       enabled ? "All non-admin users are now blocked" : "Site is back online",
-      enabled ? "warn" : "success"
+      enabled ? "warn" : "success",
     );
   } catch (err) {
     toast("Error", err.message, "error");
@@ -2812,8 +3243,10 @@ async function toggleMaintenance(enabled) {
 }
 
 async function updateMaintenanceReason() {
-  const admin  = JSON.parse(localStorage.getItem("admin"));
-  const reason = document.getElementById("maintenance-reason-input")?.value.trim();
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const reason = document
+    .getElementById("maintenance-reason-input")
+    ?.value.trim();
 
   if (!reason) {
     toast("Empty reason", "Please enter a reason to show users", "warn");
@@ -2825,7 +3258,7 @@ async function updateMaintenanceReason() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`,
+        Authorization: `Bearer ${admin.token}`,
       },
       body: JSON.stringify({ enabled: true, reason }),
     });
@@ -2851,11 +3284,11 @@ async function renderInternships() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/api/internship/admin/all`, {
+    const res = await fetch(`${API_BASE}/api/internship/admin/all`, {
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      }
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to load");
@@ -2868,7 +3301,6 @@ async function renderInternships() {
 
     INTERNSHIP_PAGE.current = 1;
     renderInternshipPage(1);
-
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
   }
@@ -2877,15 +3309,15 @@ async function renderInternships() {
 function renderInternshipPage(page) {
   INTERNSHIP_PAGE.current = page;
   const { perPage } = INTERNSHIP_PAGE;
-  const start  = (page - 1) * perPage;
-  const slice  = INTERNSHIP_DATA.slice(start, start + perPage);
+  const start = (page - 1) * perPage;
+  const slice = INTERNSHIP_DATA.slice(start, start + perPage);
   renderInternshipTable(slice);
   renderPagination(
     "internshipPagination",
     INTERNSHIP_DATA.length,
     page,
     perPage,
-    "renderInternshipPage"
+    "renderInternshipPage",
   );
 }
 
@@ -2897,15 +3329,18 @@ function renderInternshipTable(list) {
     return;
   }
 
-  tbody.innerHTML = list.map(item => {
-    const dateStr = item.createdAt
-      ? new Date(item.createdAt).toLocaleDateString("en-PK", {
-          day: "numeric", month: "short", year: "numeric"
-        })
-      : "—";
+  tbody.innerHTML = list
+    .map((item) => {
+      const dateStr = item.createdAt
+        ? new Date(item.createdAt).toLocaleDateString("en-PK", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "—";
 
-    const letterBtn = item.acceptance_letter_url
-      ? `<button onclick="viewDoc('${item.acceptance_letter_url}')"
+      const letterBtn = item.acceptance_letter_url
+        ? `<button onclick="viewDoc('${item.acceptance_letter_url}')"
            style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
                   border-radius:7px;font-size:.74rem;font-weight:700;cursor:pointer;
                   border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
@@ -2917,9 +3352,9 @@ function renderInternshipTable(list) {
            </svg>
            View Letter
          </button>`
-      : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic">No file</span>`;
+        : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic">No file</span>`;
 
-    return `
+      return `
       <tr>
         <td><strong>${escapeHtml(item.full_name || "—")}</strong></td>
         <td><span style="font-family:monospace;font-size:.82rem">${formatCnic(item.cnic)}</span></td>
@@ -2927,7 +3362,7 @@ function renderInternshipTable(list) {
         <td style="font-size:.78rem;color:var(--text-mute)">${dateStr}</td>
 <td>${letterBtn}</td>
         <td>
-          <button onclick="deleteInternship('${item._id}','${escapeHtml(item.full_name || '')}')"
+          <button onclick="deleteInternship('${item._id}','${escapeHtml(item.full_name || "")}')"
             style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
                    border-radius:7px;font-size:.74rem;font-weight:700;cursor:pointer;
                    border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.06);
@@ -2940,12 +3375,15 @@ function renderInternshipTable(list) {
             Delete
           </button>
         </td>
-      </tr>`;;
-  }).join("");
+      </tr>`;
+    })
+    .join("");
 }
 
 async function deleteInternship(id, name) {
-  const confirmed = confirm(`Delete internship submission for "${name}"?\n\nThis will permanently remove their record and acceptance letter file. This cannot be undone.`);
+  const confirmed = confirm(
+    `Delete internship submission for "${name}"?\n\nThis will permanently remove their record and acceptance letter file. This cannot be undone.`,
+  );
   if (!confirmed) return;
 
   const admin = JSON.parse(localStorage.getItem("admin"));
@@ -2954,35 +3392,35 @@ async function deleteInternship(id, name) {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${admin.token}`
-      }
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to delete");
 
     toast("Deleted", `${name}'s submission has been removed`, "success");
-    await renderInternships(); 
-    await fetchDashboardStats(); 
+    await renderInternships();
+    await fetchDashboardStats();
   } catch (err) {
     toast("Error", err.message, "error");
   }
 }
 /* GLOBAL DATA */
 let SUPERVISORS_DATA = [];
-let TEAMS_DATA       = [];
-let STUDENTS_DATA    = [];
+let TEAMS_DATA = [];
+let STUDENTS_DATA = [];
 /* ════════════════════════════════════
    STUDENT VIEW MODAL
 ══════════════════════════════════════ */
 function openStudentViewModal(studentId) {
-  const s = STUDENTS_DATA.find(s => s._id === studentId);
+  const s = STUDENTS_DATA.find((s) => s._id === studentId);
   if (!s) return toast("Error", "Student not found", "error");
 
   const body = document.getElementById("studentViewModalBody");
   if (!body) return;
 
   const projTitle = s.group?.project_title || "Not assigned";
-  const supName   = s.group?.supervisor
+  const supName = s.group?.supervisor
     ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
     : "Not assigned";
 
@@ -3067,7 +3505,9 @@ function openStudentViewModal(studentId) {
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
 
-        ${s.cv_url ? `
+        ${
+          s.cv_url
+            ? `
           <button onclick="viewDoc('${s.cv_url}')"
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;
                    border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;
@@ -3079,13 +3519,17 @@ function openStudentViewModal(studentId) {
               <circle cx="12" cy="12" r="3"/>
             </svg>
             View CV
-          </button>` : `
+          </button>`
+            : `
           <span style="padding:8px 14px;border-radius:9px;font-size:.78rem;font-weight:600;
                        border:1.5px dashed var(--border);color:var(--text-mute)">
             CV not uploaded
-          </span>`}
+          </span>`
+        }
 
-        ${s.group?.proposal_url ? `
+        ${
+          s.group?.proposal_url
+            ? `
           <button onclick="viewDoc('${s.group.proposal_url}')"
             style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;
                    border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;
@@ -3097,11 +3541,13 @@ function openStudentViewModal(studentId) {
               <polyline points="14 2 14 8 20 8"/>
             </svg>
             View Proposal
-          </button>` : `
+          </button>`
+            : `
           <span style="padding:8px 14px;border-radius:9px;font-size:.78rem;font-weight:600;
                        border:1.5px dashed var(--border);color:var(--text-mute)">
             Proposal not submitted
-          </span>`}
+          </span>`
+        }
 
       </div>
     </div>`;
@@ -3120,14 +3566,15 @@ function filterInternships(query) {
     renderInternshipPage(1);
     return;
   }
-  const filtered = INTERNSHIP_DATA.filter(item =>
-    (item.full_name || "").toLowerCase().includes(q)
+  const filtered = INTERNSHIP_DATA.filter((item) =>
+    (item.full_name || "").toLowerCase().includes(q),
   );
   renderInternshipTable(filtered);
   const pag = document.getElementById("internshipPagination");
-  if (pag) pag.innerHTML = filtered.length
-    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${filtered.length} result${filtered.length !== 1 ? "s" : ""} found</div>`
-    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results found</div>`;
+  if (pag)
+    pag.innerHTML = filtered.length
+      ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${filtered.length} result${filtered.length !== 1 ? "s" : ""} found</div>`
+      : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results found</div>`;
 }
 /* ════════════════════════════════════
    TEAMS PROPOSAL FILTER
@@ -3138,42 +3585,47 @@ function setProposalFilter(status) {
   _activeProposalFilter = status;
 
   // Update button styles
-  ["all","pending","approved","rejected"].forEach(s => {
+  ["all", "pending", "approved", "rejected"].forEach((s) => {
     const btn = document.getElementById(`pf-${s}`);
     if (!btn) return;
-    btn.className = s === status ? "btn btn-sm btn-primary" : "btn btn-sm btn-ghost";
+    btn.className =
+      s === status ? "btn btn-sm btn-primary" : "btn btn-sm btn-ghost";
   });
 
   applyTeamsFilter();
 }
 
 function applyTeamsFilter() {
-  const searchQuery = (document.getElementById("searchTeams")?.value || "").trim().toLowerCase();
+  const searchQuery = (document.getElementById("searchTeams")?.value || "")
+    .trim()
+    .toLowerCase();
   let filtered = [...TEAMS_DATA];
 
   // Proposal status filter
   if (_activeProposalFilter !== "all") {
-    filtered = filtered.filter(g =>
-      (g.proposal_status || "pending") === _activeProposalFilter
+    filtered = filtered.filter(
+      (g) => (g.proposal_status || "pending") === _activeProposalFilter,
     );
   }
 
   // Search filter
   if (searchQuery) {
-    filtered = filtered.filter(g =>
-      matches(g.group_code || g.team_code, searchQuery)
-      || matches(g.project_title, searchQuery)
-      || matches(g.supervisor?.name, searchQuery)
-      || matches(g.supervisor?.sup_code, searchQuery)
+    filtered = filtered.filter(
+      (g) =>
+        matches(g.group_code || g.team_code, searchQuery) ||
+        matches(g.project_title, searchQuery) ||
+        matches(g.supervisor?.name, searchQuery) ||
+        matches(g.supervisor?.sup_code, searchQuery),
     );
   }
 
   renderTeamsTable(filtered);
 
   const pag = document.getElementById("teamsPagination");
-  if (pag) pag.innerHTML = filtered.length
-    ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${filtered.length} team${filtered.length !== 1 ? "s" : ""} found</div>`
-    : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No teams found</div>`;
+  if (pag)
+    pag.innerHTML = filtered.length
+      ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${filtered.length} team${filtered.length !== 1 ? "s" : ""} found</div>`
+      : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No teams found</div>`;
 }
 
 /* ════════════════════════════════════
@@ -3230,14 +3682,18 @@ async function downloadProposals(status = "all") {
   document.getElementById("dl-menu").style.display = "none";
 
   const admin = JSON.parse(localStorage.getItem("admin"));
-  if (!admin?.token) return toast("Not authenticated", "Please log in again", "error");
+  if (!admin?.token)
+    return toast("Not authenticated", "Please log in again", "error");
 
   toast("Preparing ZIP…", `Fetching ${status} proposals from S3`, "success");
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/download-proposals?status=${status}`, {
-      headers: { "Authorization": `Bearer ${admin.token}` }
-    });
+    const res = await fetch(
+      `${API_BASE}/api/admin/download-proposals?status=${status}`,
+      {
+        headers: { Authorization: `Bearer ${admin.token}` },
+      },
+    );
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -3245,13 +3701,13 @@ async function downloadProposals(status = "all") {
     }
 
     // Stream blob → trigger browser download
-    const blob     = await res.blob();
-    const url      = URL.createObjectURL(blob);
-    const label    = status === "all" ? "all" : status;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const label = status === "all" ? "all" : status;
     const filename = `fyp-proposals-${label}-${new Date().getFullYear()}.zip`;
 
-    const a    = document.createElement("a");
-    a.href     = url;
+    const a = document.createElement("a");
+    a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
@@ -3259,7 +3715,6 @@ async function downloadProposals(status = "all") {
 
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     toast("Download started", filename, "success");
-
   } catch (err) {
     console.error("downloadProposals error:", err);
     toast("Download failed", err.message, "error");
@@ -3269,13 +3724,14 @@ async function downloadProposals(status = "all") {
 /*DOWNLOAD ALL INTERNSHIP LETTERS*/
 async function downloadInternships() {
   const admin = JSON.parse(localStorage.getItem("admin"));
-  if (!admin?.token) return toast("Not authenticated", "Please log in again", "error");
+  if (!admin?.token)
+    return toast("Not authenticated", "Please log in again", "error");
 
   toast("Preparing ZIP…", "Fetching internship letters from S3", "success");
 
   try {
     const res = await fetch(`${API_BASE}/api/admin/download-internships`, {
-      headers: { "Authorization": `Bearer ${admin.token}` }
+      headers: { Authorization: `Bearer ${admin.token}` },
     });
 
     if (!res.ok) {
@@ -3283,12 +3739,12 @@ async function downloadInternships() {
       throw new Error(data.message || `Server error ${res.status}`);
     }
 
-    const blob     = await res.blob();
-    const url      = URL.createObjectURL(blob);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
     const filename = `fyp-internship-letters-${new Date().getFullYear()}.zip`;
 
-    const a    = document.createElement("a");
-    a.href     = url;
+    const a = document.createElement("a");
+    a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
@@ -3296,7 +3752,6 @@ async function downloadInternships() {
 
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     toast("Download started", filename, "success");
-
   } catch (err) {
     console.error("downloadInternships error:", err);
     toast("Download failed", err.message, "error");

@@ -1,13 +1,12 @@
-import Student    from "../Models/student.js";
+import Student from "../Models/student.js";
 import Supervisor from "../Models/supervisor.js";
-import Admin      from "../Models/admin.js";
-import bcrypt     from "bcrypt";
-import generateToken           from "../utils/generateToken.js";
-import { generateStudentId }   from "../utils/generateStudentId.js";
-import { sendEmail }           from "../utils/sendEmail.js";
-import { otpEmailTemplate }        from "../utils/emailTemplates/otpEmail.js";
-import { supervisorOtpTemplate }   from "../utils/emailTemplates/supervisorOtp.js";
-
+import Admin from "../Models/admin.js";
+import bcrypt from "bcrypt";
+import generateToken from "../utils/generateToken.js";
+import { generateStudentId } from "../utils/generateStudentId.js";
+import { sendEmail } from "../utils/sendEmail.js";
+import { otpEmailTemplate } from "../utils/emailTemplates/otpEmail.js";
+import { supervisorOtpTemplate } from "../utils/emailTemplates/supervisorOtp.js";
 
 // ── LOGIN ────────────────────────────────────────────
 export const login = async (req, res) => {
@@ -30,7 +29,7 @@ export const login = async (req, res) => {
     }
 
     if (!user) {
-      user = await Admin.findOne({ email }).select("+password");
+      user = await Admin.findOne({ email }).select("+password +avatar_url");
       if (user) role = "admin";
     }
 
@@ -46,8 +45,8 @@ export const login = async (req, res) => {
     const token = generateToken(user);
 
     let userData = {
-      _id:   user._id,
-      name:  user.name,
+      _id: user._id,
+      name: user.name,
       email: user.email,
       role,
       token,
@@ -55,22 +54,25 @@ export const login = async (req, res) => {
 
     if (role === "student") {
       userData.student_code = user.student_code;
-      userData.group        = user.group;
-      userData.gender       = user.gender || "male";  
+      userData.group = user.group;
+      userData.gender = user.gender || "male";
     }
 
-if (role === "supervisor" || role === "chairman") {
-  userData.sup_code              = user.sup_code;
-  userData.prefix                = user.prefix;
-  userData.designation           = user.designation;   
-  userData.force_password_change = user.force_password_change;
-  userData.is_chairman           = user.is_chairman;
-  userData.whatsapp              = user.whatsapp;
-  userData.avatar_url            = user.avatar_url;
-}
+    if (role === "supervisor" || role === "chairman") {
+      userData.sup_code = user.sup_code;
+      userData.prefix = user.prefix;
+      userData.designation = user.designation;
+      userData.force_password_change = user.force_password_change;
+      userData.is_chairman = user.is_chairman;
+      userData.whatsapp = user.whatsapp;
+      userData.avatar_url = user.avatar_url;
+    }
+
+    if (role === "admin") {
+      userData.avatar_url = user.avatar_url || "";
+    }
 
     res.json(userData);
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
@@ -83,7 +85,7 @@ export const registerStudent = async (req, res) => {
     const { name, email, whatsapp, password, gender } = req.body;
 
     // ── Files come from multer .fields() so use req.files ──
-    const cvFile   = req.files?.cv?.[0];
+    const cvFile = req.files?.cv?.[0];
     const certFile = req.files?.certificates?.[0];
 
     // 1. CV required
@@ -93,7 +95,9 @@ export const registerStudent = async (req, res) => {
 
     // 2. PDF check
     const isPdfMime = cvFile.mimetype === "application/pdf";
-    const isPdfExt  = (cvFile.originalname || cvFile.key || "").toLowerCase().endsWith(".pdf");
+    const isPdfExt = (cvFile.originalname || cvFile.key || "")
+      .toLowerCase()
+      .endsWith(".pdf");
     if (!isPdfMime && !isPdfExt) {
       return res.status(400).json({ message: "CV must be a PDF file" });
     }
@@ -116,9 +120,9 @@ export const registerStudent = async (req, res) => {
       email,
       whatsapp,
       gender,
-      password:         hashedPassword,
+      password: hashedPassword,
       student_code,
-      cv_url:           cvFile.location,
+      cv_url: cvFile.location,
       certificates_url: certFile?.location || null,
     });
 
@@ -126,16 +130,15 @@ export const registerStudent = async (req, res) => {
     res.status(201).json({
       message: "Student registered successfully",
       student: {
-        _id:              student._id,
-        name:             student.name,
-        email:            student.email,
-        gender:           student.gender,
-        student_code:     student.student_code,
-        cv_url:           student.cv_url,
+        _id: student._id,
+        name: student.name,
+        email: student.email,
+        gender: student.gender,
+        student_code: student.student_code,
+        cv_url: student.cv_url,
         certificates_url: student.certificates_url,
       },
     });
-
   } catch (error) {
     console.error("REGISTER STUDENT ERROR:", error);
     res.status(500).json({ message: error.message });
@@ -148,7 +151,7 @@ export const forgotPassword = async (req, res) => {
 
     if (!email) {
       return res.status(400).json({
-        message: "Email is required"
+        message: "Email is required",
       });
     }
 
@@ -173,11 +176,11 @@ export const forgotPassword = async (req, res) => {
 
     if (!user) {
       return res.json({
-        message: "If this email is registered, an OTP has been sent."
+        message: "If this email is registered, an OTP has been sent.",
       });
     }
 
-    //  GENERATE OTP 
+    //  GENERATE OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     user.resetPasswordToken = otp;
@@ -185,22 +188,22 @@ export const forgotPassword = async (req, res) => {
 
     await user.save({ validateBeforeSave: false });
 
-    //EMAIL TEMPLATE 
+    //EMAIL TEMPLATE
     let emailTemplate;
 
     if (userType === "supervisor") {
       emailTemplate = supervisorOtpTemplate({
         name: user.name,
-        otp
+        otp,
       });
     } else {
       emailTemplate = otpEmailTemplate({
         name: user.name,
-        otp
+        otp,
       });
     }
 
-    // SEND EMAIL 
+    // SEND EMAIL
     const result = await sendEmail({
       to: email,
       subject: emailTemplate.subject,
@@ -211,19 +214,18 @@ export const forgotPassword = async (req, res) => {
       console.error("OTP email failed:", result.error);
 
       return res.status(500).json({
-        message: "Failed to send OTP email"
+        message: "Failed to send OTP email",
       });
     }
 
     res.json({
-      message: "If this email is registered, an OTP has been sent."
+      message: "If this email is registered, an OTP has been sent.",
     });
-
   } catch (err) {
     console.error("forgotPassword error:", err);
 
     res.status(500).json({
-      message: "Failed to send OTP"
+      message: "Failed to send OTP",
     });
   }
 };
@@ -244,19 +246,24 @@ export const verifyOtp = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-console.log("DB token:", user.resetPasswordToken, typeof user.resetPasswordToken);
-console.log("Received:", otp, typeof otp);
+    console.log(
+      "DB token:",
+      user.resetPasswordToken,
+      typeof user.resetPasswordToken,
+    );
+    console.log("Received:", otp, typeof otp);
 
-if (user.resetPasswordToken !== otp) {
-  return res.status(400).json({ message: "Invalid OTP" });
-}
+    if (user.resetPasswordToken !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
 
     if (user.resetPasswordExpire < Date.now()) {
-      return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+      return res
+        .status(400)
+        .json({ message: "OTP has expired. Please request a new one." });
     }
 
     res.json({ message: "OTP verified successfully" });
-
   } catch (err) {
     console.error("verifyOtp error:", err);
     res.status(500).json({ message: err.message });
@@ -269,11 +276,15 @@ export const resetPassword = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters" });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters" });
     }
 
     let user = await Student.findOne({ email });
@@ -285,14 +296,13 @@ export const resetPassword = async (req, res) => {
     }
 
     // Clear OTP fields + set new password
-    user.password            = await bcrypt.hash(password, 10);
-    user.resetPasswordToken  = undefined;
+    user.password = await bcrypt.hash(password, 10);
+    user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 
     await user.save();
 
     res.json({ message: "Password reset successful" });
-
   } catch (err) {
     console.error("resetPassword error:", err);
     res.status(500).json({ message: err.message });
@@ -317,7 +327,6 @@ export const getProfile = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json(user);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

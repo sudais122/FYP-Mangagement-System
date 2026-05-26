@@ -461,7 +461,7 @@ async function handleLogin(e) {
     });
 
     const data = await res.json();
-
+console.log("LOGIN RESPONSE:", data); 
     if (!res.ok) {
       throw new Error(data.message || "Login failed");
     }
@@ -535,6 +535,7 @@ localStorage.setItem("supervisor", JSON.stringify({
         email: data.email,
         role: data.role,
         token: data.token,
+        avatar_url: data.avatar_url || "",
       }));
 
       setTimeout(() => {
