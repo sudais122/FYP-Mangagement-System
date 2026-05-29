@@ -205,9 +205,7 @@ async function step2Submit() {
   }
 }
 
-/* ════════════════════════════════
-   CV UPLOAD UI
-════════════════════════════════ */
+/* CV UPLOAD UI */
 document.addEventListener("DOMContentLoaded", () => {
   const cvInput = document.getElementById("r-cv");
   const cvZone  = document.getElementById("cv-zone");
@@ -469,9 +467,7 @@ console.log("LOGIN RESPONSE:", data);
     btn.style.background = "#16A34A";
     btn.innerHTML = "Login Successful";
 
-    /* ═══════════════════════════════
-       STUDENT LOGIN
-    ═══════════════════════════════ */
+    /* STUDENT LOGIN */
     if (data.role === "student") {
 
     localStorage.setItem("user", JSON.stringify({
@@ -489,9 +485,7 @@ console.log("LOGIN RESPONSE:", data);
       }, 1000);
     }
 
-    /* ═══════════════════════════════
-       SUPERVISOR / CHAIRMAN LOGIN
-    ═══════════════════════════════ */
+    /* SUPERVISOR / CHAIRMAN LOGIN */
     else if (
       data.role === "supervisor" ||
       data.role === "chairman"
@@ -524,9 +518,7 @@ localStorage.setItem("supervisor", JSON.stringify({
   }, 1000);
     }
 
-    /* ═══════════════════════════════
-       ADMIN LOGIN
-    ═══════════════════════════════ */
+    /* ADMIN LOGIN*/
     else if (data.role === "admin") {
 
       localStorage.setItem("admin", JSON.stringify({
@@ -544,9 +536,7 @@ localStorage.setItem("supervisor", JSON.stringify({
       }, 1000);
     }
 
-    /* ═══════════════════════════════
-       UNKNOWN ROLE
-    ═══════════════════════════════ */
+    /* UNKNOWN ROLE*/
     else {
 
       btn.style.background = "#DC2626";
@@ -732,3 +722,14 @@ if (certInput && certZone) {
     }
   });
 }
+
+//on neter the user login ir invlaid credentiolas
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("login-pw")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleLogin(e);
+  });
+
+  document.getElementById("login-id")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") handleLogin(e);
+  });
+});

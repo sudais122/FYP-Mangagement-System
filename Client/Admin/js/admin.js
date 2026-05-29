@@ -3409,9 +3409,7 @@ async function deleteInternship(id, name) {
 let SUPERVISORS_DATA = [];
 let TEAMS_DATA = [];
 let STUDENTS_DATA = [];
-/* ════════════════════════════════════
-   STUDENT VIEW MODAL
-══════════════════════════════════════ */
+/* STUDENT VIEW MODAL */
 function openStudentViewModal(studentId) {
   const s = STUDENTS_DATA.find((s) => s._id === studentId);
   if (!s) return toast("Error", "Student not found", "error");
@@ -3557,9 +3555,7 @@ function openStudentViewModal(studentId) {
 function closeStudentViewModal() {
   document.getElementById("studentViewModal").classList.remove("open");
 }
-/* ════════════════════════════════════
-   INTERNSHIP SEARCH
-══════════════════════════════════════ */
+/* INTERNSHIP SEARCH */
 function filterInternships(query) {
   const q = (query || "").trim().toLowerCase();
   if (!q) {
@@ -3576,9 +3572,7 @@ function filterInternships(query) {
       ? `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute);font-weight:600">${filtered.length} result${filtered.length !== 1 ? "s" : ""} found</div>`
       : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No results found</div>`;
 }
-/* ════════════════════════════════════
-   TEAMS PROPOSAL FILTER
-══════════════════════════════════════ */
+/* TEAMS PROPOSAL FILTER */
 let _activeProposalFilter = "all";
 
 function setProposalFilter(status) {
@@ -3628,9 +3622,7 @@ function applyTeamsFilter() {
       : `<div style="padding:12px 20px;font-size:.76rem;color:var(--text-mute)">No teams found</div>`;
 }
 
-/* ════════════════════════════════════
-   GLOBAL REFRESH
-══════════════════════════════════════ */
+/* GLOBAL REFRESH */
 async function refreshDashboard() {
   const icon = document.getElementById("refresh-icon");
 
@@ -3656,9 +3648,7 @@ async function refreshDashboard() {
   }
 }
 
-/* ════════════════════════════════════
-   DOWNLOAD ALL PROPOSALS
-══════════════════════════════════════ */
+/* DOWNLOAD ALL PROPOSALS*/
 function toggleDlMenu() {
   const menu = document.getElementById("dl-menu");
   if (!menu) return;
@@ -3756,6 +3746,252 @@ async function downloadInternships() {
     console.error("downloadInternships error:", err);
     toast("Download failed", err.message, "error");
   }
+}
+
+/* DOWNLOAD PROGRESS UI */
+function showDownloadProgress(filename) {
+  let el = document.getElementById("dl-progress-modal");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "dl-progress-modal";
+    el.style.cssText = `
+      position:fixed;bottom:24px;right:24px;z-index:9999;
+      width:320px;background:var(--surface,#fff);
+      border:1px solid var(--border-soft,rgba(0,0,0,.1));
+      border-radius:16px;padding:18px 20px;
+      box-shadow:0 8px 32px rgba(0,0,0,.12);
+      font-family:var(--font,sans-serif);
+      animation:dlSlideIn .3s cubic-bezier(.34,1.3,.64,1) both`;
+    el.innerHTML = `
+      <style>
+        @keyframes dlSlideIn {
+          from { opacity:0; transform:translateY(20px) scale(.96); }
+          to   { opacity:1; transform:translateY(0) scale(1); }
+        }
+        @keyframes dlSlideOut {
+          from { opacity:1; transform:translateY(0) scale(1); }
+          to   { opacity:0; transform:translateY(20px) scale(.96); }
+        }
+        #dl-progress-modal .dl-prog-bar-wrap {
+          height:6px;background:var(--border-soft,rgba(0,0,0,.08));
+          border-radius:99px;overflow:hidden;margin:10px 0 6px;
+        }
+        #dl-progress-modal .dl-prog-bar-fill {
+          height:100%;width:0%;border-radius:99px;
+          background:linear-gradient(90deg,var(--primary,#004b2d),#1f7a5c);
+          transition:width .3s ease;
+        }
+      </style>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <div id="dl-prog-icon" style="
+          width:34px;height:34px;border-radius:10px;flex-shrink:0;
+          background:rgba(0,75,45,.1);display:grid;place-items:center">
+          <svg id="dl-prog-svg-dl" viewBox="0 0 24 24" fill="none" stroke="var(--primary,#004b2d)"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:.82rem;font-weight:700;color:var(--text,#111);
+                      white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+               id="dl-prog-title">Preparing download…</div>
+          <div style="font-size:.72rem;color:var(--text-mute,#888)"
+               id="dl-prog-sub">Connecting to server</div>
+        </div>
+        <button onclick="document.getElementById('dl-progress-modal')?.remove()"
+          style="width:24px;height:24px;border-radius:6px;border:none;background:none;
+                 cursor:pointer;display:grid;place-items:center;color:var(--text-mute,#888);
+                 flex-shrink:0" title="Dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" width="12" height="12">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="dl-prog-bar-wrap">
+        <div class="dl-prog-bar-fill" id="dl-prog-fill"></div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.7rem;color:var(--text-mute,#888)"
+              id="dl-prog-pct">0%</span>
+        <span style="font-size:.7rem;color:var(--text-mute,#888)"
+              id="dl-prog-size"></span>
+      </div>`;
+    document.body.appendChild(el);
+  }
+
+  document.getElementById("dl-prog-title").textContent = filename;
+  document.getElementById("dl-prog-sub").textContent = "Connecting to server…";
+  setDlProgress(0, "");
+  return el;
+}
+
+function setDlProgress(pct, sizeText) {
+  const fill = document.getElementById("dl-prog-fill");
+  const pctEl = document.getElementById("dl-prog-pct");
+  const szEl = document.getElementById("dl-prog-size");
+  if (fill) fill.style.width = pct + "%";
+  if (pctEl) pctEl.textContent = Math.round(pct) + "%";
+  if (szEl) szEl.textContent = sizeText || "";
+}
+
+function setDlComplete(filename) {
+  const title = document.getElementById("dl-prog-title");
+  const sub = document.getElementById("dl-prog-sub");
+  const icon = document.getElementById("dl-prog-icon");
+  const pctEl = document.getElementById("dl-prog-pct");
+
+  setDlProgress(100, "");
+  if (title) title.textContent = filename;
+  if (sub) sub.textContent = "Download complete ✓";
+  if (pctEl) pctEl.textContent = "100%";
+  if (icon) {
+    icon.style.background = "rgba(21,128,61,.12)";
+    icon.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="#15803d"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>`;
+  }
+
+  setTimeout(() => {
+    const el = document.getElementById("dl-progress-modal");
+    if (el) {
+      el.style.animation = "dlSlideOut .3s ease both";
+      setTimeout(() => el?.remove(), 320);
+    }
+  }, 3000);
+}
+
+function setDlError(msg) {
+  const sub = document.getElementById("dl-prog-sub");
+  const icon = document.getElementById("dl-prog-icon");
+  if (sub) sub.textContent = msg || "Download failed";
+  if (icon) {
+    icon.style.background = "rgba(220,38,38,.1)";
+    icon.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>`;
+  }
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+
+/* UPDATED DOWNLOAD FUNCTIONS*/
+async function downloadProposals(status = "all") {
+  document.getElementById("dl-menu").style.display = "none";
+
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin?.token)
+    return toast("Not authenticated", "Please log in again", "error");
+
+  const label = status === "all" ? "all" : status;
+  const filename = `fyp-proposals-${label}-${new Date().getFullYear()}.zip`;
+
+  showDownloadProgress(filename);
+  document.getElementById("dl-prog-sub").textContent = "Fetching from S3…";
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/admin/download-proposals?status=${status}`,
+      {
+        headers: { Authorization: `Bearer ${admin.token}` },
+      },
+    );
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || `Server error ${res.status}`);
+    }
+
+    await streamDownload(res, filename);
+  } catch (err) {
+    console.error("downloadProposals error:", err);
+    setDlError(err.message);
+    toast("Download failed", err.message, "error");
+  }
+}
+
+async function downloadInternships() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin?.token)
+    return toast("Not authenticated", "Please log in again", "error");
+
+  const filename = `fyp-internship-letters-${new Date().getFullYear()}.zip`;
+
+  showDownloadProgress(filename);
+  document.getElementById("dl-prog-sub").textContent = "Fetching from S3…";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/download-internships`, {
+      headers: { Authorization: `Bearer ${admin.token}` },
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || `Server error ${res.status}`);
+    }
+
+    await streamDownload(res, filename);
+  } catch (err) {
+    console.error("downloadInternships error:", err);
+    setDlError(err.message);
+    toast("Download failed", err.message, "error");
+  }
+}
+
+async function streamDownload(res, filename) {
+  const contentLength = res.headers.get("Content-Length");
+  const total = contentLength ? parseInt(contentLength) : null;
+  const reader = res.body.getReader();
+  const chunks = [];
+  let received = 0;
+
+  document.getElementById("dl-prog-sub").textContent = "Downloading…";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    chunks.push(value);
+    received += value.length;
+
+    if (total) {
+      const pct = (received / total) * 100;
+      setDlProgress(pct, `${formatBytes(received)} / ${formatBytes(total)}`);
+    } else {
+      // No Content-Length — show indeterminate with size only
+      setDlProgress(50, formatBytes(received));
+      document.getElementById("dl-prog-fill").style.transition = "none";
+      document.getElementById("dl-prog-fill").style.width = "50%";
+    }
+  }
+
+  const blob = new Blob(chunks);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+  setDlComplete(filename);
+  toast("Download started", filename, "success");
 }
 async function initDashboard() {
   displayAdminInfo();

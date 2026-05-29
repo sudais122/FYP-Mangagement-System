@@ -1,15 +1,8 @@
-// ══════════════════════════════════════════════════════════════
-//  Client/shared/js/authGuard.js
-//  Fixed version — hardcoded login path, full debug logging
-// ══════════════════════════════════════════════════════════════
 
-// ── HARDCODED LOGIN PATH ────────────────────────────────────
-// Adjust this ONE string to match your exact login file path
-// from the browser's perspective (what you type in the URL bar)
 const LOGIN_URL = "/Client/Auth/login.html";
 
 // ── DEBUG MODE — set false in production ───────────────────
-const DEBUG = true;
+const DEBUG = false;
 
 function log(...args) {
   if (DEBUG) console.log("[authGuard]", ...args);
@@ -53,7 +46,7 @@ function protectPage(allowedRoles = []) {
 
   // 3. Nobody logged in → go to login
   if (!currentUser) {
-    log("❌ No session found → redirecting to login");
+    log("No session found → redirecting to login");
     window.location.replace(LOGIN_URL);
     return;
   }
@@ -66,7 +59,7 @@ function protectPage(allowedRoles = []) {
     log("token payload:", payload);
 
     if (payload.exp && (Date.now() / 1000) > payload.exp) {
-      log("❌ Token expired at", new Date(payload.exp * 1000));
+      log("Token expired at", new Date(payload.exp * 1000));
       localStorage.removeItem("user");
       localStorage.removeItem("supervisor");
       localStorage.removeItem("admin");
@@ -74,19 +67,16 @@ function protectPage(allowedRoles = []) {
       return;
     }
   } catch (e) {
-    log("❌ Token decode error:", e.message);
-    // Don't clear and redirect — token might be fine,
-    // just the decode failed in this browser context
-    // Only redirect if role check also fails
+    log("Token decode error:", e.message);
   }
 
   // 5. Role check
   if (allowedRoles.length > 0 && !allowedRoles.includes(currentRole)) {
-    log(`❌ Role "${currentRole}" not in [${allowedRoles.join(", ")}] → redirecting`);
+    log(` Role "${currentRole}" not in [${allowedRoles.join(", ")}] → redirecting`);
     window.location.replace(LOGIN_URL);
     return;
   }
 
   // 6. All good
-  log(`✅ Access granted. role=${currentRole}`);
+  log(` Access granted. role=${currentRole}`);
 }

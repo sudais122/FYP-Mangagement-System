@@ -716,8 +716,8 @@ function renderStudentTabs() {
     .map((s, i) => {
       const gender = i === 0 ? (user.gender || "male") : (STATE.members[i - 1]?.gender || "male");
       const avatarSrc = gender === "female"
-        ? "https://img.magnific.com/free-photo/woman-with-long-brown-hair_1308-179038.jpg?t=st=1779010011~exp=1779013611~hmac=9739089beb9bf0e63bea4a934a6d0bf417e2195e2dd6c884b37b8def78277866&w=2000"
-        : "https://img.magnific.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?t=st=1779009728~exp=1779013328~hmac=a6a3819f96d3f06b5ef9e2f48dcb21510d831a7eb2c1e5f3ae372708039adaac&w=2000";
+        ? "../../images/Avatars/female.png"
+        : "../../images/Avatars/male.jpg"
       return `
         <button class="student-tab-btn ${i === STATE.selectedEvalStudent ? "active" : ""}"
                 onclick="selectEvalStudent(${i})">
@@ -1395,8 +1395,8 @@ function renderMemberSlots() {
   if (!list) return;
 
   const leaderAvatarSrc = (user.gender || "male") === "female"
-    ? "https://img.magnific.com/free-photo/woman-with-long-brown-hair_1308-179038.jpg?t=st=1779010011~exp=1779013611~hmac=9739089beb9bf0e63bea4a934a6d0bf417e2195e2dd6c884b37b8def78277866&w=2000"
-    : "https://img.magnific.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?t=st=1779009728~exp=1779013328~hmac=a6a3819f96d3f06b5ef9e2f48dcb21510d831a7eb2c1e5f3ae372708039adaac&w=2000";
+    ? "../../images/Avatars/female.png"
+    : "../../images/Avatars/male.jpg";
 
   const leaderHTML = `<div class="tm-item">
     <div class="tm-av" style="padding:0;overflow:hidden;background:none">
@@ -1410,8 +1410,8 @@ function renderMemberSlots() {
   const membersHTML = STATE.members.map((m, i) => {
     const mGender = m.gender || "male";
     const mAvatarSrc = mGender === "female"
-      ? "https://img.magnific.com/free-photo/woman-with-long-brown-hair_1308-179038.jpg?t=st=1779010011~exp=1779013611~hmac=9739089beb9bf0e63bea4a934a6d0bf417e2195e2dd6c884b37b8def78277866&w=2000"
-      : "https://img.magnific.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?t=st=1779009728~exp=1779013328~hmac=a6a3819f96d3f06b5ef9e2f48dcb21510d831a7eb2c1e5f3ae372708039adaac&w=2000";
+      ? "../../images/Avatars/female.png"
+      :"../../images/Avatars/male.jpg";
     return `
       <div class="tm-item" style="margin-top:8px">
         <div class="tm-av" style="padding:0;overflow:hidden;background:none">
@@ -1502,8 +1502,8 @@ function renderTeamTab() {
 display.innerHTML = allMembers.map(m => {
   const gender = m.isYou ? (user.gender || "male") : (m.gender || "male");
   const avatarSrc = gender === "female"
-    ? "https://img.magnific.com/free-photo/woman-with-long-brown-hair_1308-179038.jpg?t=st=1779010011~exp=1779013611~hmac=9739089beb9bf0e63bea4a934a6d0bf417e2195e2dd6c884b37b8def78277866&w=2000"
-    : "https://img.magnific.com/free-vector/smiling-young-man-illustration_1308-174669.jpg?t=st=1779009728~exp=1779013328~hmac=a6a3819f96d3f06b5ef9e2f48dcb21510d831a7eb2c1e5f3ae372708039adaac&w=2000";
+    ? "../../images/Avatars/female.png"
+    : "../../images/Avatars/male.jpg"
 
   return `
     <div class="tm-item" style="margin-bottom:8px">
@@ -2031,36 +2031,33 @@ async function loadProposalSection() {
   setProposalState(STATE.proposalState);
   renderProjectDetails();
 }
-/* ══════════════════════════════════
-   INIT
-══════════════════════════════════ */
+/* INIT */
 function initDashboard() {
-  const navStdId   = document.getElementById("nav-std-id");
-  const navName    = document.getElementById("nav-name");
+  const navStdId    = document.getElementById("nav-std-id");
+  const navName     = document.getElementById("nav-name");
   const navInitials = document.getElementById("nav-initials");
-  const bannerName = document.getElementById("banner-name");
-  const studentId  = document.getElementById("student-id");
+  const bannerName  = document.getElementById("banner-name");
+  const studentId   = document.getElementById("student-id");
 
   if (navStdId)  navStdId.textContent  = STATE.studentId;
   if (navName)   navName.textContent   = STATE.studentName;
 
-if (navInitials) {
-  const gender = user.gender || "male";
-  const avatarSrc = gender === "female"
-    ? "https://www.magnific.com/free-photo/woman-with-long-brown-hair_414986247.htm#fromView=search&page=1&position=19&uuid=dfe7e20e-4fe0-427e-b22e-a581ad864d15&query=female+avatar"
-    : "https://api.dicebear.com/7.x/avataaars/svg?seed=male&hair=short&backgroundColor=c0aede";
+  if (navInitials) {
+    const gender    = user.gender || "male";
+    const avatarSrc = gender === "female"
+      ? "../../images/Avatars/female.png"
+      : "../../images/Avatars/male.jpg";
 
-  navInitials.textContent = "";
-  navInitials.style.padding = "0";
-  navInitials.style.overflow = "hidden";
-  navInitials.innerHTML = `<img src="${avatarSrc}" alt="${gender}"
-    style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
-}
+    navInitials.textContent      = "";
+    navInitials.style.padding    = "0";
+    navInitials.style.overflow   = "hidden";
+    navInitials.innerHTML = `<img src="${avatarSrc}" alt="${gender}"
+      style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block"
+      onerror="this.style.display='none';this.parentElement.textContent='${initials(STATE.studentName)}'">`;
+  }
 
-  // ── Pass gender to greeting ──
   if (bannerName) bannerName.textContent = getGreeting(STATE.studentName, user.gender);
-
-  if (studentId) studentId.textContent = STATE.studentId;
+  if (studentId)  studentId.textContent  = STATE.studentId;
 
   startBannerClock();
   loadDashboard();
