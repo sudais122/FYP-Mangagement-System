@@ -1350,28 +1350,30 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
   const tbody = $("#studentsTable tbody");
 
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-mute)">No students found.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = list
     .map((s) => {
-      const isMatch = query && matchSet.has(s._id);
-      const supId = s.group?.supervisor?._id || "";
-      const supName = s.group?.supervisor
+      const isMatch    = query && matchSet.has(s._id);
+      const supId      = s.group?.supervisor?._id || "";
+      const supName    = s.group?.supervisor
         ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
         : "—";
-      const totalMarks = s.total_marks || 0;
-      const safeName = (s.name || "").replace(/'/g, "\\'");
-      const whatsapp = s.whatsapp || "—";
-      const cvUrl = s.cv_url || "";
-      const certUrl = s.certificates_url || "";
+      const totalMarks  = s.total_marks || 0;
+      const safeName    = (s.name || "").replace(/'/g, "\\'");
+      const whatsapp    = s.whatsapp || "—";
+      const cvUrl       = s.cv_url || "";
+      const certUrl     = s.certificates_url || "";
       const proposalUrl = s.group?.proposal_url || "";
       const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
-      const proposalStatus = s.group?.proposal_status || "";
+      const proposalStatus   = s.group?.proposal_status || "";
 
       return `
       <tr class="${isMatch ? "search-match" : ""}">
+
+        <!-- Student info -->
         <td>
           <div class="team-info">
             <strong>${highlightText(s.name, query)}</strong>
@@ -1385,70 +1387,70 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
             </span>
           </div>
         </td>
+
+        <!-- Student ID -->
         <td><span class="id-pill">${highlightText(s.student_code || "—", query)}</span></td>
+
+        <!-- Supervisor -->
         <td>${highlightText(supName, query)}</td>
+
+        <!-- Marks -->
         <td>
           <strong style="font-family:monospace;color:var(--primary)">
             ${totalMarks}<span style="color:var(--text-mute);font-weight:500">/${MAX_TOTAL}</span>
           </strong>
         </td>
+        <!-- Actions -->
         <td>
-          <div class="doc-cell">
-            ${renderDocBadge("CV", cvUrl, true, safeName)}
-            ${renderDocBadge("Proposal", proposalUrl, false, safeName, proposalUploader, proposalStatus)}
+          <div class="action-row" style="flex-direction:column;gap:6px;align-items:flex-start">
+
+            <button onclick="openStudentViewModal('${s._id}')"
+              style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+                     border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
+                     border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+                     color:var(--primary);width:100%;justify-content:center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              View
+            </button>
+
+            <button onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Not in a team yet','warn')`}"
+              style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+                     border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
+                     border:1px solid rgba(59,130,246,.2);background:rgba(59,130,246,.06);
+                     color:#2563eb;width:100%;justify-content:center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              Edit
+            </button>
+
+            <button onclick="deleteStudent('${s._id}','${safeName}')"
+              style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
+                     border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
+                     border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.06);
+                     color:#dc2626;width:100%;justify-content:center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+              Delete
+            </button>
+
           </div>
         </td>
-          <td>
-  <div class="action-row" style="flex-direction:column;gap:6px;align-items:flex-start">
 
-    <!-- View button -->
-    <button onclick="openStudentViewModal('${s._id}')"
-      style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
-             border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
-             border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
-             color:var(--primary);width:100%;justify-content:center">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-        <circle cx="12" cy="12" r="3"/>
-      </svg>
-      View
-    </button>
-
-    <!-- Edit (view supervisor marks) -->
-    <button onclick="${supId ? `openSupDetail('${supId}')` : `toast('No supervisor','Not in a team yet','warn')`}"
-      style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
-             border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
-             border:1px solid rgba(59,130,246,.2);background:rgba(59,130,246,.06);
-             color:#2563eb;width:100%;justify-content:center">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-      </svg>
-      Edit
-    </button>
-
-    <!-- Delete -->
-    <button onclick="deleteStudent('${s._id}','${safeName}')"
-      style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;
-             border-radius:7px;font-size:.72rem;font-weight:700;cursor:pointer;
-             border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.06);
-             color:#dc2626;width:100%;justify-content:center">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-        <polyline points="3 6 5 6 21 6"/>
-        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-      </svg>
-      Delete
-    </button>
-
-  </div>
-</td>
       </tr>`;
     })
     .join("");
 }
+
 async function openTeamDetail(teamId) {
   const team = TEAMS_DATA.find((t) => t._id === teamId);
   if (!team) {
@@ -1770,36 +1772,114 @@ function updateProposalStatus(groupId, status) {
 /* ════════════════════════════════════
    DELETE STUDENT
 ══════════════════════════════════════ */
-async function deleteStudent(studentId, studentName) {
-  if (
-    !confirm(
-      `Delete ${studentName}?\n\nThis will also remove them from their team. If they're the team leader, the entire team will be deleted.`,
-    )
-  )
-    return;
+// ── Delete student state ──
+let _deleteStudentId   = null;
+let _deleteStudentName = null;
+
+function deleteStudent(studentId, studentName) {
+  _deleteStudentId   = studentId;
+  _deleteStudentName = studentName;
+
+  // Find student to check if leader or member
+  const s = STUDENTS_DATA.find(s => s._id === studentId);
+  const isLeader = s?.team_role === "Leader";
+
+  // Set modal content
+  document.getElementById("deleteStudentName").textContent = studentName;
+
+  const warning = document.getElementById("deleteStudentWarning");
+  if (warning) {
+    if (isLeader) {
+      warning.innerHTML = `
+        This student is a <strong>Team Leader</strong>.
+        Deleting them will <strong>permanently delete their entire team</strong>
+        and remove all team members from the group.
+        All marks records for the team will also be deleted.`;
+    } else if (s?.group) {
+      warning.innerHTML = `
+        This student is a <strong>Team Member</strong>.
+        They will be removed from their team.
+        Their marks records will be deleted but the team will remain intact.`;
+    } else {
+      warning.innerHTML = `
+        This student has <strong>no team</strong>.
+        Their account and all associated data will be
+        permanently removed from the system.`;
+    }
+  }
+
+  // Reset button state
+  const btn = document.getElementById("confirmDeleteStudentBtn");
+  if (btn) {
+    btn.disabled      = false;
+    btn.style.opacity = "1";
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round"
+           stroke-linejoin="round" width="14" height="14">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+      Yes, Delete`;
+  }
+
+  document.getElementById("deleteStudentModal").classList.add("open");
+}
+
+function closeDeleteStudentModal() {
+  _deleteStudentId   = null;
+  _deleteStudentName = null;
+  document.getElementById("deleteStudentModal").classList.remove("open");
+}
+
+async function confirmDeleteStudent() {
+  if (!_deleteStudentId) return;
+
+  const btn = document.getElementById("confirmDeleteStudentBtn");
+  if (btn) {
+    btn.disabled      = true;
+    btn.style.opacity = ".6";
+    btn.textContent   = "Deleting…";
+  }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch(`${API_BASE}/api/admin/student/${studentId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
-    });
+    const res = await fetch(
+      `${API_BASE}/api/admin/student/${_deleteStudentId}`,
+      {
+        method:  "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:  `Bearer ${admin.token}`,
+        },
+      }
+    );
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed");
+    if (!res.ok) throw new Error(data.message || "Failed to delete");
 
-    toast("Student deleted", `${studentName} has been removed`, "success");
+    closeDeleteStudentModal();
+    toast("Student deleted", `${_deleteStudentName} has been removed`, "success");
     await fetchDashboardStats();
     await renderStudents();
     await renderTeams();
     await renderSupervisors();
+
   } catch (err) {
     toast("Error", err.message, "error");
+    if (btn) {
+      btn.disabled      = false;
+      btn.style.opacity = "1";
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round"
+             stroke-linejoin="round" width="14" height="14">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        Yes, Delete`;
+    }
   }
 }
-
 /* ════════════════════════════════════
    SEARCH FILTERS
 ══════════════════════════════════════ */
@@ -3393,35 +3473,93 @@ function renderInternshipTable(list) {
     .join("");
 }
 
-async function deleteInternship(id, name) {
-  const confirmed = confirm(
-    `Delete internship submission for "${name}"?\n\nThis will permanently remove their record and acceptance letter file. This cannot be undone.`,
-  );
-  if (!confirmed) return;
+
+// ── Delete internship state ──
+let _deleteInternshipId   = null;
+let _deleteInternshipName = null;
+
+function openDeleteInternshipModal(id, name) {
+  _deleteInternshipId   = id;
+  _deleteInternshipName = name;
+  document.getElementById("deleteInternshipName").textContent = name;
+  const btn = document.getElementById("confirmDeleteInternshipBtn");
+  if (btn) {
+    btn.disabled       = false;
+    btn.style.opacity  = "1";
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.2" stroke-linecap="round"
+           stroke-linejoin="round" width="14" height="14">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+      Yes, Delete`;
+  }
+  document.getElementById("deleteInternshipModal").classList.add("open");
+}
+
+function closeDeleteInternshipModal() {
+  _deleteInternshipId   = null;
+  _deleteInternshipName = null;
+  document.getElementById("deleteInternshipModal").classList.remove("open");
+}
+
+async function confirmDeleteInternship() {
+  if (!_deleteInternshipId) return;
+
+  const btn = document.getElementById("confirmDeleteInternshipBtn");
+  if (btn) {
+    btn.disabled      = true;
+    btn.style.opacity = ".6";
+    btn.textContent   = "Deleting…";
+  }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res = await fetch(`${API_BASE}/api/internship/admin/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
-    });
+    const res = await fetch(
+      `${API_BASE}/api/internship/admin/${_deleteInternshipId}`,
+      {
+        method:  "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:  `Bearer ${admin.token}`,
+        },
+      }
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to delete");
 
-    toast("Deleted", `${name}'s submission has been removed`, "success");
+    closeDeleteInternshipModal();
+    toast("Deleted", `${_deleteInternshipName}'s submission removed`, "success");
     await renderInternships();
     await fetchDashboardStats();
   } catch (err) {
     toast("Error", err.message, "error");
+    if (btn) {
+      btn.disabled      = false;
+      btn.style.opacity = "1";
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round"
+             stroke-linejoin="round" width="14" height="14">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        Yes, Delete`;
+    }
   }
 }
+
+// Old deleteInternship — replace with this:
+function deleteInternship(id, name) {
+  openDeleteInternshipModal(id, name);
+}
+
 /* GLOBAL DATA */
 let SUPERVISORS_DATA = [];
 let TEAMS_DATA = [];
 let STUDENTS_DATA = [];
+
 /* STUDENT VIEW MODAL */
 function openStudentViewModal(studentId) {
   const s = STUDENTS_DATA.find((s) => s._id === studentId);
@@ -3431,13 +3569,14 @@ function openStudentViewModal(studentId) {
   if (!body) return;
 
   const projTitle = s.group?.project_title || "Not assigned";
-  const supName = s.group?.supervisor
+  const teamCode  = s.group?.team_code || s.group?.group_code || "—";
+  const supName   = s.group?.supervisor
     ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
     : "Not assigned";
 
   const fieldStyle = `
     width:100%;padding:9px 12px;
-    background:#f8faf8;border:1.5px solid var(--border);
+    background:var(--bg);border:1.5px solid var(--border);
     border-radius:9px;font-size:.86rem;color:var(--text);
     font-family:inherit;cursor:default`;
 
@@ -3446,55 +3585,144 @@ function openStudentViewModal(studentId) {
     color:var(--text-mute);text-transform:uppercase;
     letter-spacing:.06em;margin-bottom:5px`;
 
+  const sectionHeadStyle = `
+    font-size:.68rem;font-weight:800;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--text-mute);margin-bottom:12px`;
+
+  // ── Document row builder ──
+  function docRow(label, subtitle, iconColor, iconPath, url, btnColor, btnBorder, statusBadge = "") {
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;
+                  padding:11px 14px;border-radius:10px;
+                  background:var(--bg);border:1px solid var(--border-soft);gap:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">
+          <div style="width:34px;height:34px;border-radius:9px;flex-shrink:0;
+                      background:${iconColor};display:grid;place-items:center">
+            ${iconPath}
+          </div>
+          <div style="min-width:0">
+            <div style="font-size:.82rem;font-weight:700;color:var(--text)">
+              ${label} ${statusBadge}
+            </div>
+            <div style="font-size:.7rem;color:var(--text-mute);margin-top:1px">
+              ${subtitle}
+            </div>
+          </div>
+        </div>
+        ${url
+          ? `<button onclick="viewDoc('${url}')"
+               style="flex-shrink:0;padding:6px 16px;border-radius:7px;
+                      font-size:.74rem;font-weight:700;cursor:pointer;
+                      border:1.5px solid ${btnBorder};
+                      background:${btnColor};color:inherit;
+                      display:inline-flex;align-items:center;gap:5px">
+               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" width="12" height="12">
+                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                 <circle cx="12" cy="12" r="3"/>
+               </svg>
+               View
+             </button>`
+          : `<span style="flex-shrink:0;font-size:.72rem;color:var(--text-mute);
+                          font-style:italic;padding:6px 10px">Not uploaded</span>`
+        }
+      </div>`;
+  }
+
+  // ── Proposal status badge ──
+  const proposalStatus = s.group?.proposal_status || "";
+  const proposalBadge  = proposalStatus
+    ? `<span style="
+          font-size:.64rem;font-weight:700;padding:2px 7px;
+          border-radius:5px;margin-left:5px;vertical-align:middle;
+          background:${proposalStatus === "approved" ? "rgba(21,128,61,.1)"
+                     : proposalStatus === "rejected" ? "rgba(220,38,38,.1)"
+                     : "rgba(234,179,8,.1)"};
+          color:${proposalStatus === "approved" ? "#15803d"
+                : proposalStatus === "rejected" ? "#dc2626"
+                : "#a16207"}">
+          ${proposalStatus.charAt(0).toUpperCase() + proposalStatus.slice(1)}
+        </span>`
+    : "";
+
   body.innerHTML = `
-    <!-- Avatar + name header -->
-      <div>
-        <div style="font-weight:800;font-size:1rem;color:var(--primary-dark)">${escapeHtml(s.name)}</div>
-        <div style="font-size:.74rem;color:var(--text-mute);margin-top:2px">${escapeHtml(s.email || "—")}</div>
-        <span class="id-pill" style="margin-top:4px;display:inline-block">${escapeHtml(s.student_code || "—")}</span>
+
+    <!-- ── Header ── -->
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;
+                padding:16px;background:linear-gradient(135deg,rgba(0,75,45,.04),rgba(191,161,74,.04));
+                border-radius:12px;border:1px solid var(--border-soft)">
+      <div style="width:52px;height:52px;border-radius:14px;flex-shrink:0;
+                  background:linear-gradient(135deg,var(--primary),var(--secondary));
+                  display:grid;place-items:center;color:#fff;
+                  font-weight:800;font-size:1.1rem">
+        ${initials(s.name)}
       </div>
-    </div>
-
-    <!-- Personal info: 2 per row -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
-
-      <div>
-        <label style="${labelStyle}">Full Name</label>
-        <div style="${fieldStyle}">${escapeHtml(s.name || "—")}</div>
-      </div>
-
-      <div>
-        <label style="${labelStyle}">Student ID</label>
-        <div style="${fieldStyle};font-family:monospace;font-weight:700;color:var(--primary)">
-          ${escapeHtml(s.student_code || "—")}
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:1rem;color:var(--primary-dark)">
+          ${escapeHtml(s.name)}
+        </div>
+        <div style="font-size:.74rem;color:var(--text-mute);margin-top:2px">
+          ${escapeHtml(s.email || "—")}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <span class="id-pill">${escapeHtml(s.student_code || "—")}</span>
+          ${teamCode !== "—"
+            ? `<span class="id-pill gold">${escapeHtml(teamCode)}</span>`
+            : ""}
+          <span style="padding:3px 8px;border-radius:5px;font-size:.68rem;
+                        font-weight:700;background:rgba(0,75,45,.08);color:var(--primary)">
+            ${s.team_role || "Member"}
+          </span>
         </div>
       </div>
-
-      <div>
-        <label style="${labelStyle}">Email</label>
-        <div style="${fieldStyle}">${escapeHtml(s.email || "—")}</div>
-      </div>
-
-      <div>
-        <label style="${labelStyle}">WhatsApp</label>
-        <div style="${fieldStyle}">${escapeHtml(s.whatsapp || "—")}</div>
-      </div>
-
-      <div style="grid-column:1/-1">
-        <label style="${labelStyle}">Gender</label>
-        <div style="${fieldStyle};text-transform:capitalize">${escapeHtml(s.gender || "—")}</div>
-      </div>
-
     </div>
 
-    <!-- Team & Project -->
-    <div style="border-top:1px solid var(--border-soft);padding-top:14px;margin-bottom:14px">
-      <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;
-                  letter-spacing:.08em;color:var(--text-mute);margin-bottom:10px">
-        Team &amp; Project
-      </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:14px">
+    <!-- ── Personal Info ── -->
+    <div style="margin-bottom:18px">
+      <div style="${sectionHeadStyle}">Personal Information</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
 
+        <div>
+          <label style="${labelStyle}">Full Name</label>
+          <div style="${fieldStyle}">${escapeHtml(s.name || "—")}</div>
+        </div>
+
+        <div>
+          <label style="${labelStyle}">Student ID</label>
+          <div style="${fieldStyle};font-family:monospace;font-weight:700;color:var(--primary)">
+            ${escapeHtml(s.student_code || "—")}
+          </div>
+        </div>
+
+        <div>
+          <label style="${labelStyle}">Email</label>
+          <div style="${fieldStyle};font-size:.8rem">${escapeHtml(s.email || "—")}</div>
+        </div>
+
+        <div>
+          <label style="${labelStyle}">WhatsApp</label>
+          <div style="${fieldStyle}">${escapeHtml(s.whatsapp || "—")}</div>
+        </div>
+
+        <div style="grid-column:1/-1">
+          <label style="${labelStyle}">Gender</label>
+          <div style="${fieldStyle};text-transform:capitalize">
+            ${escapeHtml(s.gender || "—")}
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── Team & Project ── -->
+    <div style="border-top:1px solid var(--border-soft);
+                padding-top:16px;margin-bottom:18px">
+      <div style="${sectionHeadStyle}">Team &amp; Project</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:12px">
+
+        <div>
+        </div>
         <div>
           <label style="${labelStyle}">Supervisor</label>
           <div style="${fieldStyle}">${escapeHtml(supName)}</div>
@@ -3508,57 +3736,60 @@ function openStudentViewModal(studentId) {
       </div>
     </div>
 
-    <!-- Documents -->
-    <div style="border-top:1px solid var(--border-soft);padding-top:14px">
-      <div style="font-size:.68rem;font-weight:800;text-transform:uppercase;
-                  letter-spacing:.08em;color:var(--text-mute);margin-bottom:10px">
-        Documents
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <!-- ── Documents ── -->
+    <div style="border-top:1px solid var(--border-soft);padding-top:16px">
+      <div style="${sectionHeadStyle}">Documents</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
 
-        ${
-          s.cv_url
-            ? `
-          <button onclick="viewDoc('${s.cv_url}')"
-            style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;
-                   border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;
-                   border:1.5px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
-                   color:var(--primary)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-            View CV
-          </button>`
-            : `
-          <span style="padding:8px 14px;border-radius:9px;font-size:.78rem;font-weight:600;
-                       border:1.5px dashed var(--border);color:var(--text-mute)">
-            CV not uploaded
-          </span>`
-        }
+        ${docRow(
+          "CV",
+          "Curriculum Vitae · PDF",
+          "rgba(0,75,45,.1)",
+          `<svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)"
+                stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" width="16" height="16">
+             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+             <polyline points="14 2 14 8 20 8"/>
+             <line x1="16" y1="13" x2="8" y2="13"/>
+             <line x1="16" y1="17" x2="8" y2="17"/>
+           </svg>`,
+          s.cv_url || "",
+          "rgba(0,75,45,.06)",
+          "rgba(0,75,45,.2)"
+        )}
 
-        ${
-          s.group?.proposal_url
-            ? `
-          <button onclick="viewDoc('${s.group.proposal_url}')"
-            style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;
-                   border-radius:9px;font-size:.78rem;font-weight:700;cursor:pointer;
-                   border:1.5px solid rgba(99,102,241,.25);background:rgba(99,102,241,.06);
-                   color:#4f46e5">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-            </svg>
-            View Proposal
-          </button>`
-            : `
-          <span style="padding:8px 14px;border-radius:9px;font-size:.78rem;font-weight:600;
-                       border:1.5px dashed var(--border);color:var(--text-mute)">
-            Proposal not submitted
-          </span>`
-        }
+        ${docRow(
+          "Certificates",
+          "Academic certificates · PDF",
+          "rgba(191,161,74,.12)",
+          `<svg viewBox="0 0 24 24" fill="none" stroke="#9a7e2a"
+                stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" width="16" height="16">
+             <circle cx="12" cy="8" r="6"/>
+             <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+           </svg>`,
+          s.certificates_url || "",
+          "rgba(191,161,74,.08)",
+          "rgba(191,161,74,.3)"
+        )}
+
+        ${docRow(
+          "Proposal",
+          "FYP Proposal · PDF",
+          "rgba(99,102,241,.1)",
+          `<svg viewBox="0 0 24 24" fill="none" stroke="#4f46e5"
+                stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" width="16" height="16">
+             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+             <polyline points="14 2 14 8 20 8"/>
+             <line x1="16" y1="13" x2="8" y2="13"/>
+             <line x1="16" y1="17" x2="8" y2="17"/>
+           </svg>`,
+          s.group?.proposal_url || "",
+          "rgba(99,102,241,.06)",
+          "rgba(99,102,241,.25)",
+          proposalBadge
+        )}
 
       </div>
     </div>`;

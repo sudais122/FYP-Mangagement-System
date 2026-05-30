@@ -19,11 +19,11 @@ const fileSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  file_public_id: String, // Cloudinary ID for deletion
+  file_public_id: String, 
   file_type: {
-    type: String, // pdf, docx, zip, image, code
+    type: String, 
   },
-  file_size: Number, // in bytes
+  file_size: Number, 
   category: {
     type: String,
     enum: ["Report", "Code", "Documentation", "Other"],

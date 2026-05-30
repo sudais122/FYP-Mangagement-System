@@ -26,7 +26,7 @@ export const uploadCVLocal = multer({
     const allowed = [".pdf", ".doc", ".docx"];
     const ext = path.extname(file.originalname).toLowerCase();
     if (!allowed.includes(ext)) {
-      return cb(new Error("Only PDF, DOC, DOCX files allowed"), false);
+      return cb(new Error("Only PDF files allowed"), false);
     }
     cb(null, true);
   },

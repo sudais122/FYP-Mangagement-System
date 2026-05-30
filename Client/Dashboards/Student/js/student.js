@@ -527,7 +527,7 @@ function setProposalState(state) {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </div>
         <div class="puz-text">Drag & drop your proposal or <span style="color:var(--primary);text-decoration:underline;font-weight:700">browse</span></div>
-        <div class="puz-hint">PDF or DOCX · Max 20 MB</div>
+        <div class="puz-hint">PDF · Max 20 MB</div>
         <input type="file" id="proposal-file-input" hidden accept=".pdf,.docx,.doc" onchange="handleProposalUpload(this.files)">
       </div>`;
   } else if (state === "pending") {
@@ -582,7 +582,7 @@ function setProposalState(state) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
           </div>
           <div class="puz-text">Re-upload revised proposal</div>
-          <div class="puz-hint">PDF or DOCX · Max 20 MB</div>
+          <div class="puz-hint">PDF · Max 20 MB</div>
           <input type="file" id="proposal-file-input-re" hidden accept=".pdf,.docx,.doc" onchange="handleProposalUpload(this.files)">
         </div>
       </div>`;
@@ -594,7 +594,7 @@ async function handleProposalUpload(files) {
   const file = files[0];
   const ext = file.name.split(".").pop().toLowerCase();
   if (!["pdf", "docx", "doc"].includes(ext)) {
-    toast("Only PDF and DOCX files are accepted", "red");
+    toast("Only PDF files are accepted", "red");
     return;
   }
   if (file.size > 20 * 1024 * 1024) {
