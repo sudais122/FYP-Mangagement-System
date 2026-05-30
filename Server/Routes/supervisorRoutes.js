@@ -10,7 +10,8 @@ import {
   getWorkloadPerSupervisor,
   getAllStudentsForChairman,
   getAllTeamsForChairman,
-  getGroupMarks
+  getGroupMarks,
+  getChairmanInternships,
 } from "../controllers/supervisorController.js";
 import { protect, adminOnly, supervisorOnly } from "../middleware/auth.js";
 
@@ -20,19 +21,23 @@ const router = express.Router();
 router.get("/available", protect, getAvailableSupervisors);
 
 // ── Supervisor routes ──
-router.get("/students",  protect, supervisorOnly, getMyStudents);
+router.get("/students",        protect, supervisorOnly, getMyStudents);
 router.put("/change-password", protect, supervisorOnly, changePassword);
-router.get("/mark-toggles", protect, supervisorOnly, getMarkTogglesForSupervisor);
+router.get("/mark-toggles",    protect, supervisorOnly, getMarkTogglesForSupervisor);
 
 // ── Chairman-only routes ──
-router.get("/chairman/overview",   protect, supervisorOnly, getDepartmentOverview);
-router.get("/chairman/workload",   protect, supervisorOnly, getWorkloadPerSupervisor);
-router.get("/chairman/students",   protect, supervisorOnly, getAllStudentsForChairman);
-router.get("/chairman/teams",      protect, supervisorOnly, getAllTeamsForChairman);
-router.get("/my-groups", protect, getGroupMarks);
-router.get("/marks/group/:groupId", protect, getGroupMarks);
+router.get("/chairman/overview",      protect, supervisorOnly, getDepartmentOverview);
+router.get("/chairman/workload",      protect, supervisorOnly, getWorkloadPerSupervisor);
+router.get("/chairman/students",      protect, supervisorOnly, getAllStudentsForChairman);
+router.get("/chairman/teams",         protect, supervisorOnly, getAllTeamsForChairman);
+router.get("/chairman/internships",   protect, supervisorOnly, getChairmanInternships); // ← fixed
+
+// ── Marks ──
+router.get("/my-groups",              protect, getGroupMarks);
+router.get("/marks/group/:groupId",   protect, getGroupMarks);
+
 // ── Admin-only routes ──
-router.get("/",     protect, adminOnly, getAllSupervisors);
-router.get("/:id",  protect, adminOnly, getSupervisorDetail);
+router.get("/",    protect, adminOnly, getAllSupervisors);
+router.get("/:id", protect, adminOnly, getSupervisorDetail);
 
 export default router;

@@ -3,6 +3,7 @@ import Group from "../Models/group.js";
 import Student from "../Models/student.js";
 import Settings from "../Models/Settings.js";
 import Marks from "../Models/marks.js";
+import Internship from "../Models/internship.js";
 
 // ── GET ALL SUPERVISORS (Admin) ────────────────────────────────
 export const getAllSupervisors = async (req, res) => {
@@ -618,5 +619,19 @@ export const getAllTeamsForChairman = async (
     res.status(500).json({
       message: err.message,
     });
+  }
+};
+
+// ── GET INTERNSHIPS FOR CHAIRMAN 
+export const getChairmanInternships = async (req, res) => {
+  try {
+    const internships = await Internship.find()
+      .select("full_name cnic discipline acceptance_letter_url createdAt")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ internships });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

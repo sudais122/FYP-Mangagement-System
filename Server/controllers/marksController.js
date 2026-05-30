@@ -10,41 +10,57 @@ export const saveMarks = async (req, res) => {
   const caller = await Supervisor.findById(req.user.id);
 
   if (caller && caller.is_chairman) {
-    return res.status(403).json({
-      message: "Chairman has read-only access. Only the assigned supervisor can save marks."
-    });
+    const { student_id } = req.body;
+    const Student = (await import("../Models/student.js")).default;
+    const student = await Student.findById(student_id);
+
+    if (!student || !student.group) {
+      return res.status(404).json({ message: "Student or group not found" });
+    }
+
+    const group = await Group.findById(student.group);
+
+    if (!group) {
+      return res.status(404).json({ message: "Group not found" });
+    }
+
+    const isOwner = group.supervisor?.toString() === req.user.id;
+
+    if (!isOwner) {
+      return res.status(403).json({
+        message: "You can only edit marks for your own assigned groups",
+      });
+    }
   }
 
   const { student_id, supervisor_id, monthly, submissions, viva, documentation } = req.body;
 
   try {
-      let marks = await Marks.findOne({ student: student_id });
-      if (!marks) {
-        return res.status(404).json({ message: "Marks record not found for this student" });
-      }
+    let marks = await Marks.findOne({ student: student_id });
+    if (!marks) {
+      return res.status(404).json({ message: "Marks record not found for this student" });
+    }
 
-      // ── Ensure supervisor is always set ──
-      if (!marks.supervisor) {
-        marks.supervisor = supervisor_id || req.user.id;
-}
+    if (!marks.supervisor) {
+      marks.supervisor = supervisor_id || req.user.id;
+    }
 
-    // Track which fields actually changed
     const updatedSections = [];
 
     const LABELS = {
       monthly: {
-        oct: { label: "October Meeting",  max: 10 },
-        nov: { label: "November Meeting", max: 10 },
-        dec: { label: "December Meeting", max: 10 },
-        feb: { label: "February Meeting", max: 10 },
-        mar: { label: "March Meeting",    max: 10 },
+        oct:  { label: "October Meeting",  max: 10 },
+        nov:  { label: "November Meeting", max: 10 },
+        dec:  { label: "December Meeting", max: 10 },
+        feb:  { label: "February Meeting", max: 10 },
+        mar:  { label: "March Meeting",    max: 10 },
       },
       submissions: {
-        proposal:  { label: "Proposal Submission",   max: 10 },
-        progress:  { label: "Progress Report",       max: 20 },
-        code:      { label: "Code / Practical Work", max: 10 },
-        prog_sim:  { label: "Progress Similarity",   max: 5  },
-        thesis_sim:{ label: "Thesis Similarity",     max: 5  },
+        proposal:   { label: "Proposal Submission",   max: 10 },
+        progress:   { label: "Progress Report",       max: 20 },
+        code:       { label: "Code / Practical Work", max: 10 },
+        prog_sim:   { label: "Progress Similarity",   max: 5  },
+        thesis_sim: { label: "Thesis Similarity",     max: 5  },
       },
       documentation: {
         final: { label: "Thesis / Final Report", max: 20 },
@@ -104,9 +120,10 @@ export const saveMarks = async (req, res) => {
     marks.markModified("documentation");
 
     await marks.save();
+
     if (updatedSections.length > 0) {
       try {
-        const Student    = (await import("../Models/student.js")).default;
+        const Student = (await import("../Models/student.js")).default;
         const { marksUpdatedTemplate } = await import("../utils/emailTemplates/marksUpdated.js");
         const { sendEmail } = await import("../utils/sendEmail.js");
 
@@ -116,11 +133,11 @@ export const saveMarks = async (req, res) => {
 
         if (student?.email) {
           const { subject, html } = marksUpdatedTemplate({
-            studentName:     student.name,
-            supervisorName:  caller?.name || "Your Supervisor",
-            groupCode:       group?.group_code || "—",
+            studentName:    student.name,
+            supervisorName: caller?.name || "Your Supervisor",
+            groupCode:      group?.group_code || "—",
             updatedSections,
-            total:           marks.total,
+            total:          marks.total,
           });
 
           sendEmail({ to: student.email, subject, html }).then(r => {
@@ -135,7 +152,7 @@ export const saveMarks = async (req, res) => {
     res.json({
       message: "Marks saved successfully",
       total:   marks.total,
-      marks
+      marks,
     });
 
   } catch (error) {

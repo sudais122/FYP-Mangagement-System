@@ -94,7 +94,15 @@
             <polyline points="14 2 14 8 20 8"/>
           </svg>Proposals
         </button>
-
+<button class="sb-btn" id="sb-internship" onclick="showTab('internship')">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="7" width="20" height="14" rx="2"/>
+    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+    <line x1="12" y1="12" x2="12" y2="16"/>
+    <line x1="10" y1="14" x2="14" y2="14"/>
+  </svg>Internship Letters
+</button>
         <div class="sb-spacer"></div>
         <button class="sb-btn logout" onclick="logout()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -223,12 +231,13 @@
                       <th>Project Title</th>
                       <th>Supervisor</th>
                       <th>Students</th>
-                      <th></th>
+                      <th>Proposal</th>
                     </tr>
                   </thead>
                   <tbody id="teams-tbody"></tbody>
                 </table>
               </div>
+                <div id="teams-pagination"></div> 
             </div>
           </div>
           <!-- Team detail (read-only marks) -->
@@ -268,6 +277,7 @@
                   <tbody id="workload-tbody"></tbody>
                 </table>
               </div>
+                <div id="workload-pagination"></div>
             </div>
           </div>
           <!-- Supervisor detail (read-only) -->
@@ -304,12 +314,12 @@
                       <th>Supervisor</th>
                       <th>Role</th>
                       <th style="text-align:right">Marks</th>
-                      <th></th>
                     </tr>
                   </thead>
                   <tbody id="students-tbody"></tbody>
                 </table>
               </div>
+                <div id="students-pagination"></div>  
             </div>
           </div>
           <!-- Student marks detail (read-only) -->
@@ -343,13 +353,58 @@
                     <th>Project Title</th>
                     <th>Status</th>
                     <th>Supervisor</th>
+                    <th>View</th>
                   </tr>
                 </thead>
                 <tbody id="proposals-tbody"></tbody>
               </table>
             </div>
+              <div id="proposals-pagination"></div> 
           </div>
         </div>
+        <!-- ══════════════ INTERNSHIP TAB ══════════════ -->
+<div class="tab" id="tab-internship">
+  <div class="card">
+    <div class="card-head">
+      <h3>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2"/>
+          <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+        </svg>Internship Acceptance Letters
+        <span style="font-size:.72rem;font-weight:500;color:var(--text-mute);margin-left:8px">Read-Only</span>
+      </h3>
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" placeholder="Search by name…"
+               oninput="filterInternships(this.value)">
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div style="overflow-x:auto">
+        <table class="g-table">
+          <thead>
+            <tr>
+              <th>Full Name</th>
+              <th>CNIC</th>
+              <th>Discipline</th>
+              <th>Submission Date</th>
+              <th>Letter</th>
+            </tr>
+          </thead>
+          <tbody id="internship-tbody">
+            <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+        <div id="internship-pagination"></div>
+    </div>
+  </div>
+</div>
       </main>
     </div>
     <div class="toast" id="toast"></div>

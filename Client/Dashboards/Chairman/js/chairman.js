@@ -25,7 +25,7 @@ const TOTAL_MARKS = 200;
 const authHeaders = { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` };
 
 /* ── welcome ── */
-document.getElementById("welcome-name").textContent  = `Welcome, ${sup.name} 👋`;
+document.getElementById("welcome-name").textContent  = `Welcome, ${sup.name}`;
 document.getElementById("welcome-sup-id").textContent = sup.sup_code || "—";
 document.getElementById("nav-sup-name").textContent  = sup.name     || "Chairman";
 document.getElementById("nav-sup-code").textContent  = sup.sup_code || "";
@@ -41,7 +41,7 @@ let STUDENTS_DATA = [];
 
 async function checkChairmanAccess() {
   try {
-    const res  = await fetch("http://localhost:5001/api/admin/system/chairman-mode/public");
+    const res  = await fetch(`${API_BASE}/admin/system/chairman-mode/public`);
     const data = await res.json();
 
     if (!data.chairman_monitoring_mode) {
@@ -84,6 +84,55 @@ const MARKS_SCHEMA = [
   ]},
 ];
 
+let MARK_TOGGLES = {};
+
+async function loadMarkToggles() {
+  try {
+    const res  = await fetch(`${API_BASE}/supervisors/mark-toggles`, { headers: authHeaders });
+    if (!res.ok) return;
+    const data = await res.json();
+    MARK_TOGGLES = data.toggles || {};
+  } catch (err) {
+    console.error("Failed to load mark toggles:", err.message);
+  }
+}
+
+function applyMarkLocks() {
+  document.querySelectorAll(".mk-input.ch-edit").forEach(input => {
+    const key         = input.dataset.key;
+    const toggleValue = MARK_TOGGLES[key];
+
+    const enabled = toggleValue === undefined
+      ? true
+      : (toggleValue === true || toggleValue === "true");
+
+    input.disabled      = !enabled;
+    input.style.opacity = enabled ? "1"         : "0.5";
+    input.style.cursor  = enabled ? "text"      : "not-allowed";
+    input.title         = enabled ? ""          : "🔒 Locked by admin";
+
+    if (enabled) input.classList.remove("locked-by-admin");
+    else         input.classList.add("locked-by-admin");
+  });
+
+  document.querySelectorAll(".btn-save").forEach(btn => {
+    const inputs    = [...document.querySelectorAll(".mk-input.ch-edit")];
+    const allLocked = inputs.length > 0 && inputs.every(inp => inp.disabled);
+    if (allLocked) {
+      btn.disabled      = true;
+      btn.style.opacity = "0.4";
+      btn.style.cursor  = "not-allowed";
+      btn.innerHTML     = "🔒 All marks locked by admin";
+    } else {
+      btn.disabled      = false;
+      btn.style.opacity = "1";
+      btn.style.cursor  = "pointer";
+      btn.innerHTML     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/></svg> Save Marks`;
+    }
+  });
+}
 function flatItems() { return MARKS_SCHEMA.flatMap(s => s.items); }
 
 function marksFromRecord(m) {
@@ -106,6 +155,71 @@ function calcTotal(marks) {
   return flatItems().reduce((t, it) => t + (marks[it.key] ?? 0), 0);
 }
 
+
+async function showTeamsList() {
+  document.getElementById("teams-list-view").style.display  = "";
+  document.getElementById("teams-detail-view").style.display = "none";
+
+  if (TEAMS_DATA.length) { renderTeamsPage(PAGES.teams); return; }
+
+  document.getElementById("teams-tbody").innerHTML =
+    `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
+  try {
+    const res  = await fetch(`${API_BASE}/supervisors/chairman/teams`, { headers: authHeaders });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+    TEAMS_DATA = data.teams || [];
+    renderTeamsPage(1);
+  } catch (err) {
+    document.getElementById("teams-tbody").innerHTML =
+      `<tr><td colspan="5" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function renderTeamsPage(page) {
+  PAGES.teams = page;
+  const slice = TEAMS_DATA.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  renderTeams(slice, document.getElementById("search-teams")?.value || "");
+  renderChairPagination("teams-pagination", TEAMS_DATA.length, page, "renderTeamsPage");
+}
+
+function renderTeams(list, q) {
+  q = (q || "").trim().toLowerCase();
+  const tbody = document.getElementById("teams-tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">No teams yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = list.map(t => {
+    const count = (t.leader ? 1 : 0) + (t.members?.length || 0);
+    return `<tr onclick="openTeamDetail('${t._id || t.team_code}')" style="cursor:pointer">
+      <td><span class="tid">${hl(t.team_code || "—", q)}</span></td>
+      <td><span class="g-proj">${hl(t.project_title || "—", q)}</span></td>
+      <td>
+        <div style="font-weight:600">${hl(t.supervisor?.name || "Unassigned", q)}</div>
+        <small style="color:var(--text-mute);font-size:.66rem">${t.supervisor?.sup_code || ""}</small>
+      </td>
+      <td><span class="g-count">${count}</span></td>
+      <td style="text-align:right"><span class="g-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </span></td>
+    </tr>`;
+  }).join("");
+}
+
+function filterTeams(q) {
+  PAGES.teams = 1;
+  q = (q || "").trim().toLowerCase();
+  const filtered = TEAMS_DATA.filter(t =>
+    (t.team_code || "").toLowerCase().includes(q) ||
+    (t.project_title || "").toLowerCase().includes(q) ||
+    (t.supervisor?.name || "").toLowerCase().includes(q)
+  );
+  renderTeams(filtered, q);
+  renderChairPagination("teams-pagination", filtered.length, 1, "renderTeamsPage");
+}
 /* ═══════════════════════════════════
    HELPERS
 ═══════════════════════════════════ */
@@ -193,30 +307,123 @@ function showTab(tab) {
   document.getElementById("sb-" + tab)?.classList.add("active");
 
   const titles = {
-    overview:  ["Overview",             "Your groups and department statistics"],
-    mygroups:  ["My Groups",            "Your assigned groups — marks editable"],
-    teams:     ["All Teams",            "Read-only view of every team in the department"],
-    workload:  ["Supervisor Workload",  "Teams & students per supervisor"],
-    students:  ["All Students",         "Read-only view of every student"],
-    proposals: ["Proposals",            "Status of every team's proposal"],
+    overview:     ["Overview",            "Your groups and department statistics"],
+    mygroups:     ["My Groups",           "Your assigned groups — marks editable"],
+    teams:        ["All Teams",           "Read-only view of every team"],
+    workload:     ["Supervisor Workload", "Teams & students per supervisor"],
+    students:     ["All Students",        "Read-only view of every student"],
+    proposals:    ["Proposals",           "Status of every team's proposal"],
+    internship:   ["Internship Letters",  "Student internship acceptance letters"],  // ← ADD
   };
   const t = titles[tab] || [tab, ""];
   document.getElementById("page-title").textContent = t[0];
   document.getElementById("page-sub").textContent   = t[1];
 
-  if (tab === "overview")  loadOverview();
-  if (tab === "mygroups")  showMyGroupsList();
-  if (tab === "teams")     showTeamsList();
-  if (tab === "workload")  showWorkloadList();
-  if (tab === "students")  showStudentsList();
-  if (tab === "proposals") loadProposals();
+  if (tab === "overview")   loadOverview();
+  if (tab === "mygroups")   showMyGroupsList();
+  if (tab === "teams")      showTeamsList();
+  if (tab === "workload")   showWorkloadList();
+  if (tab === "students")   showStudentsList();
+  if (tab === "proposals")  loadProposals();
+  if (tab === "internship") loadInternships();  
 
   if (window.innerWidth <= 900) closeSidebar();
 }
 
 /* ═══════════════════════════════════
-   OVERVIEW TAB
+   PAGINATION HELPER
 ═══════════════════════════════════ */
+const PAGE_SIZE = 15;
+
+const PAGES = {
+  teams:      1,
+  students:   1,
+  workload:   1,
+  proposals:  1,
+  internship: 1,
+};
+
+function renderChairPagination(containerId, totalItems, currentPage, onPageChange) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  const start      = Math.min((currentPage - 1) * PAGE_SIZE + 1, totalItems);
+  const end        = Math.min(currentPage * PAGE_SIZE, totalItems);
+
+  if (totalItems === 0) { container.innerHTML = ""; return; }
+
+  if (totalPages <= 1) {
+    container.innerHTML = `
+      <div style="padding:10px 16px;font-size:.74rem;color:var(--text-mute);font-weight:600;
+                  border-top:1px solid var(--border-soft)">
+        Showing all ${totalItems}
+      </div>`;
+    return;
+  }
+
+  // Build visible page numbers
+  const visible = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) visible.push(i);
+  } else {
+    visible.push(1);
+    if (currentPage > 3) visible.push("…");
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      visible.push(i);
+    }
+    if (currentPage < totalPages - 2) visible.push("…");
+    visible.push(totalPages);
+  }
+
+  const btn = (p) => {
+    const active = p === currentPage;
+    return `<button onclick="${onPageChange}(${p})"
+      style="width:30px;height:30px;border-radius:7px;cursor:pointer;
+             border:1px solid ${active ? "var(--primary)" : "var(--border)"};
+             background:${active ? "var(--primary)" : "var(--surface)"};
+             color:${active ? "#fff" : "var(--text)"};
+             font-size:.76rem;font-weight:${active ? "700" : "600"}">
+      ${p}
+    </button>`;
+  };
+
+  container.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:12px 16px;border-top:1px solid var(--border-soft);flex-wrap:wrap;gap:8px">
+      <span style="font-size:.74rem;color:var(--text-mute);font-weight:600">
+        Showing <strong style="color:var(--text)">${start}–${end}</strong>
+        of <strong style="color:var(--text)">${totalItems}</strong>
+      </span>
+      <div style="display:flex;gap:4px;align-items:center">
+        <button onclick="${onPageChange}(${currentPage - 1})"
+          ${currentPage === 1 ? "disabled" : ""}
+          style="width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
+                 background:var(--surface);cursor:${currentPage === 1 ? "not-allowed" : "pointer"};
+                 opacity:${currentPage === 1 ? ".4" : "1"};display:grid;place-items:center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        ${visible.map(p =>
+          p === "…"
+            ? `<span style="width:30px;height:30px;display:grid;place-items:center;
+                            color:var(--text-mute);font-size:.76rem">…</span>`
+            : btn(p)
+        ).join("")}
+        <button onclick="${onPageChange}(${currentPage + 1})"
+          ${currentPage === totalPages ? "disabled" : ""}
+          style="width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
+                 background:var(--surface);cursor:${currentPage === totalPages ? "not-allowed" : "pointer"};
+                 opacity:${currentPage === totalPages ? ".4" : "1"};display:grid;place-items:center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>`;
+}
+/*OVERVIEW TAB */
 async function loadOverview() {
   try {
     /* department stats */
@@ -326,6 +533,9 @@ async function openMyGroupDetail(groupId) {
       </div>
     </div>
     ${group._students.map(s => renderMyGroupStudentCard(group._id, s)).join("")}`;
+
+  await loadMarkToggles();
+  applyMarkLocks();
 }
 
 function renderMyGroupStudentCard(groupId, s) {
@@ -349,10 +559,10 @@ function renderMyGroupStudentCard(groupId, s) {
     </div>
     <div class="stu-body" id="chbd-${sid}">
       <div style="font-size:.7rem;color:var(--text-mute);margin-bottom:10px;display:flex;gap:18px">
-        <span>📧 ${s.email || "—"}</span>
+        <span>${s.email || "—"}</span>
         <a href="https://wa.me/${(s.whatsapp||"").replace(/^0/,"92")}" target="_blank"
            style="color:#15803d;font-weight:600;text-decoration:none">
-          📱 ${s.whatsapp || "—"}
+          ${s.whatsapp || "—"}
         </a>
       </div>
       <div class="mk-grid">${editableMarksHtml(s.marks || {}, sid, groupId)}</div>
@@ -377,6 +587,7 @@ function renderMyGroupStudentCard(groupId, s) {
 function chToggle(sid) {
   document.getElementById("chbd-" + sid)?.classList.toggle("open");
   document.getElementById("chch-" + sid)?.classList.toggle("open");
+  applyMarkLocks();
 }
 
 function onChairMarkChange(input) {
@@ -437,23 +648,7 @@ async function saveMyGroupMarks(groupId, studentId) {
 /* ═══════════════════════════════════
    ALL TEAMS TAB (read-only, click for marks)
 ═══════════════════════════════════ */
-async function showTeamsList() {
-  document.getElementById("teams-list-view").style.display  = "";
-  document.getElementById("teams-detail-view").style.display = "none";
-  if (TEAMS_DATA.length) { renderTeams(TEAMS_DATA, ""); return; }
 
-  const tbody = document.getElementById("teams-tbody");
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
-  try {
-    const res  = await fetch(`${API_BASE}/supervisors/chairman/teams`, { headers: authHeaders });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed");
-    TEAMS_DATA = data.teams || [];
-    renderTeams(TEAMS_DATA, "");
-  } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
-  }
-}
 
 function renderTeams(list, q) {
   q = (q || "").trim().toLowerCase();
@@ -490,6 +685,47 @@ function filterTeams(q) {
   renderTeams(filtered, q);
 }
 
+
+//Load Team Proasls
+function renderProposals(list, q) {
+  q = (q || "").trim().toLowerCase();
+  const tbody = document.getElementById("proposals-tbody");
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">No proposals found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(t => {
+    let status, cls;
+    if (!t.proposal_url)                       { status = "Not submitted"; cls = "not-submitted"; }
+    else if (t.proposal_status === "approved") { status = "Approved";      cls = "approved"; }
+    else if (t.proposal_status === "rejected") { status = "Rejected";      cls = "rejected"; }
+    else                                       { status = "Pending";       cls = "pending"; }
+
+    const viewBtn = t.proposal_url ? `
+      <button onclick="viewDoc('${t.proposal_url}')"
+        style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+               border-radius:7px;font-size:.7rem;font-weight:700;cursor:pointer;
+               border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+               color:var(--primary)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>View
+      </button>`
+      : `<span style="font-size:.7rem;color:var(--text-mute);font-style:italic">—</span>`;
+
+    return `<tr>
+      <td><span class="tid">${hl(t.team_code || "—", q)}</span></td>
+      <td><span class="g-proj">${hl(t.project_title || "—", q)}</span></td>
+      <td><span class="prop-status ${cls}">${status}</span></td>
+      <td>${hl(t.supervisor?.name || "Unassigned", q)}</td>
+      <td>${viewBtn}</td>
+    </tr>`;
+  }).join("");
+}
 async function openTeamDetail(teamId) {
   /* find in cache */
   const team = TEAMS_DATA.find(t => t._id === teamId || t.team_code === teamId);
@@ -529,7 +765,7 @@ async function openTeamDetail(teamId) {
       </div>
     </div>
     <p style="font-size:.78rem;color:var(--text-mute);margin:0 0 12px;padding:0 4px">
-      🔒 Read-only — marks are not editable in this view
+      Read-only — marks are not editable in this view
     </p>
     ${team._students.map(s => {
       const total = calcTotal(s.marks || {});
@@ -559,25 +795,33 @@ async function openTeamDetail(teamId) {
     }).join("")}`;
 }
 
-/* ═══════════════════════════════════
-   SUPERVISOR WORKLOAD TAB
-═══════════════════════════════════ */
+//supervisor workload list
 async function showWorkloadList() {
   document.getElementById("workload-list-view").style.display  = "";
   document.getElementById("workload-detail-view").style.display = "none";
-  if (WORKLOAD_DATA.length) { renderWorkload(WORKLOAD_DATA, ""); return; }
 
-  const tbody = document.getElementById("workload-tbody");
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+  if (WORKLOAD_DATA.length) { renderWorkloadPage(PAGES.workload); return; }
+
+  document.getElementById("workload-tbody").innerHTML =
+    `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
   try {
     const res  = await fetch(`${API_BASE}/supervisors/chairman/workload`, { headers: authHeaders });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
     WORKLOAD_DATA = data.workload || [];
-    renderWorkload(WORKLOAD_DATA, "");
+    renderWorkloadPage(1);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
+    document.getElementById("workload-tbody").innerHTML =
+      `<tr><td colspan="5" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
   }
+}
+
+function renderWorkloadPage(page) {
+  PAGES.workload = page;
+  const slice = WORKLOAD_DATA.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  renderWorkload(slice, document.getElementById("search-workload")?.value || "");
+  renderChairPagination("workload-pagination", WORKLOAD_DATA.length, page, "renderWorkloadPage");
 }
 
 function renderWorkload(list, q) {
@@ -604,13 +848,16 @@ function renderWorkload(list, q) {
 }
 
 function filterWorkload(q) {
+  PAGES.workload = 1;
   q = (q || "").trim().toLowerCase();
   const filtered = WORKLOAD_DATA.filter(w =>
     (w.name || "").toLowerCase().includes(q) ||
     (w.sup_code || "").toLowerCase().includes(q)
   );
   renderWorkload(filtered, q);
+  renderChairPagination("workload-pagination", filtered.length, 1, "renderWorkloadPage");
 }
+
 
 async function openSupDetail(supId) {
   const sup_data = WORKLOAD_DATA.find(w => w._id === supId || w.sup_code === supId);
@@ -709,37 +956,62 @@ async function openSupDetail(supId) {
         }).join("")}`;
 }
 
+function renderStudentsPage(page) {
+  PAGES.students = page;
+  const slice = STUDENTS_DATA.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  renderStudents(slice, document.getElementById("search-students")?.value || "");
+  renderChairPagination("students-pagination", STUDENTS_DATA.length, page, "renderStudentsPage");
+}
 /* ═══════════════════════════════════
-   ALL STUDENTS TAB (click for marks detail)
+   ALL STUDENTS TAB 
 ═══════════════════════════════════ */
 async function showStudentsList() {
   document.getElementById("students-list-view").style.display  = "";
   document.getElementById("students-detail-view").style.display = "none";
-  if (STUDENTS_DATA.length) { renderStudents(STUDENTS_DATA, ""); return; }
 
-  const tbody = document.getElementById("students-tbody");
-  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+  if (STUDENTS_DATA.length) { renderStudentsPage(PAGES.students); return; }
+
+  document.getElementById("students-tbody").innerHTML =
+    `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
   try {
     const res  = await fetch(`${API_BASE}/supervisors/chairman/students`, { headers: authHeaders });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
     STUDENTS_DATA = data.students || [];
-    renderStudents(STUDENTS_DATA, "");
+    renderStudentsPage(1);              // ← correct
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
+    document.getElementById("students-tbody").innerHTML =
+      `<tr><td colspan="8" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
   }
 }
 
+//Render Students
 function renderStudents(list, q) {
   q = (q || "").trim().toLowerCase();
   const tbody = document.getElementById("students-tbody");
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-mute)">No students yet</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-mute)">No students yet</td></tr>`;
     return;
   }
   tbody.innerHTML = list.map(s => {
     const teamCode = s.group?.team_code || "—";
     const supName  = s.group?.supervisor?.name || "Unassigned";
+
+    const cvBtn = s.cv_url ? `
+      <button onclick="viewDoc('${s.cv_url}')"
+        title="View CV"
+        style="display:inline-flex;align-items:center;gap:4px;padding:4px 9px;
+               border-radius:7px;font-size:.7rem;font-weight:700;cursor:pointer;
+               border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+               color:var(--primary)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>CV
+      </button>` : `<span style="font-size:.7rem;color:var(--text-mute);font-style:italic">—</span>`;
+
     return `<tr onclick="openStudentDetail('${s._id}')" style="cursor:pointer">
       <td><span class="s-id">${hl(s.student_code, q)}</span></td>
       <td>
@@ -754,8 +1026,9 @@ function renderStudents(list, q) {
       <td>${hl(supName, q)}</td>
       <td><span class="s-role ${(s.team_role||"member").toLowerCase()}">${s.team_role || "—"}</span></td>
       <td style="text-align:right">
-        <span class="s-marks">${s.total_marks ?? 0} <span class="den">/ ${TOTAL_MARKS}</span></span>
+        <span class="s-marks">${s.total_marks ?? 0}<span class="den">/ ${TOTAL_MARKS}</span></span>
       </td>
+      <td onclick="event.stopPropagation()">${cvBtn}</td>
       <td style="text-align:right"><span class="g-arrow">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -765,6 +1038,7 @@ function renderStudents(list, q) {
 }
 
 function filterStudents(q) {
+  PAGES.students = 1;
   q = (q || "").trim().toLowerCase();
   const filtered = STUDENTS_DATA.filter(s =>
     (s.student_code || "").toLowerCase().includes(q) ||
@@ -772,6 +1046,76 @@ function filterStudents(q) {
     (s.group?.team_code || "").toLowerCase().includes(q)
   );
   renderStudents(filtered, q);
+  renderChairPagination("students-pagination", filtered.length, 1, "renderStudentsPage");
+}
+
+/* ═══════════════════════════════════
+   INTERNSHIP TAB
+═══════════════════════════════════ */
+let INTERNSHIP_DATA = [];
+
+async function loadInternships() {
+  const tbody = document.getElementById("internship-tbody");
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
+  try {
+    const res  = await fetch(`${API_BASE}/supervisors/chairman/internships`, { headers: authHeaders });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    INTERNSHIP_DATA = data.internships || [];
+    renderInternshipTable(INTERNSHIP_DATA);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function renderInternshipTable(list) {
+  const tbody = document.getElementById("internship-tbody");
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-mute)">No internship submissions yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(item => {
+    const dateStr = item.createdAt
+      ? new Date(item.createdAt).toLocaleDateString("en-PK", { day:"numeric", month:"short", year:"numeric" })
+      : "—";
+
+    const cnic = (item.cnic || "").replace(/\D/g, "");
+    const cnicFmt = cnic.length === 13
+      ? `${cnic.slice(0,5)}-${cnic.slice(5,12)}-${cnic.slice(12)}`
+      : item.cnic || "—";
+
+    const letterBtn = item.acceptance_letter_url ? `
+      <button onclick="viewDoc('${item.acceptance_letter_url}')"
+        style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
+               border-radius:7px;font-size:.74rem;font-weight:700;cursor:pointer;
+               border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+               color:var(--primary)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>View Letter
+      </button>` : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic">No file</span>`;
+
+    return `<tr>
+      <td><strong>${item.full_name || "—"}</strong></td>
+      <td><span style="font-family:monospace;font-size:.82rem">${cnicFmt}</span></td>
+      <td><span style="font-size:.8rem">${item.discipline || "—"}</span></td>
+      <td style="font-size:.78rem;color:var(--text-mute)">${dateStr}</td>
+      <td>${letterBtn}</td>
+    </tr>`;
+  }).join("");
+}
+
+function filterInternships(q) {
+  const filtered = INTERNSHIP_DATA.filter(item =>
+    (item.full_name || "").toLowerCase().includes((q || "").toLowerCase())
+  );
+  renderInternshipTable(filtered);
 }
 
 async function openStudentDetail(studentId) {
@@ -832,58 +1176,68 @@ async function openStudentDetail(studentId) {
     </div>`;
 }
 
-/* ═══════════════════════════════════
-   PROPOSALS TAB
-═══════════════════════════════════ */
+
+async function viewDoc(url) {
+  if (!url) return toast("No document available", "red");
+  try {
+    if (url.includes("amazonaws.com")) {
+      const res  = await fetch(
+        `${API_BASE}/uploads/signed-url?url=${encodeURIComponent(url)}`,
+        { headers: authHeaders }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      window.open(data.signedUrl, "_blank", "noopener");
+    } else {
+      window.open(
+        url.startsWith("http") ? url : `http://localhost:5001${url}`,
+        "_blank", "noopener"
+      );
+    }
+  } catch (err) {
+    toast("Could not open document: " + err.message, "red");
+  }
+}
+
+
+//Load teh proposals
 async function loadProposals() {
-  const tbody = document.getElementById("proposals-tbody");
-  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+  document.getElementById("proposals-tbody").innerHTML =
+    `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
+
   try {
     const res  = await fetch(`${API_BASE}/supervisors/chairman/teams`, { headers: authHeaders });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
-    const teams = data.teams || [];
-    if (!teams.length) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-mute)">No teams yet</td></tr>`;
-      return;
-    }
-    window._proposalTeams = teams;
-    renderProposals(teams, "");
+    window._proposalTeams = data.teams || [];
+    renderProposalsPage(1);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="4" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
+    document.getElementById("proposals-tbody").innerHTML =
+      `<tr><td colspan="5" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
   }
 }
 
-function renderProposals(list, q) {
-  q = (q || "").trim().toLowerCase();
-  const tbody = document.getElementById("proposals-tbody");
-  tbody.innerHTML = list.map(t => {
-    let status, cls;
-    if (!t.proposal_url)                    { status = "Not Submitted"; cls = "not-submitted"; }
-    else if (t.proposal_status === "approved") { status = "Approved";     cls = "approved"; }
-    else if (t.proposal_status === "rejected") { status = "Rejected";     cls = "rejected"; }
-    else                                    { status = "Pending";       cls = "pending"; }
-
-    return `<tr>
-      <td><span class="tid">${hl(t.team_code || "—", q)}</span></td>
-      <td><span class="g-proj">${hl(t.project_title || "—", q)}</span></td>
-      <td><span class="prop-status ${cls}">${status}</span></td>
-      <td>${hl(t.supervisor?.name || "Unassigned", q)}</td>
-    </tr>`;
-  }).join("");
+function renderProposalsPage(page) {
+  PAGES.proposals = page;
+  const all   = window._proposalTeams || [];
+  const slice = all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  renderProposals(slice, document.getElementById("search-proposals")?.value || "");
+  renderChairPagination("proposals-pagination", all.length, page, "renderProposalsPage");
 }
-
 function filterProposals(q) {
-  const teams = window._proposalTeams || [];
+  PAGES.proposals = 1;
+  const all = window._proposalTeams || [];
   q = (q || "").trim().toLowerCase();
-  const filtered = teams.filter(t =>
+  const filtered = all.filter(t =>
     (t.team_code || "").toLowerCase().includes(q) ||
     (t.project_title || "").toLowerCase().includes(q) ||
     (t.proposal_status || "").toLowerCase().includes(q) ||
     (t.supervisor?.name || "").toLowerCase().includes(q)
   );
-  renderProposals(filtered, q);
+  renderProposalsPage(filtered, q);
+  renderChairPagination("proposals-pagination", filtered.length, 1, "renderProposalsPage");
 }
+
 
 /* ═══════════════════════════════════
    SIDEBAR (mobile)
@@ -924,6 +1278,45 @@ function toast(msg, type) {
 function logout() {
   localStorage.removeItem("supervisor");
   window.location.href = "../../Auth/login.html";
+}
+
+function applyMarkLocks() {
+  document.querySelectorAll(".mk-input.ch-edit").forEach(input => {
+    const key         = input.dataset.key;
+    const toggleValue = MARK_TOGGLES[key];
+
+    // If admin hasn't set this toggle yet → default to ENABLED (unlocked)
+    const enabled = toggleValue === undefined
+      ? true
+      : (toggleValue === true || toggleValue === "true");
+
+    input.disabled      = !enabled;
+    input.style.opacity = enabled ? "1"            : "0.5";
+    input.style.cursor  = enabled ? "text"         : "not-allowed";
+    input.title         = enabled ? ""             : "🔒 Locked by admin";
+
+    if (enabled) input.classList.remove("locked-by-admin");
+    else         input.classList.add("locked-by-admin");
+  });
+
+  // Lock Save button only if EVERY field is locked
+  document.querySelectorAll(".btn-save").forEach(btn => {
+    const inputs    = [...document.querySelectorAll(".mk-input.ch-edit")];
+    const allLocked = inputs.length > 0 && inputs.every(inp => inp.disabled);
+    if (allLocked) {
+      btn.disabled      = true;
+      btn.style.opacity = "0.4";
+      btn.style.cursor  = "not-allowed";
+      btn.innerHTML     = " All marks locked by admin";
+    } else {
+      btn.disabled      = false;
+      btn.style.opacity = "1";
+      btn.style.cursor  = "pointer";
+      btn.innerHTML     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/></svg> Save Marks`;
+    }
+  });
 }
 /* ═══════════════════════════════════
    INIT
