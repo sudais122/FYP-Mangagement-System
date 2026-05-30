@@ -659,3 +659,59 @@ export const downloadInternships = async (req, res) => {
     if (!res.headersSent) res.status(500).json({ message: err.message });
   }
 };
+
+// ── TOGGLE CHAIRMAN MODE ───────────────────────────────────────
+export const toggleChairmanMode = async (req, res) => {
+  try {
+    const { enabled } = req.body;
+
+    if (typeof enabled !== "boolean") {
+      return res.status(400).json({ message: "enabled must be a boolean" });
+    }
+
+    let settings = await Maintaince.findOne();
+    if (!settings) settings = await Maintaince.create({});
+
+    settings.chairman_monitoring_mode = enabled;
+    settings.chairman_mode_enabled_at = enabled ? new Date() : null;
+    settings.chairman_mode_enabled_by = enabled ? req.user?.id : null;
+    await settings.save();
+
+    res.json({
+      message:                  enabled ? "Chairman analytics enabled" : "Chairman analytics disabled",
+      chairman_monitoring_mode: settings.chairman_monitoring_mode,
+      chairman_mode_enabled_at: settings.chairman_mode_enabled_at,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ── CHAIRMAN CHECKS OWN ACCESS 
+export const getChairmanModePublic = async (req, res) => {
+  try {
+    const settings = await Maintaince.findOne().lean();
+    res.json({
+      chairman_monitoring_mode: settings?.chairman_monitoring_mode || false,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getSystemSettings = async (req, res) => {
+  try {
+    let settings = await Maintaince.findOne();
+    if (!settings) settings = await Maintaince.create({});
+
+    res.json({
+      maintenance_mode:         settings.maintenance_mode,
+      maintenance_reason:       settings.maintenance_reason,
+      maintenance_started_at:   settings.maintenance_started_at,
+      chairman_monitoring_mode: settings.chairman_monitoring_mode || false,
+      chairman_mode_enabled_at: settings.chairman_mode_enabled_at || null,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

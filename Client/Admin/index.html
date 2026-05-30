@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -211,6 +212,13 @@
   <span>Internship</span>
   <span class="nav-item-badge" id="internship-badge"></span>
 </a>
+<a class="nav-item" data-view="system-control">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+  </svg>
+  <span>System Control</span>
+</a>
       </div>
     </aside>
 
@@ -274,7 +282,7 @@
                 </svg>
               </div>
             </div>
-            <div class="dstat-value"></div>
+            <div class="dstat-value" id="stat-students"></div>
             <div class="dstat-label">Total Students</div>
           </div>
           <div class="dstat-card" data-color="gold">
@@ -293,7 +301,7 @@
                 </svg>
               </div>
             </div>
-            <div class="dstat-value"></div>
+            <div class="dstat-value" id="stat-supervisors"></div>
             <div class="dstat-label">Total Supervisors</div>
           </div>
           <div class="dstat-card" data-color="secondary">
@@ -314,7 +322,7 @@
                 </svg>
               </div>
             </div>
-            <div class="dstat-value"></div>
+            <div class="dstat-value"  id="stat-teams"></div>
             <div class="dstat-label">Active Teams</div>
           </div>
           <div class="dstat-card" data-color="secondary">
@@ -619,53 +627,6 @@
         </div>
         <div id="studentsPagination"></div>
       </section>
-      <!-- ───── MAINTENANCE MODE CARD ───── -->
-<div class="dash-panel" style="margin-bottom:24px;border:2px solid transparent" id="maintenance-card">
-  <div class="panel-head">
-    <div class="panel-head-text">
-      <h3 style="display:flex;align-items:center;gap:10px">
-        <span id="maintenance-status-dot" style="width:12px;height:12px;border-radius:50%;background:#15803d;box-shadow:0 0 0 4px rgba(21,128,61,.18)"></span>
-        System Status
-      </h3>
-      <p id="maintenance-status-text">Site is LIVE — all users have full access</p>
-    </div>
-    <label class="mark-toggle" style="width:50px;height:26px">
-      <input type="checkbox" id="maintenance-toggle" onchange="toggleMaintenance(this.checked)">
-      <span class="toggle-slider" style="border-radius:26px"></span>
-    </label>
-  </div>
-
-  <div class="panel-body" id="maintenance-detail-body" style="display:none">
-    <div style="background:rgba(234,179,8,.08);border:1.5px solid rgba(234,179,8,.3);border-radius:10px;padding:16px;margin-bottom:14px">
-      <div style="display:flex;gap:12px;align-items:flex-start">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#a16207" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" style="flex-shrink:0;margin-top:2px">
-          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-          <line x1="12" y1="9" x2="12" y2="13"/>
-          <line x1="12" y1="17" x2="12.01" y2="17"/>
-        </svg>
-        <div>
-          <strong style="font-size:.88rem;color:#92660a;display:block;margin-bottom:4px">Maintenance mode is active</strong>
-          <span style="font-size:.78rem;color:var(--text-soft);line-height:1.5">
-            Students, supervisors, and chairman cannot access the system. Only you (Admin) can use the dashboard.
-            <span id="maintenance-started-info" style="display:block;margin-top:4px;font-style:italic"></span>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Maintenance Reason (visible to users)</label>
-      <textarea id="maintenance-reason-input" class="form-input" rows="2" style="resize:vertical"
-                placeholder="e.g. Upgrading database and adding new features. Back online in 30 minutes."></textarea>
-      <button class="btn btn-sm btn-primary" style="margin-top:10px" onclick="updateMaintenanceReason()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        Update Reason
-      </button>
-    </div>
-  </div>
-</div>
       <section class="view" id="view-settings">
         <div class="section-head">
           <div class="section-head-text">
@@ -878,6 +839,252 @@
     </div>
   </div>
   <div id="internshipPagination"></div>
+</section>
+<!-- Add before </main> -->
+<section class="view" id="view-system-control">
+  <div class="section-head">
+    <div class="section-head-text">
+      <h2>System Control</h2>
+      <p>Manage system-wide access permissions and feature flags</p>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px">
+
+    <!-- ── MAINTENANCE CARD ── -->
+    <div class="dash-panel" id="maintenance-card"
+         style="border:1.5px solid transparent;transition:border-color .25s;overflow:hidden;padding:0">
+
+      <!-- Header -->
+      <div style="padding:20px 22px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <span id="maintenance-status-dot"
+                  style="width:10px;height:10px;border-radius:50%;flex-shrink:0;
+                         background:#15803d;box-shadow:0 0 0 3px rgba(21,128,61,.15);
+                         transition:background .3s,box-shadow .3s"></span>
+            <span style="font-size:.9rem;font-weight:700;color:var(--text)">Maintenance Mode</span>
+          </div>
+          <p id="maintenance-status-text"
+             style="font-size:.75rem;color:var(--text-mute);margin-left:20px;transition:color .2s">
+            Site is LIVE — all users have full access
+          </p>
+        </div>
+        <label class="mark-toggle" style="width:42px;height:24px;flex-shrink:0;margin-top:3px">
+          <input type="checkbox" id="maintenance-toggle" onchange="toggleMaintenance(this.checked)">
+          <span class="toggle-slider" style="border-radius:24px"></span>
+        </label>
+      </div>
+
+      <div style="height:1px;background:var(--border-soft);margin:0 22px"></div>
+
+      <!-- Static info — visible when OFF -->
+      <div id="maintenance-static-info" style="padding:16px 22px 4px">
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;
+                    letter-spacing:.07em;color:var(--text-mute);margin-bottom:10px">
+          When enabled
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;
+                      border-radius:8px;background:rgba(220,38,38,.04);
+                      border:1px solid rgba(220,38,38,.1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2"
+                 stroke-linecap="round" width="13" height="13" style="flex-shrink:0">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span style="font-size:.78rem;color:var(--text)">All students — login blocked</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;
+                      border-radius:8px;background:rgba(220,38,38,.04);
+                      border:1px solid rgba(220,38,38,.1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2"
+                 stroke-linecap="round" width="13" height="13" style="flex-shrink:0">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span style="font-size:.78rem;color:var(--text)">All supervisors — login blocked</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;
+                      border-radius:8px;background:rgba(220,38,38,.04);
+                      border:1px solid rgba(220,38,38,.1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.2"
+                 stroke-linecap="round" width="13" height="13" style="flex-shrink:0">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+            <span style="font-size:.78rem;color:var(--text)">Chairman — login blocked</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;
+                      border-radius:8px;background:rgba(21,128,61,.04);
+                      border:1px solid rgba(21,128,61,.12)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5"
+                 stroke-linecap="round" width="13" height="13" style="flex-shrink:0">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span style="font-size:.78rem;color:var(--text)">Admin only — full access retained</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;padding:9px 11px;border-radius:8px;
+                    background:var(--bg);border:1px solid var(--border-soft);margin-bottom:16px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2"
+               stroke-linecap="round" width="13" height="13" style="flex-shrink:0;margin-top:2px">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span style="font-size:.72rem;color:var(--text-soft);line-height:1.5">
+            Use during upgrades or migrations. Blocked users will see your maintenance message on the login screen.
+          </span>
+        </div>
+      </div>
+
+      <!-- Active state — visible when ON -->
+      <div id="maintenance-detail-body" style="display:none;padding:16px 22px">
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:11px 13px;
+                    background:rgba(220,38,38,.04);border:1px solid rgba(220,38,38,.2);
+                    border-radius:9px;margin-bottom:14px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"
+               stroke-linecap="round" width="16" height="16" style="flex-shrink:0;margin-top:2px">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <div>
+            <strong style="font-size:.82rem;color:#dc2626;display:block;margin-bottom:2px">
+              Maintenance mode is active
+            </strong>
+            <span style="font-size:.74rem;color:var(--text-soft);line-height:1.5">
+              Students, supervisors and chairman cannot log in.
+            </span>
+            <span id="maintenance-started-info"
+                  style="display:block;font-size:.7rem;color:var(--text-mute);margin-top:3px;font-style:italic"></span>
+          </div>
+        </div>
+
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;
+                    letter-spacing:.07em;color:var(--text-mute);margin-bottom:7px">
+          Message shown to blocked users
+        </div>
+        <textarea id="maintenance-reason-input"
+                  class="form-input" rows="2"
+                  style="resize:vertical;width:100%;font-size:.82rem"
+                  placeholder="e.g. System upgrade in progress. Back online in 30 minutes."></textarea>
+        <button class="btn btn-sm btn-primary" style="margin-top:8px" onclick="updateMaintenanceReason()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" width="12" height="12">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          Update Message
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding:9px 22px;border-top:1px solid var(--border-soft);
+                  font-size:.7rem;color:var(--text-mute);background:var(--bg)">
+        Blocks all non-admin users from accessing the system.
+      </div>
+    </div>
+
+    <!-- ── CHAIRMAN ANALYTICS CARD ── -->
+    <div class="dash-panel" id="chairman-mode-card"
+         style="border:1.5px solid transparent;transition:border-color .25s;overflow:hidden;padding:0">
+
+      <!-- Header -->
+      <div style="padding:20px 22px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <span id="chairman-mode-dot"
+                  style="width:10px;height:10px;border-radius:50%;flex-shrink:0;
+                         background:#9ca3af;box-shadow:0 0 0 3px rgba(156,163,175,.15);
+                         transition:all .3s"></span>
+            <span style="font-size:.9rem;font-weight:700;color:var(--text)">Chairman Analytics Mode</span>
+          </div>
+          <p id="chairman-mode-text"
+             style="font-size:.75rem;color:var(--text-mute);margin-left:20px;transition:color .2s">
+            Analytics disabled — basic read-only view
+          </p>
+        </div>
+        <label class="mark-toggle" style="width:42px;height:24px;flex-shrink:0;margin-top:3px">
+          <input type="checkbox" id="chairman-mode-toggle" onchange="toggleChairmanMode(this.checked)">
+          <span class="toggle-slider" style="border-radius:24px"></span>
+        </label>
+      </div>
+
+      <div style="height:1px;background:var(--border-soft);margin:0 22px"></div>
+
+      <!-- Features body -->
+      <div style="padding:16px 22px">
+        <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;
+                    letter-spacing:.07em;color:var(--text-mute);margin-bottom:10px">
+          When enabled, chairman gets access to
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 11px;
+                      border-radius:8px;background:var(--bg);border:1px solid var(--border-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2"
+                 stroke-linecap="round" width="14" height="14" style="flex-shrink:0;margin-top:2px">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <div>
+              <div style="font-size:.8rem;font-weight:600;color:var(--text)">System overview</div>
+              <div style="font-size:.7rem;color:var(--text-mute)">Total students, supervisors, teams, proposals</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 11px;
+                      border-radius:8px;background:var(--bg);border:1px solid var(--border-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2"
+                 stroke-linecap="round" width="14" height="14" style="flex-shrink:0;margin-top:2px">
+              <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+            <div>
+              <div style="font-size:.8rem;font-weight:600;color:var(--text)">Performance analytics</div>
+              <div style="font-size:.7rem;color:var(--text-mute)">Avg marks, supervisor comparison, approval rates</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 11px;
+                      border-radius:8px;background:var(--bg);border:1px solid var(--border-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2"
+                 stroke-linecap="round" width="14" height="14" style="flex-shrink:0;margin-top:2px">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            <div>
+              <div style="font-size:.8rem;font-weight:600;color:var(--text)">Activity monitoring</div>
+              <div style="font-size:.7rem;color:var(--text-mute)">Recent submissions, marks update log</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 11px;
+                      border-radius:8px;background:var(--bg);border:1px solid var(--border-soft)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2"
+                 stroke-linecap="round" width="14" height="14" style="flex-shrink:0;margin-top:2px">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            <div>
+              <div style="font-size:.8rem;font-weight:600;color:var(--text)">Department insights</div>
+              <div style="font-size:.7rem;color:var(--text-mute)">Category stats, completion progress</div>
+            </div>
+          </div>
+
+        </div>
+        <div id="chairman-mode-enabled-info"
+             style="display:none;font-size:.72rem;color:var(--primary);
+                    font-style:italic;margin-top:10px"></div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding:9px 22px;border-top:1px solid var(--border-soft);
+                  font-size:.7rem;color:var(--text-mute);background:var(--bg)">
+        Role-based permission flag — not a UI toggle only.
+      </div>
+    </div>
+
+  </div>
 </section>
     </main>
 <!-- ═══ ADMIN AVATAR MODAL ═══ -->
@@ -1387,9 +1594,98 @@
     </div>
   </div>
 </div>
+<!-- ═══ CHAIRMAN MODE CONFIRM MODAL ═══ -->
+<div class="modal-overlay" id="chairmanModeConfirmModal" onclick="if(event.target===this)closeChairmanModeConfirmModal()">
+  <div class="modal-box" style="max-width:440px" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-head-text">
+        <h3>Enable Chairman Analytics?</h3>
+        <p>This grants the chairman full monitoring access</p>
+      </div>
+      <button class="modal-close" onclick="closeChairmanModeConfirmModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 26px">
+      <div style="width:60px;height:60px;border-radius:50%;background:rgba(0,75,45,.1);
+                  display:grid;place-items:center;margin:0 auto 16px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"
+             stroke-linecap="round" width="28" height="28">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <p style="font-size:.9rem;font-weight:600;color:var(--text);margin-bottom:8px">
+        Enable Chairman Analytics Mode?
+      </p>
+      <p style="font-size:.78rem;color:var(--text-mute);line-height:1.6">
+        The chairman will gain access to full system analytics including marks, 
+        performance data, and department insights. You can disable this at any time.
+      </p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px">
+      <button class="btn btn-ghost" onclick="closeChairmanModeConfirmModal()" style="min-width:110px">
+        Cancel
+      </button>
+      <button class="btn btn-primary" onclick="confirmEnableChairmanMode()" style="min-width:140px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" width="14" height="14">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Yes, Enable
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAINTENANCE MODE CONFIRM MODAL ═══ -->
+<div class="modal-overlay" id="maintenanceModeConfirmModal"
+     onclick="if(event.target===this)closeMaintenanceModeConfirmModal()">
+  <div class="modal-box" style="max-width:440px" onclick="event.stopPropagation()">
+    <div class="modal-head" style="background:rgba(220,38,38,.04);border-bottom-color:rgba(220,38,38,.15)">
+      <div class="modal-head-text">
+        <h3 style="color:#dc2626">Enable Maintenance Mode?</h3>
+        <p>All users except Admin will be locked out immediately</p>
+      </div>
+      <button class="modal-close" onclick="closeMaintenanceModeConfirmModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" style="text-align:center;padding:28px 26px">
+      <div style="width:60px;height:60px;border-radius:50%;background:rgba(220,38,38,.1);
+                  display:grid;place-items:center;margin:0 auto 16px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"
+             stroke-linecap="round" width="28" height="28">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </div>
+      <p style="font-size:.9rem;font-weight:700;color:#dc2626;margin-bottom:8px">
+        Enable Maintenance Mode?
+      </p>
+      <p style="font-size:.78rem;color:var(--text-mute);line-height:1.6">
+        Students, supervisors, and the chairman will be <strong>immediately locked out</strong>.
+        Only you (Admin) can access the system during maintenance.
+      </p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px">
+      <button class="btn btn-ghost" onclick="closeMaintenanceModeConfirmModal()" style="min-width:110px">
+        Cancel
+      </button>
+      <button class="btn btn-sm" onclick="confirmEnableMaintenanceMode()"
+              style="background:#dc2626;color:#fff;min-width:150px;
+                     box-shadow:0 4px 12px rgba(220,38,38,.25)">
+        Yes, Enable
+      </button>
+    </div>
+  </div>
+</div>
     <!-- ═══ TOAST WRAPPER ═══ -->
     <div class="toast-wrap" id="toastWrap"></div>
     <script src="./js/admin.js"></script>
-    <script src="../shared/js/config.js"></script>
   </body>
 </html>

@@ -1281,6 +1281,8 @@ a {
 }
 
 .btn-ghost {
+    display: flex;
+    justify-content: center;
     background: var(--bg);
     color: var(--text);
     border: 1px solid var(--border);

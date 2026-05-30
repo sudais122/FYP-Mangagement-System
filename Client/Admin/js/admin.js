@@ -1,5 +1,16 @@
 const API_BASE = window.API_BASE || "http://127.0.0.1:5001";
 
+
+/* SAFE FETCH — prevents JSON parse error on 404 */
+async function safeFetch(url, options = {}) {
+  const res = await fetch(url, options);
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(`Route not found: ${url} (${res.status})`);
+  }
+  const data = await res.json();
+  return { res, data };
+}
 const MARKS_SCHEMA = [
   {
     section: "Monthly Meetings",
@@ -148,18 +159,14 @@ function getAdminGreeting(name) {
   let g, icon;
   if (hour >= 5 && hour < 12) {
     g = "Good Morning";
-    icon = "☀️";
   } else if (hour >= 12 && hour < 17) {
     g = "Good Afternoon";
-    icon = "🌤️";
   } else if (hour >= 17 && hour < 21) {
     g = "Good Evening";
-    icon = "🌆";
   } else {
     g = "Good Night";
-    icon = "🌙";
   }
-  return `${g}, ${name} ${icon}`;
+  return `${g}, ${name}`;
 }
 
 function startAdminClock() {
@@ -219,25 +226,25 @@ function formatName(prefix, name) {
   if (!prefix || !name) return name || "";
   return `${prefix}. ${name}`;
 }
-/* ════════════════════════════════════
-   VIEW ROUTING
-══════════════════════════════════════ */
+/* VIEW ROUTING*/
 function switchView(view) {
   $$(".view").forEach((v) => v.classList.remove("active"));
   $$(".nav-item").forEach((n) => n.classList.remove("active"));
   const target = $(`#view-${view}`);
   if (target) target.classList.add("active");
-  $$(`.nav-item[data-view="${view}"]`).forEach((n) =>
-    n.classList.add("active"),
-  );
+  $$(`.nav-item[data-view="${view}"]`).forEach((n) => n.classList.add("active"));
   $("#sidebar").classList.remove("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  if (view === "deadlines") renderDeadlines();
-  if (view === "settings") loadGlobalToggles();
-  if (view === "supervisors") renderSupervisors();
-  if (view === "teams") renderTeams();
-  if (view === "students") renderStudents();
+  if (view === "deadlines")      renderDeadlines();
+  if (view === "settings")       loadGlobalToggles();
+  if (view === "supervisors")    renderSupervisors();
+  if (view === "teams")          renderTeams();
+  if (view === "students")       renderStudents();
+  if (view === "internship")     renderInternships();
+  if (view === "system-control") loadSystemSettings();
+  if (view === "student-lookup") runStudentLookup();
+  if (view === "maintenance")    loadMaintenanceStatus();
 }
 
 $$(".nav-item").forEach((item) => {
@@ -291,13 +298,12 @@ async function fetchDashboardStats() {
 }
 
 function updateDashboardStats(stats) {
-  const cards = document.querySelectorAll(".dstat-card");
-  if (cards[0])
-    cards[0].querySelector(".dstat-value").textContent = stats.students;
-  if (cards[1])
-    cards[1].querySelector(".dstat-value").textContent = stats.supervisors;
-  if (cards[2])
-    cards[2].querySelector(".dstat-value").textContent = stats.teams;
+  const s = document.getElementById("stat-students");
+  const sup = document.getElementById("stat-supervisors");
+  const t = document.getElementById("stat-teams");
+  if (s)   s.textContent   = stats.students;
+  if (sup) sup.textContent = stats.supervisors;
+  if (t)   t.textContent   = stats.teams;
 }
 
 function updateSidebarBadges(stats) {
@@ -311,13 +317,11 @@ function updateSidebarBadges(stats) {
   });
 }
 
-/* ════════════════════════════════════
-   RECENT TEAMS
-══════════════════════════════════════ */
+/* RECENT TEAMS */
 async function renderRecentTeams() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = document.getElementById("recentTeamsTbody");
-  if (!tbody) return;
+  if (!tbody) { console.warn("recentTeamsTbody not found"); return; }
 
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
 
@@ -338,22 +342,20 @@ async function renderRecentTeams() {
       return;
     }
 
-    tbody.innerHTML = teams
-      .map((g) => {
-        const code = g.team_code || g.group_code || "—";
-        const title = g.project_title || "—";
-        const members = 1 + (g.members?.length || 0);
-        const supName = g.supervisor
-          ? formatName(g.supervisor.prefix, g.supervisor.name)
-          : "Unassigned";
+    tbody.innerHTML = teams.map((g) => {
+      const code = g.team_code || g.group_code || "—";
+      const title = g.project_title || "—";
+      const members = 1 + (g.members?.length || 0);
+      const supName = g.supervisor
+        ? formatName(g.supervisor.prefix, g.supervisor.name)
+        : "Unassigned";
 
-        const proposalUrl = g.proposal_url || "";
-        const proposalStatus = g.proposal_status || "pending";
+      const proposalUrl = g.proposal_url || "";
+      const proposalStatus = g.proposal_status || "pending";
 
-        // ── Proposal badge ──
-        let proposalBadge = "";
-        if (proposalStatus === "approved") {
-          proposalBadge = `
+      let proposalBadge = "";
+      if (proposalStatus === "approved") {
+        proposalBadge = `
           <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                        border-radius:6px;font-size:.7rem;font-weight:700;
                        background:rgba(21,128,61,.1);color:#15803d">
@@ -363,8 +365,8 @@ async function renderRecentTeams() {
             </svg>
             Approved
           </span>`;
-        } else if (proposalStatus === "rejected") {
-          proposalBadge = `
+      } else if (proposalStatus === "rejected") {
+        proposalBadge = `
           <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                        border-radius:6px;font-size:.7rem;font-weight:700;
                        background:rgba(220,38,38,.08);color:#dc2626">
@@ -375,8 +377,8 @@ async function renderRecentTeams() {
             </svg>
             Rejected
           </span>`;
-        } else {
-          proposalBadge = `
+      } else {
+        proposalBadge = `
           <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
                        border-radius:6px;font-size:.7rem;font-weight:700;
                        background:rgba(234,179,8,.1);color:#a16207">
@@ -387,14 +389,12 @@ async function renderRecentTeams() {
             </svg>
             Pending
           </span>`;
-        }
+      }
 
-        // ── Proposal actions (only if pending + has file) ──
-        let proposalActions = "";
-        if (proposalUrl && proposalStatus === "pending") {
-          proposalActions = `
+      let proposalActions = "";
+      if (proposalUrl && proposalStatus === "pending") {
+        proposalActions = `
           <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
-
             <button onclick="viewDoc('${proposalUrl}')"
               style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
                      border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
@@ -406,7 +406,6 @@ async function renderRecentTeams() {
               </svg>
               View
             </button>
-
             <button onclick="updateProposalStatus('${g._id}','approved')"
               style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
                      border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
@@ -417,7 +416,6 @@ async function renderRecentTeams() {
               </svg>
               Accept
             </button>
-
             <button onclick="updateProposalStatus('${g._id}','rejected')"
               style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
                      border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
@@ -429,11 +427,10 @@ async function renderRecentTeams() {
               </svg>
               Reject
             </button>
-
           </div>`;
-        }
+      }
 
-        return `
+      return `
         <tr>
           <td>
             <div class="team-info">
@@ -443,10 +440,7 @@ async function renderRecentTeams() {
           </td>
           <td><span class="id-pill gold">${code}</span></td>
           <td><span style="font-weight:600;color:var(--text)">${supName}</span></td>
-          <td>
-            ${proposalBadge}
-            ${proposalActions}
-          </td>
+          <td>${proposalBadge}${proposalActions}</td>
           <td>
             <div class="action-row">
               <button class="icon-action" title="Reassign supervisor"
@@ -469,15 +463,13 @@ async function renderRecentTeams() {
             </div>
           </td>
         </tr>`;
-      })
-      .join("");
+    }).join("");
+
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
   }
 }
-/* ════════════════════════════════════
-   SUPERVISORS
-══════════════════════════════════════ */
+/* SUPERVISORS*/
 const SUPERVISORS_PAGE = { current: 1, perPage: 8 };
 
 async function renderSupervisors() {
@@ -3161,62 +3153,72 @@ async function loadMaintenanceStatus() {
   }
 }
 
+/* ════════════════════════════════════
+   MAINTENANCE UI UPDATE
+══════════════════════════════════════ */
 function updateMaintenanceUI(data) {
-  const dot = document.getElementById("maintenance-status-dot");
-  const text = document.getElementById("maintenance-status-text");
-  const toggle = document.getElementById("maintenance-toggle");
-  const body = document.getElementById("maintenance-detail-body");
-  const card = document.getElementById("maintenance-card");
+  const dot      = document.getElementById("maintenance-status-dot");
+  const text     = document.getElementById("maintenance-status-text");
+  const toggle   = document.getElementById("maintenance-toggle");
+  const body     = document.getElementById("maintenance-detail-body");
+  const staticEl = document.getElementById("maintenance-static-info");
+  const card     = document.getElementById("maintenance-card");
   const reasonIn = document.getElementById("maintenance-reason-input");
   const startedEl = document.getElementById("maintenance-started-info");
 
   if (!dot) return;
 
   if (data.maintenance_mode) {
-    dot.style.background = "#dc2626";
-    dot.style.boxShadow = "0 0 0 4px rgba(220,38,38,.18)";
-    text.textContent = "Site is in MAINTENANCE MODE — only Admin can access";
-    text.style.color = "#dc2626";
-    text.style.fontWeight = "700";
-    toggle.checked = true;
-    body.style.display = "block";
+    dot.style.background  = "#dc2626";
+    dot.style.boxShadow   = "0 0 0 3px rgba(220,38,38,.15)";
+    text.textContent      = "Maintenance active — only admin has access";
+    text.style.color      = "#dc2626";
+    toggle.checked        = true;
+    if (staticEl) staticEl.style.display = "none";
+    if (body)     body.style.display     = "block";
     card.style.borderColor = "rgba(220,38,38,.3)";
-    card.style.background = "rgba(220,38,38,.02)";
-    reasonIn.value = data.maintenance_reason || "";
-
-    if (data.maintenance_started_at && startedEl) {
-      const started = new Date(data.maintenance_started_at);
-      startedEl.textContent = `Started: ${started.toLocaleString()}`;
+    if (reasonIn)  reasonIn.value = data.maintenance_reason || "";
+    if (startedEl && data.maintenance_started_at) {
+      startedEl.textContent = `Started: ${new Date(data.maintenance_started_at).toLocaleString()}`;
     }
   } else {
-    dot.style.background = "#15803d";
-    dot.style.boxShadow = "0 0 0 4px rgba(21,128,61,.18)";
-    text.textContent = "Site is LIVE — all users have full access";
-    text.style.color = "";
-    text.style.fontWeight = "";
-    toggle.checked = false;
-    body.style.display = "none";
+    dot.style.background  = "#15803d";
+    dot.style.boxShadow   = "0 0 0 3px rgba(21,128,61,.15)";
+    text.textContent      = "Site is LIVE — all users have full access";
+    text.style.color      = "";
+    toggle.checked        = false;
+    if (staticEl) staticEl.style.display = "block";
+    if (body)     body.style.display     = "none";
     card.style.borderColor = "transparent";
-    card.style.background = "";
   }
 }
 
+// Find and replace the entire toggleMaintenance function:
 async function toggleMaintenance(enabled) {
-  const admin = JSON.parse(localStorage.getItem("admin"));
-
-  // Confirm before enabling
   if (enabled) {
-    const ok = confirm(
-      "⚠️ Enable Maintenance Mode?\n\nAll students, supervisors, and the chairman will be locked out of the system. Only you will be able to access the admin dashboard.\n\nContinue?",
-    );
-    if (!ok) {
-      document.getElementById("maintenance-toggle").checked = false;
-      return;
-    }
+    document.getElementById("maintenance-toggle").checked = false;
+    openMaintenanceModeConfirmModal();
+    return;
   }
+  await _applyMaintenanceToggle(false);
+}
 
-  const reason =
-    document.getElementById("maintenance-reason-input")?.value.trim() || "";
+function openMaintenanceModeConfirmModal() {
+  document.getElementById("maintenanceModeConfirmModal").classList.add("open");
+}
+
+function closeMaintenanceModeConfirmModal() {
+  document.getElementById("maintenanceModeConfirmModal").classList.remove("open");
+}
+
+async function confirmEnableMaintenanceMode() {
+  closeMaintenanceModeConfirmModal();
+  await _applyMaintenanceToggle(true);
+}
+
+async function _applyMaintenanceToggle(enabled) {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const reason = document.getElementById("maintenance-reason-input")?.value.trim() || "";
 
   try {
     const res = await fetch(`${API_BASE}/api/admin/maintenance`, {
@@ -3231,6 +3233,8 @@ async function toggleMaintenance(enabled) {
     if (!res.ok) throw new Error(data.message || "Failed");
 
     updateMaintenanceUI(data);
+    document.getElementById("maintenance-toggle").checked = enabled;
+
     toast(
       enabled ? "Maintenance Mode ENABLED" : "Maintenance Mode DISABLED",
       enabled ? "All non-admin users are now blocked" : "Site is back online",
@@ -3242,33 +3246,42 @@ async function toggleMaintenance(enabled) {
   }
 }
 
-async function updateMaintenanceReason() {
-  const admin = JSON.parse(localStorage.getItem("admin"));
-  const reason = document
-    .getElementById("maintenance-reason-input")
-    ?.value.trim();
+function updateMaintenanceUI(data) {
+  const dot       = document.getElementById("maintenance-status-dot");
+  const text      = document.getElementById("maintenance-status-text");
+  const toggle    = document.getElementById("maintenance-toggle");
+  const body      = document.getElementById("maintenance-detail-body");
+  const card      = document.getElementById("maintenance-card");
+  const reasonIn  = document.getElementById("maintenance-reason-input");
+  const startedEl = document.getElementById("maintenance-started-info");
 
-  if (!reason) {
-    toast("Empty reason", "Please enter a reason to show users", "warn");
-    return;
-  }
+  if (!dot) return;
 
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/maintenance`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
-      body: JSON.stringify({ enabled: true, reason }),
-    });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Failed");
 
-    updateMaintenanceUI(data);
-    toast("Reason updated", "Users will see the new message", "success");
-  } catch (err) {
-    toast("Error", err.message, "error");
+  if (data.maintenance_mode) {
+    dot.style.background = "#dc2626";
+    dot.style.boxShadow  = "0 0 0 4px rgba(220,38,38,.18)";
+    text.textContent     = "Site is in MAINTENANCE MODE — only Admin can access";
+    text.style.color     = "#dc2626";
+    text.style.fontWeight = "700";
+    toggle.checked       = true;
+    body.style.display   = "block";
+    card.style.borderColor = "rgba(220,38,38,.3)";
+    card.style.background  = "rgba(220,38,38,.02)";
+    if (reasonIn) reasonIn.value = data.maintenance_reason || "";
+    if (data.maintenance_started_at && startedEl) {
+      startedEl.textContent = `Started: ${new Date(data.maintenance_started_at).toLocaleString()}`;
+    }
+  } else {
+    dot.style.background  = "#15803d";
+    dot.style.boxShadow   = "0 0 0 4px rgba(21,128,61,.18)";
+    text.textContent      = "Site is LIVE — all users have full access";
+    text.style.color      = "";
+    text.style.fontWeight = "";
+    toggle.checked        = false;
+    body.style.display    = "none";
+    card.style.borderColor = "transparent";
+    card.style.background  = "";
   }
 }
 
@@ -3648,6 +3661,32 @@ async function refreshDashboard() {
   }
 }
 
+/* LOAD SYSTEM SETTINGS */
+async function loadSystemSettings() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin?.token) return;
+
+  try {
+    const res  = await fetch(`${API_BASE}/admin/maintenance`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization:  `Bearer ${admin.token}`,
+      },
+    });
+
+    const contentType = res.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) return;
+
+    const data = await res.json();
+    if (!res.ok) return;
+
+    updateMaintenanceUI(data);
+    updateChairmanModeUI(data); 
+
+  } catch (err) {
+    console.error("System settings load error:", err.message);
+  }
+}
 /* DOWNLOAD ALL PROPOSALS*/
 function toggleDlMenu() {
   const menu = document.getElementById("dl-menu");
@@ -3848,7 +3887,7 @@ function setDlComplete(filename) {
 
   setDlProgress(100, "");
   if (title) title.textContent = filename;
-  if (sub) sub.textContent = "Download complete ✓";
+  if (sub) sub.textContent = "Download complete";
   if (pctEl) pctEl.textContent = "100%";
   if (icon) {
     icon.style.background = "rgba(21,128,61,.12)";
@@ -3890,7 +3929,7 @@ function formatBytes(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
 
-/* UPDATED DOWNLOAD FUNCTIONS*/
+/* UPDATED DOWNLOAD FUNCTIONS */
 async function downloadProposals(status = "all") {
   document.getElementById("dl-menu").style.display = "none";
 
@@ -3953,6 +3992,7 @@ async function downloadInternships() {
   }
 }
 
+
 async function streamDownload(res, filename) {
   const contentLength = res.headers.get("Content-Length");
   const total = contentLength ? parseInt(contentLength) : null;
@@ -3973,7 +4013,6 @@ async function streamDownload(res, filename) {
       const pct = (received / total) * 100;
       setDlProgress(pct, `${formatBytes(received)} / ${formatBytes(total)}`);
     } else {
-      // No Content-Length — show indeterminate with size only
       setDlProgress(50, formatBytes(received));
       document.getElementById("dl-prog-fill").style.transition = "none";
       document.getElementById("dl-prog-fill").style.width = "50%";
@@ -3993,16 +4032,163 @@ async function streamDownload(res, filename) {
   setDlComplete(filename);
   toast("Download started", filename, "success");
 }
+
+//   SYSTEM CONTROL
+async function loadSystemSettings() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res  = await fetch(`${API_BASE}/api/admin/system-settings`, {
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    // Update maintenance UI (reuse existing function)
+    updateMaintenanceUI(data);
+
+    // Update chairman mode UI
+    updateChairmanModeUI(data);
+
+  } catch (err) {
+    console.error("System settings load error:", err);
+    toast("Failed to load system settings", err.message, "error");
+  }
+}
+
+function updateChairmanModeUI(data) {
+  const dot     = document.getElementById("chairman-mode-dot");
+  const text    = document.getElementById("chairman-mode-text");
+  const toggle  = document.getElementById("chairman-mode-toggle");
+  const card    = document.getElementById("chairman-mode-card");
+  const info    = document.getElementById("chairman-mode-enabled-info");
+
+  if (!dot) return;
+
+  if (data.chairman_monitoring_mode) {
+    dot.style.background  = "var(--primary,#004b2d)";
+    dot.style.boxShadow   = "0 0 0 4px rgba(0,75,45,.2)";
+    text.textContent      = "Analytics ENABLED — Chairman has full monitoring access";
+    text.style.color      = "var(--primary)";
+    text.style.fontWeight = "700";
+    toggle.checked        = true;
+    card.style.borderColor = "rgba(0,75,45,.25)";
+
+    if (data.chairman_mode_enabled_at && info) {
+      const d = new Date(data.chairman_mode_enabled_at);
+      info.textContent  = `Enabled since: ${d.toLocaleString()}`;
+      info.style.display = "block";
+    }
+  } else {
+    dot.style.background  = "#6b7280";
+    dot.style.boxShadow   = "0 0 0 4px rgba(107,114,128,.18)";
+    text.textContent      = "Analytics disabled — Chairman sees basic read-only data";
+    text.style.color      = "";
+    text.style.fontWeight = "";
+    toggle.checked        = false;
+    card.style.borderColor = "transparent";
+    if (info) info.style.display = "none";
+  }
+}
+
+async function toggleChairmanMode(enabled) {
+  if (enabled) {
+
+    document.getElementById("chairman-mode-toggle").checked = false;
+    openChairmanModeConfirmModal();
+    return;
+  }
+  await _applyChairmanModeToggle(false);
+}
+
+function openChairmanModeConfirmModal() {
+  document.getElementById("chairmanModeConfirmModal").classList.add("open");
+}
+
+function closeChairmanModeConfirmModal() {
+  document.getElementById("chairmanModeConfirmModal").classList.remove("open");
+}
+
+async function confirmEnableChairmanMode() {
+  closeChairmanModeConfirmModal();
+  await _applyChairmanModeToggle(true);
+}
+
+
+async function _applyChairmanModeToggle(enabled) {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  try {
+    const res  = await fetch(`${API_BASE}/api/admin/system/chairman-mode`, {
+      method:  "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization:  `Bearer ${admin.token}`,
+      },
+      body: JSON.stringify({ enabled }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    updateChairmanModeUI({
+      chairman_monitoring_mode: data.chairman_monitoring_mode,
+      chairman_mode_enabled_at: data.chairman_mode_enabled_at,
+    });
+    document.getElementById("chairman-mode-toggle").checked = enabled;
+
+    toast(
+      enabled ? "Chairman Analytics ENABLED" : "Chairman Analytics DISABLED",
+      enabled ? "Chairman now has full monitoring access" : "Chairman reverted to basic view",
+      enabled ? "success" : "warn"
+    );
+  } catch (err) {
+    toast("Error", err.message, "error");
+    document.getElementById("chairman-mode-toggle").checked = !enabled;
+  }
+}
+
+async function updateMaintenanceReason() {
+  const admin  = JSON.parse(localStorage.getItem("admin"));
+  const reason = document.getElementById("maintenance-reason-input")?.value.trim() || "";
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/admin/maintenance`, {
+      method:  "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization:  `Bearer ${admin.token}`,
+      },
+      body: JSON.stringify({ enabled: true, reason }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Failed");
+
+    toast("Message updated", "Maintenance message saved", "success");
+  } catch (err) {
+    toast("Error", err.message, "error");
+  }
+}
 async function initDashboard() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  
+  // DEBUG — check these in console
+  console.log("admin object:", admin);
+  console.log("admin token:", admin?.token ? "✓ present" : "✗ MISSING");
+  console.log("API_BASE:", API_BASE);
+
+  if (!admin?.token) {
+    window.location.href = "../Auth/login.html";
+    return;
+  }
+
   displayAdminInfo();
   await fetchDashboardStats();
+  await renderRecentTeams();
   await renderSupervisors();
   await renderTeams();
   await renderStudents();
   await loadGlobalToggles();
   await renderDeadlines();
-  await renderRecentTeams();
   await loadMaintenanceStatus();
+  await loadSystemSettings();
   await renderInternships();
 }
 

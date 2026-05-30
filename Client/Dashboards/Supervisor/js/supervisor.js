@@ -13,6 +13,7 @@ window.fetch = async function(...args) {
   }
   return res;
 };
+const API_BASE = "http://localhost:5001/api"; 
 
 const sup = JSON.parse(localStorage.getItem("supervisor"));
 
@@ -26,15 +27,29 @@ if (sup.force_password_change) {
 
 const IS_CHAIRMAN = sup?.is_chairman === true;
 
-if (IS_CHAIRMAN) {
-  const chairmanNav = document.getElementById("chairman-nav-items");
+// Chairman nav only shown if admin has enabled analytics mode
+async function initChairmanNav() {
+  if (!IS_CHAIRMAN) return; // regular supervisor — skip entirely
 
-  if (chairmanNav) {
-    chairmanNav.style.display = "";
+  try {
+    const res  = await fetch(`${API_BASE}/admin/system/chairman-mode/public`);
+    const data = await res.json();
+
+    if (data.chairman_monitoring_mode) {
+      // Toggle is ON — show chairman analytics nav
+      const chairmanNav = document.getElementById("chairman-nav-items");
+      if (chairmanNav) chairmanNav.style.display = "";
+    }
+    // Toggle is OFF — show nothing extra, pure supervisor view
+
+  } catch (err) {
+    // Server unreachable — fail silently, show pure supervisor view
+    console.error("Chairman mode check failed:", err.message);
   }
 }
+
+initChairmanNav();
 const SUPERVISOR = { id: sup.sup_code, name: sup.name, prefix: sup.prefix };
-const API_BASE = "http://localhost:5001/api"; 
 
 function initials(name) {
   return (name || "")

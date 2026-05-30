@@ -1,3 +1,4 @@
+ const API_BASE = "http://localhost:5001/api"; 
  // Intercept all 503 responses → redirect to maintenance page
 const _origFetch = window.fetch;
 window.fetch = async function(...args) {
@@ -14,15 +15,12 @@ window.fetch = async function(...args) {
   }
   return res;
 };
-/* ═══════════════════════════════════
-   BOOTSTRAP — auth & guard
-═══════════════════════════════════ */
+/* auth & guard */
 const sup = JSON.parse(localStorage.getItem("supervisor"));
 if (!sup)            window.location.href = "../../Auth/login.html";
 if (!sup.is_chairman) { alert("Access denied — Chairman only"); window.location.href = "../Supervisor/index.html"; }
 if (sup.force_password_change) window.location.href = "../Supervisor/change-password.html";
 
-const API_BASE = "http://localhost:5001/api"; 
 const TOTAL_MARKS = 200;
 const authHeaders = { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` };
 
@@ -37,6 +35,28 @@ let MY_TEAMS      = [];   // chairman's own groups (editable)
 let WORKLOAD_DATA = [];
 let TEAMS_DATA    = [];
 let STUDENTS_DATA = [];
+
+
+// Add at the top of chairman.js, after the existing auth guard:
+
+async function checkChairmanAccess() {
+  try {
+    const res  = await fetch("http://localhost:5001/api/admin/system/chairman-mode/public");
+    const data = await res.json();
+
+    if (!data.chairman_monitoring_mode) {
+      window.location.replace("../Supervisor/index.html");
+      return false;
+    }
+
+    return true;
+
+  } catch (err) {
+    console.error("Chairman mode check failed:", err.message);
+    window.location.replace("../Supervisor/index.html");
+    return false;
+  }
+}
 
 /* ═══════════════════════════════════
    MARKS SCHEMA
@@ -905,8 +925,10 @@ function logout() {
   localStorage.removeItem("supervisor");
   window.location.href = "../../Auth/login.html";
 }
-
 /* ═══════════════════════════════════
    INIT
 ═══════════════════════════════════ */
-loadOverview();
+(async () => {
+  await checkChairmanAccess();
+  loadOverview();
+})();
