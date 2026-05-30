@@ -4166,6 +4166,66 @@ async function updateMaintenanceReason() {
     toast("Error", err.message, "error");
   }
 }
+
+/* MOBILE SIDEBAR */
+function openMobileSidebar() {
+  document.getElementById("sidebar")?.classList.add("open");
+  document.getElementById("sidebarOverlay")?.classList.add("show");
+  document.body.style.overflow = "hidden";
+}
+
+function closeMobileSidebar() {
+  document.getElementById("sidebar")?.classList.remove("open");
+  document.getElementById("sidebarOverlay")?.classList.remove("show");
+  document.body.style.overflow = "";
+}
+
+// Hamburger button
+document.getElementById("mobileMenuBtn")
+  ?.addEventListener("click", () => {
+    const isOpen = document.getElementById("sidebar")?.classList.contains("open");
+    if (isOpen) closeMobileSidebar();
+    else openMobileSidebar();
+  });
+
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => {
+    if (window.innerWidth <= 768) closeMobileSidebar();
+  });
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeMobileSidebar();
+});
+
+function closeMobileSidebar() {
+  document.getElementById("sidebar")?.classList.remove("open");
+  document.getElementById("sidebarOverlay")?.classList.remove("show");
+  document.getElementById("mobileMenuBtn")?.classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function toggleMobileSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  if (sidebar?.classList.contains("open")) closeMobileSidebar();
+  else openMobileSidebar();
+}
+
+// Wire up the hamburger button
+document.getElementById("mobileMenuBtn")?.addEventListener("click", toggleMobileSidebar);
+
+// Close sidebar when any nav item is clicked on mobile
+document.querySelectorAll(".nav-item").forEach(item => {
+  item.addEventListener("click", () => {
+    if (window.innerWidth <= 768) closeMobileSidebar();
+  });
+});
+
+// Close on Escape key
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeMobileSidebar();
+});
+
 async function initDashboard() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   

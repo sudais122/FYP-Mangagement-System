@@ -13,7 +13,7 @@ import {
 
 const router = express.Router();
 
-router.post("/save",              protect, adminOrSupervisor, saveMarks);
+router.post("/save",              protect,saveMarks);      
 router.get("/group/:groupId",     protect, adminOrSupervisor, getGroupMarks);
 router.get("/student/:studentId", protect, adminOrSupervisor, getStudentMarks);
 router.get("/",                   protect, adminOnly,         getAllMarks);

@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../shared/css/theme.css" />
   </head>
   <body>
+      <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
     <!-- ═══ NAVBAR ═══ -->
 <nav class="dash-nav">
   <div class="nav-inner">
@@ -99,6 +100,7 @@
 
     <!-- ═══ SIDEBAR ═══ -->
     <aside class="dash-sidebar" id="sidebar">
+      <div class="sidebar-inner">
       <div class="sidebar-section">
         <div class="sidebar-label">Overview</div>
         <a class="nav-item active" data-view="dashboard">
@@ -220,6 +222,8 @@
   <span>System Control</span>
 </a>
       </div>
+            </div>
+
     </aside>
 
     <!-- ═══ MAIN ═══ -->

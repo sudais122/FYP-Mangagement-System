@@ -24,7 +24,14 @@ export const saveMarks = async (req, res) => {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    const isOwner = group.supervisor?.toString() === req.user.id;
+    const userId  = (req.user.id || req.user._id)?.toString();
+const isOwner = group.supervisor?.toString() === userId;
+
+console.log("Chairman mark save check:", {
+  groupSupervisor: group.supervisor?.toString(),
+  requestUserId:   userId,
+  isOwner,
+});
 
     if (!isOwner) {
       return res.status(403).json({

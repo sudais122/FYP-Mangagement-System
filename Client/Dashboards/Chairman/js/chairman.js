@@ -1,7 +1,7 @@
- const API_BASE = "http://localhost:5001/api"; 
- // Intercept all 503 responses → redirect to maintenance page
+const API_BASE = "http://localhost:5001/api";
+// Intercept all 503 responses → redirect to maintenance page
 const _origFetch = window.fetch;
-window.fetch = async function(...args) {
+window.fetch = async function (...args) {
   const res = await _origFetch(...args);
   if (res.status === 503) {
     const clone = res.clone();
@@ -17,31 +17,37 @@ window.fetch = async function(...args) {
 };
 /* auth & guard */
 const sup = JSON.parse(localStorage.getItem("supervisor"));
-if (!sup)            window.location.href = "../../Auth/login.html";
-if (!sup.is_chairman) { alert("Access denied — Chairman only"); window.location.href = "../Supervisor/index.html"; }
-if (sup.force_password_change) window.location.href = "../Supervisor/change-password.html";
+if (!sup) window.location.href = "../../Auth/login.html";
+if (!sup.is_chairman) {
+  alert("Access denied — Chairman only");
+  window.location.href = "../Supervisor/index.html";
+}
+if (sup.force_password_change)
+  window.location.href = "../Supervisor/change-password.html";
 
 const TOTAL_MARKS = 200;
-const authHeaders = { "Content-Type": "application/json", "Authorization": `Bearer ${sup.token}` };
+const authHeaders = {
+  "Content-Type": "application/json",
+  Authorization: `Bearer ${sup.token}`,
+};
 
 /* ── welcome ── */
-document.getElementById("welcome-name").textContent  = `Welcome, ${sup.name}`;
+document.getElementById("welcome-name").textContent = `Welcome, ${sup.name}`;
 document.getElementById("welcome-sup-id").textContent = sup.sup_code || "—";
-document.getElementById("nav-sup-name").textContent  = sup.name     || "Chairman";
-document.getElementById("nav-sup-code").textContent  = sup.sup_code || "";
+document.getElementById("nav-sup-name").textContent = sup.name || "Chairman";
+document.getElementById("nav-sup-code").textContent = sup.sup_code || "";
 
 /* ── cached data ── */
-let MY_TEAMS      = [];   // chairman's own groups (editable)
+let MY_TEAMS = []; // chairman's own groups (editable)
 let WORKLOAD_DATA = [];
-let TEAMS_DATA    = [];
+let TEAMS_DATA = [];
 let STUDENTS_DATA = [];
-
 
 // Add at the top of chairman.js, after the existing auth guard:
 
 async function checkChairmanAccess() {
   try {
-    const res  = await fetch(`${API_BASE}/admin/system/chairman-mode/public`);
+    const res = await fetch(`${API_BASE}/admin/system/chairman-mode/public`);
     const data = await res.json();
 
     if (!data.chairman_monitoring_mode) {
@@ -50,7 +56,6 @@ async function checkChairmanAccess() {
     }
 
     return true;
-
   } catch (err) {
     console.error("Chairman mode check failed:", err.message);
     window.location.replace("../Supervisor/index.html");
@@ -62,33 +67,47 @@ async function checkChairmanAccess() {
    MARKS SCHEMA
 ═══════════════════════════════════ */
 const MARKS_SCHEMA = [
-  { section: "Monthly Meetings", icon: "calendar", items: [
-    { key: "oct", label: "October",  max: 10 },
-    { key: "nov", label: "November", max: 10 },
-    { key: "dec", label: "December", max: 10 },
-    { key: "feb", label: "February", max: 10 },
-    { key: "mar", label: "March",    max: 10 },
-  ]},
-  { section: "Submissions", icon: "file", items: [
-    { key: "proposal",        label: "Proposal Submission", max: 10 },
-    { key: "progress_report", label: "Progress Report",     max: 20 },
-    { key: "thesis",          label: "Thesis / Report",     max: 20 },
-    { key: "code",            label: "Code / Practical",    max: 10 },
-    { key: "prog_sim",        label: "Progress Similarity", max: 5  },
-    { key: "thesis_sim",      label: "Thesis Similarity",   max: 5  },
-  ]},
-  { section: "Viva", icon: "mic", items: [
-    { key: "iv1", label: "Internal Viva 1", max: 25 },
-    { key: "iv2", label: "Internal Viva 2", max: 25 },
-    { key: "ext", label: "External Viva",   max: 30 },
-  ]},
+  {
+    section: "Monthly Meetings",
+    icon: "calendar",
+    items: [
+      { key: "oct", label: "October", max: 10 },
+      { key: "nov", label: "November", max: 10 },
+      { key: "dec", label: "December", max: 10 },
+      { key: "feb", label: "February", max: 10 },
+      { key: "mar", label: "March", max: 10 },
+    ],
+  },
+  {
+    section: "Submissions",
+    icon: "file",
+    items: [
+      { key: "proposal", label: "Proposal Submission", max: 10 },
+      { key: "progress_report", label: "Progress Report", max: 20 },
+      { key: "thesis", label: "Thesis / Report", max: 20 },
+      { key: "code", label: "Code / Practical", max: 10 },
+      { key: "prog_sim", label: "Progress Similarity", max: 5 },
+      { key: "thesis_sim", label: "Thesis Similarity", max: 5 },
+    ],
+  },
+  {
+    section: "Viva",
+    icon: "mic",
+    items: [
+      { key: "iv1", label: "Internal Viva 1", max: 25 },
+      { key: "iv2", label: "Internal Viva 2", max: 25 },
+      { key: "ext", label: "External Viva", max: 30 },
+    ],
+  },
 ];
 
 let MARK_TOGGLES = {};
 
 async function loadMarkToggles() {
   try {
-    const res  = await fetch(`${API_BASE}/supervisors/mark-toggles`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/supervisors/mark-toggles`, {
+      headers: authHeaders,
+    });
     if (!res.ok) return;
     const data = await res.json();
     MARK_TOGGLES = data.toggles || {};
@@ -98,56 +117,62 @@ async function loadMarkToggles() {
 }
 
 function applyMarkLocks() {
-  document.querySelectorAll(".mk-input.ch-edit").forEach(input => {
-    const key         = input.dataset.key;
+  document.querySelectorAll(".mk-input.ch-edit").forEach((input) => {
+    const key = input.dataset.key;
     const toggleValue = MARK_TOGGLES[key];
 
-    const enabled = toggleValue === undefined
-      ? true
-      : (toggleValue === true || toggleValue === "true");
+    const enabled =
+      toggleValue === undefined
+        ? true
+        : toggleValue === true || toggleValue === "true";
 
-    input.disabled      = !enabled;
-    input.style.opacity = enabled ? "1"         : "0.5";
-    input.style.cursor  = enabled ? "text"      : "not-allowed";
-    input.title         = enabled ? ""          : "🔒 Locked by admin";
+    input.disabled = !enabled;
+    input.style.opacity = enabled ? "1" : "0.5";
+    input.style.cursor = enabled ? "text" : "not-allowed";
+    input.title = enabled ? "" : " Locked by admin";
 
     if (enabled) input.classList.remove("locked-by-admin");
-    else         input.classList.add("locked-by-admin");
+    else input.classList.add("locked-by-admin");
   });
 
-  document.querySelectorAll(".btn-save").forEach(btn => {
-    const inputs    = [...document.querySelectorAll(".mk-input.ch-edit")];
-    const allLocked = inputs.length > 0 && inputs.every(inp => inp.disabled);
+  document.querySelectorAll(".btn-save").forEach((btn) => {
+    const inputs = [...document.querySelectorAll(".mk-input.ch-edit")];
+    const allLocked = inputs.length > 0 && inputs.every((inp) => inp.disabled);
     if (allLocked) {
-      btn.disabled      = true;
+      btn.disabled = true;
       btn.style.opacity = "0.4";
-      btn.style.cursor  = "not-allowed";
-      btn.innerHTML     = "🔒 All marks locked by admin";
+      btn.style.cursor = "not-allowed";
+      btn.innerHTML = "All marks locked by admin";
     } else {
-      btn.disabled      = false;
+      btn.disabled = false;
       btn.style.opacity = "1";
-      btn.style.cursor  = "pointer";
-      btn.innerHTML     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      btn.style.cursor = "pointer";
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12"/></svg> Save Marks`;
     }
   });
 }
-function flatItems() { return MARKS_SCHEMA.flatMap(s => s.items); }
+function flatItems() {
+  return MARKS_SCHEMA.flatMap((s) => s.items);
+}
 
 function marksFromRecord(m) {
   return {
-    oct: m.monthly?.oct ?? null, nov: m.monthly?.nov ?? null,
-    dec: m.monthly?.dec ?? null, feb: m.monthly?.feb ?? null, mar: m.monthly?.mar ?? null,
-    proposal:        m.submissions?.proposal ?? null,
+    oct: m.monthly?.oct ?? null,
+    nov: m.monthly?.nov ?? null,
+    dec: m.monthly?.dec ?? null,
+    feb: m.monthly?.feb ?? null,
+    mar: m.monthly?.mar ?? null,
+    proposal: m.submissions?.proposal ?? null,
     progress_report: m.submissions?.progress ?? null,
-    thesis:          m.documentation?.final  ?? null,
-    code:            m.submissions?.code     ?? null,
-    prog_sim:        m.submissions?.prog_sim ?? null,
-    thesis_sim:      m.submissions?.thesis_sim ?? null,
+    thesis: m.documentation?.final ?? null,
+    code: m.submissions?.code ?? null,
+    prog_sim: m.submissions?.prog_sim ?? null,
+    thesis_sim: m.submissions?.thesis_sim ?? null,
     iv1: m.viva?.internal1 ?? null,
     iv2: m.viva?.internal2 ?? null,
-    ext: m.viva?.external  ?? null,
+    ext: m.viva?.external ?? null,
   };
 }
 
@@ -155,18 +180,22 @@ function calcTotal(marks) {
   return flatItems().reduce((t, it) => t + (marks[it.key] ?? 0), 0);
 }
 
-
 async function showTeamsList() {
-  document.getElementById("teams-list-view").style.display  = "";
+  document.getElementById("teams-list-view").style.display = "";
   document.getElementById("teams-detail-view").style.display = "none";
 
-  if (TEAMS_DATA.length) { renderTeamsPage(PAGES.teams); return; }
+  if (TEAMS_DATA.length) {
+    renderTeamsPage(PAGES.teams);
+    return;
+  }
 
   document.getElementById("teams-tbody").innerHTML =
     `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/supervisors/chairman/teams`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/supervisors/chairman/teams`, {
+      headers: authHeaders,
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
     TEAMS_DATA = data.teams || [];
@@ -181,7 +210,12 @@ function renderTeamsPage(page) {
   PAGES.teams = page;
   const slice = TEAMS_DATA.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   renderTeams(slice, document.getElementById("search-teams")?.value || "");
-  renderChairPagination("teams-pagination", TEAMS_DATA.length, page, "renderTeamsPage");
+  renderChairPagination(
+    "teams-pagination",
+    TEAMS_DATA.length,
+    page,
+    "renderTeamsPage",
+  );
 }
 
 function renderTeams(list, q) {
@@ -193,6 +227,20 @@ function renderTeams(list, q) {
   }
   tbody.innerHTML = list.map(t => {
     const count = (t.leader ? 1 : 0) + (t.members?.length || 0);
+
+    const proposalBtn = t.proposal_url ? `
+      <button onclick="event.stopPropagation(); viewDoc('${t.proposal_url}')"
+        style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+               border-radius:7px;font-size:.7rem;font-weight:700;cursor:pointer;
+               border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+               color:var(--primary)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>View
+      </button>` : `<span style="font-size:.7rem;color:var(--text-mute);font-style:italic">—</span>`;
+
     return `<tr onclick="openTeamDetail('${t._id || t.team_code}')" style="cursor:pointer">
       <td><span class="tid">${hl(t.team_code || "—", q)}</span></td>
       <td><span class="g-proj">${hl(t.project_title || "—", q)}</span></td>
@@ -201,10 +249,7 @@ function renderTeams(list, q) {
         <small style="color:var(--text-mute);font-size:.66rem">${t.supervisor?.sup_code || ""}</small>
       </td>
       <td><span class="g-count">${count}</span></td>
-      <td style="text-align:right"><span class="g-arrow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-             stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </span></td>
+      <td onclick="event.stopPropagation()">${proposalBtn}</td>
     </tr>`;
   }).join("");
 }
@@ -212,25 +257,35 @@ function renderTeams(list, q) {
 function filterTeams(q) {
   PAGES.teams = 1;
   q = (q || "").trim().toLowerCase();
-  const filtered = TEAMS_DATA.filter(t =>
-    (t.team_code || "").toLowerCase().includes(q) ||
-    (t.project_title || "").toLowerCase().includes(q) ||
-    (t.supervisor?.name || "").toLowerCase().includes(q)
+  const filtered = TEAMS_DATA.filter(
+    (t) =>
+      (t.team_code || "").toLowerCase().includes(q) ||
+      (t.project_title || "").toLowerCase().includes(q) ||
+      (t.supervisor?.name || "").toLowerCase().includes(q),
   );
   renderTeams(filtered, q);
-  renderChairPagination("teams-pagination", filtered.length, 1, "renderTeamsPage");
+  renderChairPagination(
+    "teams-pagination",
+    filtered.length,
+    1,
+    "renderTeamsPage",
+  );
 }
 /* ═══════════════════════════════════
    HELPERS
 ═══════════════════════════════════ */
 function escHtml(s) {
-  const d = document.createElement("div"); d.textContent = s; return d.innerHTML;
+  const d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
 }
 function hl(text, q) {
   if (!q) return escHtml(text);
   const safe = escHtml(text);
-  return safe.replace(new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"),
-    '<span class="search-hl">$1</span>');
+  return safe.replace(
+    new RegExp("(" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "ig"),
+    '<span class="search-hl">$1</span>',
+  );
 }
 function noResults(colspan, q) {
   return `<tr><td colspan="${colspan}">
@@ -245,32 +300,38 @@ function noResults(colspan, q) {
 
 /* ── read-only marks detail block ── */
 function readOnlyMarksHtml(marks) {
-  return MARKS_SCHEMA.map(sec => `
+  return MARKS_SCHEMA.map(
+    (sec) => `
     <div class="mk-section">
       <div class="mk-sec-head">${sec.section}</div>
       <div class="mk-rows">
-        ${sec.items.map(it => {
-          const val = marks[it.key];
-          return `<div class="mk-row">
+        ${sec.items
+          .map((it) => {
+            const val = marks[it.key];
+            return `<div class="mk-row">
             <div class="mk-label">${it.label}</div>
             <div class="mk-max">/ ${it.max}</div>
             <input type="number" class="mk-input" value="${val ?? ""}" placeholder="—"
               disabled style="opacity:.65;cursor:not-allowed" title="Read-only — Chairman view">
           </div>`;
-        }).join("")}
+          })
+          .join("")}
       </div>
-    </div>`).join("");
+    </div>`,
+  ).join("");
 }
 
 /* ── editable marks inputs ── */
 function editableMarksHtml(marks, studentId, groupId) {
-  return MARKS_SCHEMA.map(sec => `
+  return MARKS_SCHEMA.map(
+    (sec) => `
     <div class="mk-section">
       <div class="mk-sec-head">${sec.section}</div>
       <div class="mk-rows">
-        ${sec.items.map(it => {
-          const val = marks[it.key];
-          return `<div class="mk-row">
+        ${sec.items
+          .map((it) => {
+            const val = marks[it.key];
+            return `<div class="mk-row">
             <div class="mk-label">${it.label}</div>
             <div class="mk-max">/ ${it.max}</div>
             <input type="number" class="mk-input ch-edit ${val == null ? "pending" : ""}"
@@ -278,9 +339,11 @@ function editableMarksHtml(marks, studentId, groupId) {
               data-student="${studentId}" data-key="${it.key}" data-max="${it.max}" data-group="${groupId}"
               oninput="onChairMarkChange(this); chUpdateTotal('${studentId}')">
           </div>`;
-        }).join("")}
+          })
+          .join("")}
       </div>
-    </div>`).join("");
+    </div>`,
+  ).join("");
 }
 
 /* ── back button ── */
@@ -301,31 +364,35 @@ function backBtn(listId, detailId, label, cb) {
    TAB SWITCHING
 ═══════════════════════════════════ */
 function showTab(tab) {
-  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document
+    .querySelectorAll(".tab")
+    .forEach((t) => t.classList.remove("active"));
   document.getElementById("tab-" + tab)?.classList.add("active");
-  document.querySelectorAll(".sb-btn:not(.logout)").forEach(b => b.classList.remove("active"));
+  document
+    .querySelectorAll(".sb-btn:not(.logout)")
+    .forEach((b) => b.classList.remove("active"));
   document.getElementById("sb-" + tab)?.classList.add("active");
 
   const titles = {
-    overview:     ["Overview",            "Your groups and department statistics"],
-    mygroups:     ["My Groups",           "Your assigned groups — marks editable"],
-    teams:        ["All Teams",           "Read-only view of every team"],
-    workload:     ["Supervisor Workload", "Teams & students per supervisor"],
-    students:     ["All Students",        "Read-only view of every student"],
-    proposals:    ["Proposals",           "Status of every team's proposal"],
-    internship:   ["Internship Letters",  "Student internship acceptance letters"],  // ← ADD
+    overview: ["Overview", "Your groups and department statistics"],
+    mygroups: ["My Groups", "Your assigned groups — marks editable"],
+    teams: ["All Teams", "Read-only view of every team"],
+    workload: ["Supervisor Workload", "Teams & students per supervisor"],
+    students: ["All Students", "Read-only view of every student"],
+    proposals: ["Proposals", "Status of every team's proposal"],
+    internship: ["Internship Letters", "Student internship acceptance letters"], // ← ADD
   };
   const t = titles[tab] || [tab, ""];
   document.getElementById("page-title").textContent = t[0];
-  document.getElementById("page-sub").textContent   = t[1];
+  document.getElementById("page-sub").textContent = t[1];
 
-  if (tab === "overview")   loadOverview();
-  if (tab === "mygroups")   showMyGroupsList();
-  if (tab === "teams")      showTeamsList();
-  if (tab === "workload")   showWorkloadList();
-  if (tab === "students")   showStudentsList();
-  if (tab === "proposals")  loadProposals();
-  if (tab === "internship") loadInternships();  
+  if (tab === "overview") loadOverview();
+  if (tab === "mygroups") showMyGroupsList();
+  if (tab === "teams") showTeamsList();
+  if (tab === "workload") showWorkloadList();
+  if (tab === "students") showStudentsList();
+  if (tab === "proposals") loadProposals();
+  if (tab === "internship") loadInternships();
 
   if (window.innerWidth <= 900) closeSidebar();
 }
@@ -336,22 +403,30 @@ function showTab(tab) {
 const PAGE_SIZE = 15;
 
 const PAGES = {
-  teams:      1,
-  students:   1,
-  workload:   1,
-  proposals:  1,
+  teams: 1,
+  students: 1,
+  workload: 1,
+  proposals: 1,
   internship: 1,
 };
 
-function renderChairPagination(containerId, totalItems, currentPage, onPageChange) {
+function renderChairPagination(
+  containerId,
+  totalItems,
+  currentPage,
+  onPageChange,
+) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
-  const start      = Math.min((currentPage - 1) * PAGE_SIZE + 1, totalItems);
-  const end        = Math.min(currentPage * PAGE_SIZE, totalItems);
+  const start = Math.min((currentPage - 1) * PAGE_SIZE + 1, totalItems);
+  const end = Math.min(currentPage * PAGE_SIZE, totalItems);
 
-  if (totalItems === 0) { container.innerHTML = ""; return; }
+  if (totalItems === 0) {
+    container.innerHTML = "";
+    return;
+  }
 
   if (totalPages <= 1) {
     container.innerHTML = `
@@ -369,7 +444,11 @@ function renderChairPagination(containerId, totalItems, currentPage, onPageChang
   } else {
     visible.push(1);
     if (currentPage > 3) visible.push("…");
-    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+    for (
+      let i = Math.max(2, currentPage - 1);
+      i <= Math.min(totalPages - 1, currentPage + 1);
+      i++
+    ) {
       visible.push(i);
     }
     if (currentPage < totalPages - 2) visible.push("…");
@@ -405,12 +484,14 @@ function renderChairPagination(containerId, totalItems, currentPage, onPageChang
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
-        ${visible.map(p =>
-          p === "…"
-            ? `<span style="width:30px;height:30px;display:grid;place-items:center;
+        ${visible
+          .map((p) =>
+            p === "…"
+              ? `<span style="width:30px;height:30px;display:grid;place-items:center;
                             color:var(--text-mute);font-size:.76rem">…</span>`
-            : btn(p)
-        ).join("")}
+              : btn(p),
+          )
+          .join("")}
         <button onclick="${onPageChange}(${currentPage + 1})"
           ${currentPage === totalPages ? "disabled" : ""}
           style="width:30px;height:30px;border-radius:7px;border:1px solid var(--border);
@@ -427,19 +508,28 @@ function renderChairPagination(containerId, totalItems, currentPage, onPageChang
 async function loadOverview() {
   try {
     /* department stats */
-    const res = await fetch(`${API_BASE}/supervisors/chairman/overview`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/supervisors/chairman/overview`, {
+      headers: authHeaders,
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
-    document.getElementById("ov-total-teams").textContent    = data.totalTeams    || 0;
-    document.getElementById("ov-total-students").textContent = data.totalStudents || 0;
+    document.getElementById("ov-total-teams").textContent =
+      data.totalTeams || 0;
+    document.getElementById("ov-total-students").textContent =
+      data.totalStudents || 0;
 
     /* my groups stats */
-    const mRes = await fetch(`${API_BASE}/groups/supervisor`, { headers: authHeaders });
+    const mRes = await fetch(`${API_BASE}/groups/supervisor`, {
+      headers: authHeaders,
+    });
     const mData = await mRes.json();
-    const groups = Array.isArray(mData) ? mData : (mData.groups || []);
+    const groups = Array.isArray(mData) ? mData : mData.groups || [];
     MY_TEAMS = groups;
-    const myStudents = groups.reduce((n, g) => n + (g.leader ? 1 : 0) + (g.members?.length || 0), 0);
-    document.getElementById("ov-my-groups").textContent   = groups.length;
+    const myStudents = groups.reduce(
+      (n, g) => n + (g.leader ? 1 : 0) + (g.members?.length || 0),
+      0,
+    );
+    document.getElementById("ov-my-groups").textContent = groups.length;
     document.getElementById("ov-my-students").textContent = myStudents;
   } catch (err) {
     toast("Overview error: " + err.message, "red");
@@ -450,37 +540,44 @@ async function loadOverview() {
    MY GROUPS TAB (editable marks)
 ═══════════════════════════════════ */
 async function loadMyTeamsData() {
-  if (MY_TEAMS.length) return;          // already loaded in overview
-  const res  = await fetch(`${API_BASE}/groups/supervisor`, { headers: authHeaders });
+  if (MY_TEAMS.length) return; // already loaded in overview
+  const res = await fetch(`${API_BASE}/groups/supervisor`, {
+    headers: authHeaders,
+  });
   const data = await res.json();
-  MY_TEAMS   = Array.isArray(data) ? data : (data.groups || []);
+  MY_TEAMS = Array.isArray(data) ? data : data.groups || [];
 }
 
 function showMyGroupsList() {
-  document.getElementById("mygroups-list-view").style.display  = "";
+  document.getElementById("mygroups-list-view").style.display = "";
   document.getElementById("mygroups-detail-view").style.display = "none";
   renderMyGroupsList(document.getElementById("search-mygroups")?.value || "");
 }
 
 async function renderMyGroupsList(query) {
   await loadMyTeamsData();
-  const q      = (query || "").trim().toLowerCase();
-  const tbody  = document.getElementById("mygroups-tbody");
-  const filtered = MY_TEAMS.filter(g =>
-    (g.group_code || g.team_code || "").toLowerCase().includes(q) ||
-    (g.project_title || "").toLowerCase().includes(q)
+  const q = (query || "").trim().toLowerCase();
+  const tbody = document.getElementById("mygroups-tbody");
+  const filtered = MY_TEAMS.filter(
+    (g) =>
+      (g.group_code || g.team_code || "").toLowerCase().includes(q) ||
+      (g.project_title || "").toLowerCase().includes(q),
   );
 
   if (!MY_TEAMS.length) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-mute)">No teams assigned to you yet.</td></tr>`;
     return;
   }
-  if (!filtered.length) { tbody.innerHTML = noResults(4, query); return; }
+  if (!filtered.length) {
+    tbody.innerHTML = noResults(4, query);
+    return;
+  }
 
-  tbody.innerHTML = filtered.map(g => {
-    const code = g.group_code || g.team_code || "—";
-    const count = (g.leader ? 1 : 0) + (g.members?.length || 0);
-    return `<tr onclick="openMyGroupDetail('${g._id}')">
+  tbody.innerHTML = filtered
+    .map((g) => {
+      const code = g.group_code || g.team_code || "—";
+      const count = (g.leader ? 1 : 0) + (g.members?.length || 0);
+      return `<tr onclick="openMyGroupDetail('${g._id}')">
       <td><span class="tid">${hl(code, q)}</span></td>
       <td><span class="g-proj">${hl(g.project_title || "—", q)}</span></td>
       <td><span class="g-count">${count}</span></td>
@@ -489,36 +586,44 @@ async function renderMyGroupsList(query) {
              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </span></td>
     </tr>`;
-  }).join("");
+    })
+    .join("");
 }
 
-function filterMyGroups(q) { renderMyGroupsList(q); }
+function filterMyGroups(q) {
+  renderMyGroupsList(q);
+}
 
 async function openMyGroupDetail(groupId) {
-  const group = MY_TEAMS.find(g => g._id === groupId);
+  const group = MY_TEAMS.find((g) => g._id === groupId);
   if (!group) return;
 
   /* fetch marks */
   try {
-    const res  = await fetch(`${API_BASE}/marks/group/${group._id}`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/marks/group/${group._id}`, {
+      headers: authHeaders,
+    });
     const data = await res.json();
-    const list = Array.isArray(data) ? data : (data.marks || data.data || []);
+    const list = Array.isArray(data) ? data : data.marks || data.data || [];
     const allStudents = [
-      group.leader  ? { ...group.leader,  role: "Leader" } : null,
-      ...(group.members || []).map(m => ({ ...m, role: "Member" }))
+      group.leader ? { ...group.leader, role: "Leader" } : null,
+      ...(group.members || []).map((m) => ({ ...m, role: "Member" })),
     ].filter(Boolean);
 
-    allStudents.forEach(s => {
-      const rec = list.find(m => {
+    allStudents.forEach((s) => {
+      const rec = list.find((m) => {
         const ref = typeof m.student === "string" ? m.student : m.student?._id;
         return ref === s._id;
       });
       s.marks = rec ? marksFromRecord(rec) : {};
     });
     group._students = allStudents;
-  } catch (e) { toast("Could not load marks: " + e.message, "red"); return; }
+  } catch (e) {
+    toast("Could not load marks: " + e.message, "red");
+    return;
+  }
 
-  document.getElementById("mygroups-list-view").style.display  = "none";
+  document.getElementById("mygroups-list-view").style.display = "none";
   const d = document.getElementById("mygroups-detail-view");
   d.style.display = "";
 
@@ -532,7 +637,7 @@ async function openMyGroupDetail(groupId) {
         <div class="gh-proj">${group.project_title || "—"}</div>
       </div>
     </div>
-    ${group._students.map(s => renderMyGroupStudentCard(group._id, s)).join("")}`;
+    ${group._students.map((s) => renderMyGroupStudentCard(group._id, s)).join("")}`;
 
   await loadMarkToggles();
   applyMarkLocks();
@@ -540,7 +645,7 @@ async function openMyGroupDetail(groupId) {
 
 function renderMyGroupStudentCard(groupId, s) {
   const total = calcTotal(s.marks || {});
-  const sid   = s._id;
+  const sid = s._id;
   return `<div class="stu-card">
     <div class="stu-head" onclick="chToggle('${sid}')">
       <div class="stu-dot ${s.role.toLowerCase()}"></div>
@@ -560,7 +665,7 @@ function renderMyGroupStudentCard(groupId, s) {
     <div class="stu-body" id="chbd-${sid}">
       <div style="font-size:.7rem;color:var(--text-mute);margin-bottom:10px;display:flex;gap:18px">
         <span>${s.email || "—"}</span>
-        <a href="https://wa.me/${(s.whatsapp||"").replace(/^0/,"92")}" target="_blank"
+        <a href="https://wa.me/${(s.whatsapp || "").replace(/^0/, "92")}" target="_blank"
            style="color:#15803d;font-weight:600;text-decoration:none">
           ${s.whatsapp || "—"}
         </a>
@@ -591,18 +696,24 @@ function chToggle(sid) {
 }
 
 function onChairMarkChange(input) {
-  const max = parseInt(input.dataset.max), val = parseInt(input.value);
+  const max = parseInt(input.dataset.max),
+    val = parseInt(input.value);
   input.classList.remove("error", "pending");
-  if (input.value === "") { input.classList.add("pending"); return; }
+  if (input.value === "") {
+    input.classList.add("pending");
+    return;
+  }
   if (isNaN(val) || val < 0 || val > max) input.classList.add("error");
 }
 
 function chUpdateTotal(sid) {
   let total = 0;
-  document.querySelectorAll(`.ch-edit[data-student="${sid}"]`).forEach(inp => {
-    const v = parseInt(inp.value);
-    if (!isNaN(v) && v >= 0) total += v;
-  });
+  document
+    .querySelectorAll(`.ch-edit[data-student="${sid}"]`)
+    .forEach((inp) => {
+      const v = parseInt(inp.value);
+      if (!isNaN(v) && v >= 0) total += v;
+    });
   const a = document.getElementById("chtd-" + sid);
   const b = document.getElementById("chgt-" + sid);
   if (a) a.textContent = total;
@@ -612,24 +723,56 @@ function chUpdateTotal(sid) {
 async function saveMyGroupMarks(groupId, studentId) {
   const marks = {};
   let hasError = false;
-  document.querySelectorAll(`.ch-edit[data-student="${studentId}"]`).forEach(inp => {
-    if (inp.value === "") { marks[inp.dataset.key] = null; return; }
-    const v = parseInt(inp.value);
-    if (isNaN(v) || v < 0 || v > parseInt(inp.dataset.max)) { hasError = true; inp.classList.add("error"); }
-    else marks[inp.dataset.key] = v;
-  });
-  if (hasError) { toast("Fix invalid marks first", "red"); return; }
+  document
+    .querySelectorAll(`.ch-edit[data-student="${studentId}"]`)
+    .forEach((inp) => {
+      if (inp.value === "") {
+        marks[inp.dataset.key] = null;
+        return;
+      }
+      const v = parseInt(inp.value);
+      if (isNaN(v) || v < 0 || v > parseInt(inp.dataset.max)) {
+        hasError = true;
+        inp.classList.add("error");
+      } else marks[inp.dataset.key] = v;
+    });
+  if (hasError) {
+    toast("Fix invalid marks first", "red");
+    return;
+  }
 
-  const monthly       = { oct: marks.oct, nov: marks.nov, dec: marks.dec, feb: marks.feb, mar: marks.mar };
-  const submissions   = { proposal: marks.proposal, progress: marks.progress_report, code: marks.code, prog_sim: marks.prog_sim, thesis_sim: marks.thesis_sim };
-  const viva          = { internal1: marks.iv1, internal2: marks.iv2, external: marks.ext };
+  const monthly = {
+    oct: marks.oct,
+    nov: marks.nov,
+    dec: marks.dec,
+    feb: marks.feb,
+    mar: marks.mar,
+  };
+  const submissions = {
+    proposal: marks.proposal,
+    progress: marks.progress_report,
+    code: marks.code,
+    prog_sim: marks.prog_sim,
+    thesis_sim: marks.thesis_sim,
+  };
+  const viva = {
+    internal1: marks.iv1,
+    internal2: marks.iv2,
+    external: marks.ext,
+  };
   const documentation = { final: marks.thesis };
 
   try {
-    const res  = await fetch(`${API_BASE}/marks/save`, {
+    const res = await fetch(`${API_BASE}/marks/save`, {
       method: "POST",
       headers: authHeaders,
-      body: JSON.stringify({ student_id: studentId, monthly, submissions, viva, documentation })
+      body: JSON.stringify({
+        student_id: studentId,
+        monthly,
+        submissions,
+        viva,
+        documentation,
+      }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -649,7 +792,6 @@ async function saveMyGroupMarks(groupId, studentId) {
    ALL TEAMS TAB (read-only, click for marks)
 ═══════════════════════════════════ */
 
-
 function renderTeams(list, q) {
   q = (q || "").trim().toLowerCase();
   const tbody = document.getElementById("teams-tbody");
@@ -657,9 +799,10 @@ function renderTeams(list, q) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">No teams yet</td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(t => {
-    const count = (t.leader ? 1 : 0) + (t.members?.length || 0);
-    return `<tr onclick="openTeamDetail('${t._id || t.team_code}', this)" style="cursor:pointer">
+  tbody.innerHTML = list
+    .map((t) => {
+      const count = (t.leader ? 1 : 0) + (t.members?.length || 0);
+      return `<tr onclick="openTeamDetail('${t._id || t.team_code}', this)" style="cursor:pointer">
       <td><span class="tid">${hl(t.team_code || "—", q)}</span></td>
       <td><span class="g-proj">${hl(t.project_title || "—", q)}</span></td>
       <td>
@@ -672,19 +815,20 @@ function renderTeams(list, q) {
              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </span></td>
     </tr>`;
-  }).join("");
+    })
+    .join("");
 }
 
 function filterTeams(q) {
   q = (q || "").trim().toLowerCase();
-  const filtered = TEAMS_DATA.filter(t =>
-    (t.team_code || "").toLowerCase().includes(q) ||
-    (t.project_title || "").toLowerCase().includes(q) ||
-    (t.supervisor?.name || "").toLowerCase().includes(q)
+  const filtered = TEAMS_DATA.filter(
+    (t) =>
+      (t.team_code || "").toLowerCase().includes(q) ||
+      (t.project_title || "").toLowerCase().includes(q) ||
+      (t.supervisor?.name || "").toLowerCase().includes(q),
   );
   renderTeams(filtered, q);
 }
-
 
 //Load Team Proasls
 function renderProposals(list, q) {
@@ -696,14 +840,25 @@ function renderProposals(list, q) {
     return;
   }
 
-  tbody.innerHTML = list.map(t => {
-    let status, cls;
-    if (!t.proposal_url)                       { status = "Not submitted"; cls = "not-submitted"; }
-    else if (t.proposal_status === "approved") { status = "Approved";      cls = "approved"; }
-    else if (t.proposal_status === "rejected") { status = "Rejected";      cls = "rejected"; }
-    else                                       { status = "Pending";       cls = "pending"; }
+  tbody.innerHTML = list
+    .map((t) => {
+      let status, cls;
+      if (!t.proposal_url) {
+        status = "Not submitted";
+        cls = "not-submitted";
+      } else if (t.proposal_status === "approved") {
+        status = "Approved";
+        cls = "approved";
+      } else if (t.proposal_status === "rejected") {
+        status = "Rejected";
+        cls = "rejected";
+      } else {
+        status = "Pending";
+        cls = "pending";
+      }
 
-    const viewBtn = t.proposal_url ? `
+      const viewBtn = t.proposal_url
+        ? `
       <button onclick="viewDoc('${t.proposal_url}')"
         style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
                border-radius:7px;font-size:.7rem;font-weight:700;cursor:pointer;
@@ -715,23 +870,23 @@ function renderProposals(list, q) {
           <circle cx="12" cy="12" r="3"/>
         </svg>View
       </button>`
-      : `<span style="font-size:.7rem;color:var(--text-mute);font-style:italic">—</span>`;
+        : `<span style="font-size:.7rem;color:var(--text-mute);font-style:italic">—</span>`;
 
-    return `<tr>
+      return `<tr>
       <td><span class="tid">${hl(t.team_code || "—", q)}</span></td>
       <td><span class="g-proj">${hl(t.project_title || "—", q)}</span></td>
       <td><span class="prop-status ${cls}">${status}</span></td>
       <td>${hl(t.supervisor?.name || "Unassigned", q)}</td>
       <td>${viewBtn}</td>
     </tr>`;
-  }).join("");
+    })
+    .join("");
 }
+
 async function openTeamDetail(teamId) {
-  /* find in cache */
   const team = TEAMS_DATA.find(t => t._id === teamId || t.team_code === teamId);
   if (!team) return;
 
-  /* fetch marks */
   try {
     const res  = await fetch(`${API_BASE}/marks/group/${team._id}`, { headers: authHeaders });
     const data = await res.json();
@@ -763,6 +918,19 @@ async function openTeamDetail(teamId) {
         <div class="gh-proj">${team.project_title || "—"}</div>
         <div class="gh-sup">Supervisor: ${team.supervisor?.name || "—"} (${team.supervisor?.sup_code || ""})</div>
       </div>
+      ${team.proposal_url ? `
+      <div style="margin-top:10px">
+        <button onclick="viewDoc('${team.proposal_url}')"
+          style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;
+                 border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;
+                 border:1px solid rgba(0,75,45,.25);background:rgba(0,75,45,.06);color:var(--primary)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>View Proposal
+        </button>
+      </div>` : ""}
     </div>
     <p style="font-size:.78rem;color:var(--text-mute);margin:0 0 12px;padding:0 4px">
       Read-only — marks are not editable in this view
@@ -770,6 +938,24 @@ async function openTeamDetail(teamId) {
     ${team._students.map(s => {
       const total = calcTotal(s.marks || {});
       const sid   = "tv-" + s._id;
+
+      const cvBtn = s.cv_url ? `
+        <button onclick="viewDoc('${s.cv_url}')"
+          style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+                 border-radius:6px;font-size:.68rem;font-weight:700;cursor:pointer;
+                 border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);
+                 color:var(--primary)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>CV
+        </button>` : "";
+
+      const waLink = s.whatsapp
+        ? `https://wa.me/${(s.whatsapp || "").replace(/^0/, "92")}`
+        : null;
+
       return `<div class="stu-card">
         <div class="stu-head" onclick="chToggle('${sid}')">
           <div class="stu-dot ${s.role.toLowerCase()}"></div>
@@ -785,6 +971,31 @@ async function openTeamDetail(teamId) {
           </div>
         </div>
         <div class="stu-body" id="chbd-${sid}">
+
+          <!-- Contact info + CV -->
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+                      margin-bottom:12px;padding:9px 12px;border-radius:8px;
+                      background:var(--bg);border:1px solid var(--border-soft)">
+            <span style="font-size:.74rem;color:var(--text-mute);display:flex;align-items:center;gap:5px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                   stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              ${s.email || "—"}
+            </span>
+            ${waLink ? `
+            <a href="${waLink}" target="_blank" onclick="event.stopPropagation()"
+               style="font-size:.74rem;font-weight:700;color:#15803d;text-decoration:none;
+                      display:inline-flex;align-items:center;gap:4px">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                <path d="M17.6 6.32A7.85 7.85 0 0 0 12.05 4a7.94 7.94 0 0 0-6.88 11.93L4 20l4.2-1.1a7.93 7.93 0 0 0 3.85.98h.01a7.94 7.94 0 0 0 5.55-13.56z"/>
+              </svg>
+              ${s.whatsapp}
+            </a>` : ""}
+            ${cvBtn}
+          </div>
+
           <div class="mk-grid">${readOnlyMarksHtml(s.marks || {})}</div>
           <div class="grand-bar">
             <div class="gb-label">Grand Total</div>
@@ -794,19 +1005,23 @@ async function openTeamDetail(teamId) {
       </div>`;
     }).join("")}`;
 }
-
 //supervisor workload list
 async function showWorkloadList() {
-  document.getElementById("workload-list-view").style.display  = "";
+  document.getElementById("workload-list-view").style.display = "";
   document.getElementById("workload-detail-view").style.display = "none";
 
-  if (WORKLOAD_DATA.length) { renderWorkloadPage(PAGES.workload); return; }
+  if (WORKLOAD_DATA.length) {
+    renderWorkloadPage(PAGES.workload);
+    return;
+  }
 
   document.getElementById("workload-tbody").innerHTML =
     `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/supervisors/chairman/workload`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/supervisors/chairman/workload`, {
+      headers: authHeaders,
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
     WORKLOAD_DATA = data.workload || [];
@@ -820,8 +1035,16 @@ async function showWorkloadList() {
 function renderWorkloadPage(page) {
   PAGES.workload = page;
   const slice = WORKLOAD_DATA.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  renderWorkload(slice, document.getElementById("search-workload")?.value || "");
-  renderChairPagination("workload-pagination", WORKLOAD_DATA.length, page, "renderWorkloadPage");
+  renderWorkload(
+    slice,
+    document.getElementById("search-workload")?.value || "",
+  );
+  renderChairPagination(
+    "workload-pagination",
+    WORKLOAD_DATA.length,
+    page,
+    "renderWorkloadPage",
+  );
 }
 
 function renderWorkload(list, q) {
@@ -831,10 +1054,12 @@ function renderWorkload(list, q) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">No supervisors found</td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(w => `
+  tbody.innerHTML = list
+    .map(
+      (w) => `
     <tr onclick="openSupDetail('${w._id || w.sup_code}')" style="cursor:pointer">
       <td>
-        <div style="font-weight:600">${hl(w.name, q)}${w.is_chairman ? ' <span class="chairman-tag">Chairman</span>' : ''}</div>
+        <div style="font-weight:600">${hl(w.name, q)}${w.is_chairman ? ' <span class="chairman-tag">Chairman</span>' : ""}</div>
         <small style="color:var(--text-mute);font-size:.66rem">${w.designation || "Faculty Member"}</small>
       </td>
       <td><span class="tid">${hl(w.sup_code || "—", q)}</span></td>
@@ -844,54 +1069,77 @@ function renderWorkload(list, q) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </span></td>
-    </tr>`).join("");
+    </tr>`,
+    )
+    .join("");
 }
 
 function filterWorkload(q) {
   PAGES.workload = 1;
   q = (q || "").trim().toLowerCase();
-  const filtered = WORKLOAD_DATA.filter(w =>
-    (w.name || "").toLowerCase().includes(q) ||
-    (w.sup_code || "").toLowerCase().includes(q)
+  const filtered = WORKLOAD_DATA.filter(
+    (w) =>
+      (w.name || "").toLowerCase().includes(q) ||
+      (w.sup_code || "").toLowerCase().includes(q),
   );
   renderWorkload(filtered, q);
-  renderChairPagination("workload-pagination", filtered.length, 1, "renderWorkloadPage");
+  renderChairPagination(
+    "workload-pagination",
+    filtered.length,
+    1,
+    "renderWorkloadPage",
+  );
 }
 
-
 async function openSupDetail(supId) {
-  const sup_data = WORKLOAD_DATA.find(w => w._id === supId || w.sup_code === supId);
+  const sup_data = WORKLOAD_DATA.find(
+    (w) => w._id === supId || w.sup_code === supId,
+  );
   if (!sup_data) return;
 
   /* fetch this supervisor's teams */
   let supTeams = [];
   try {
-    const res  = await fetch(`${API_BASE}/supervisors/chairman/teams`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/supervisors/chairman/teams`, {
+      headers: authHeaders,
+    });
     const data = await res.json();
     const allTeams = data.teams || [];
-    supTeams = allTeams.filter(t => t.supervisor?.sup_code === sup_data.sup_code || t.supervisor?._id === sup_data._id);
+    supTeams = allTeams.filter(
+      (t) =>
+        t.supervisor?.sup_code === sup_data.sup_code ||
+        t.supervisor?._id === sup_data._id,
+    );
 
     /* fetch marks for each team */
     for (const team of supTeams) {
-      const mRes  = await fetch(`${API_BASE}/marks/group/${team._id}`, { headers: authHeaders });
+      const mRes = await fetch(`${API_BASE}/marks/group/${team._id}`, {
+        headers: authHeaders,
+      });
       const mData = await mRes.json();
-      const list  = Array.isArray(mData) ? mData : (mData.marks || mData.data || []);
-      const all   = [
-        team.leader  ? { ...team.leader,  role: "Leader" } : null,
-        ...(team.members || []).map(m => ({ ...m, role: "Member" }))
+      const list = Array.isArray(mData)
+        ? mData
+        : mData.marks || mData.data || [];
+      const all = [
+        team.leader ? { ...team.leader, role: "Leader" } : null,
+        ...(team.members || []).map((m) => ({ ...m, role: "Member" })),
       ].filter(Boolean);
-      all.forEach(s => {
-        const rec = list.find(m => {
-          const ref = typeof m.student === "string" ? m.student : m.student?._id;
+      all.forEach((s) => {
+        const rec = list.find((m) => {
+          const ref =
+            typeof m.student === "string" ? m.student : m.student?._id;
           return ref === s._id;
         });
         s.marks = rec ? marksFromRecord(rec) : {};
       });
       team._students = all;
     }
-  } catch (e) { toast("Could not load supervisor detail", "red"); return; }
+  } catch (e) {
+    toast("Could not load supervisor detail", "red");
+    return;
+  }
 
-  document.getElementById("workload-list-view").style.display  = "none";
+  document.getElementById("workload-list-view").style.display = "none";
   const d = document.getElementById("workload-detail-view");
   d.style.display = "";
 
@@ -905,23 +1153,26 @@ async function openSupDetail(supId) {
       </div>
     </div>
     <p style="font-size:.78rem;color:var(--text-mute);margin:0 0 14px;padding:0 4px">
-      🔒 Read-only — you cannot edit another supervisor's marks
+      Read-only — you cannot edit another supervisor's marks
     </p>
-    ${supTeams.length === 0
-      ? `<p style="color:var(--text-mute);padding:20px">No teams assigned to this supervisor yet.</p>`
-      : supTeams.map(team => {
-          const code = team.team_code || team.group_code || "—";
-          return `<div class="card" style="margin-bottom:18px">
+    ${
+      supTeams.length === 0
+        ? `<p style="color:var(--text-mute);padding:20px">No teams assigned to this supervisor yet.</p>`
+        : supTeams
+            .map((team) => {
+              const code = team.team_code || team.group_code || "—";
+              return `<div class="card" style="margin-bottom:18px">
             <div class="card-head">
               <h3><span class="tid">${code}</span> &nbsp;·&nbsp;
                 <span style="font-weight:400;font-size:.9rem">${team.project_title || "—"}</span>
               </h3>
             </div>
             <div class="card-body" style="padding:12px 18px">
-              ${team._students.map(s => {
-                const total = calcTotal(s.marks || {});
-                const sid   = "wv-" + s._id;
-                return `<div class="stu-card" style="margin-bottom:10px">
+              ${team._students
+                .map((s) => {
+                  const total = calcTotal(s.marks || {});
+                  const sid = "wv-" + s._id;
+                  return `<div class="stu-card" style="margin-bottom:10px">
                   <div class="stu-head" onclick="chToggle('${sid}')">
                     <div class="stu-dot ${s.role.toLowerCase()}"></div>
                     <div class="stu-info">
@@ -938,7 +1189,7 @@ async function openSupDetail(supId) {
                   <div class="stu-body" id="chbd-${sid}">
                     <div style="font-size:.7rem;color:var(--text-mute);margin-bottom:10px;display:flex;gap:18px">
                       <span>📧 ${s.email || "—"}</span>
-                      <a href="https://wa.me/${(s.whatsapp||"").replace(/^0/,"92")}" target="_blank"
+                      <a href="https://wa.me/${(s.whatsapp || "").replace(/^0/, "92")}" target="_blank"
                          style="color:#15803d;font-weight:600;text-decoration:none">
                         📱 ${s.whatsapp || "—"}
                       </a>
@@ -950,36 +1201,52 @@ async function openSupDetail(supId) {
                     </div>
                   </div>
                 </div>`;
-              }).join("")}
+                })
+                .join("")}
             </div>
           </div>`;
-        }).join("")}`;
+            })
+            .join("")
+    }`;
 }
 
 function renderStudentsPage(page) {
   PAGES.students = page;
   const slice = STUDENTS_DATA.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  renderStudents(slice, document.getElementById("search-students")?.value || "");
-  renderChairPagination("students-pagination", STUDENTS_DATA.length, page, "renderStudentsPage");
+  renderStudents(
+    slice,
+    document.getElementById("search-students")?.value || "",
+  );
+  renderChairPagination(
+    "students-pagination",
+    STUDENTS_DATA.length,
+    page,
+    "renderStudentsPage",
+  );
 }
 /* ═══════════════════════════════════
    ALL STUDENTS TAB 
 ═══════════════════════════════════ */
 async function showStudentsList() {
-  document.getElementById("students-list-view").style.display  = "";
+  document.getElementById("students-list-view").style.display = "";
   document.getElementById("students-detail-view").style.display = "none";
 
-  if (STUDENTS_DATA.length) { renderStudentsPage(PAGES.students); return; }
+  if (STUDENTS_DATA.length) {
+    renderStudentsPage(PAGES.students);
+    return;
+  }
 
   document.getElementById("students-tbody").innerHTML =
     `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/supervisors/chairman/students`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/supervisors/chairman/students`, {
+      headers: authHeaders,
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
     STUDENTS_DATA = data.students || [];
-    renderStudentsPage(1);              // ← correct
+    renderStudentsPage(1); // ← correct
   } catch (err) {
     document.getElementById("students-tbody").innerHTML =
       `<tr><td colspan="8" style="color:#dc2626;padding:20px">Error: ${err.message}</td></tr>`;
@@ -994,11 +1261,13 @@ function renderStudents(list, q) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text-mute)">No students yet</td></tr>`;
     return;
   }
-  tbody.innerHTML = list.map(s => {
-    const teamCode = s.group?.team_code || "—";
-    const supName  = s.group?.supervisor?.name || "Unassigned";
+  tbody.innerHTML = list
+    .map((s) => {
+      const teamCode = s.group?.team_code || "—";
+      const supName = s.group?.supervisor?.name || "Unassigned";
 
-    const cvBtn = s.cv_url ? `
+      const cvBtn = s.cv_url
+        ? `
       <button onclick="viewDoc('${s.cv_url}')"
         title="View CV"
         style="display:inline-flex;align-items:center;gap:4px;padding:4px 9px;
@@ -1010,21 +1279,26 @@ function renderStudents(list, q) {
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>CV
-      </button>` : `<span style="font-size:.7rem;color:var(--text-mute);font-style:italic">—</span>`;
+      </button>`
+        : `<span style="font-size:.7rem;color:var(--text-mute);font-style:italic">—</span>`;
 
-    return `<tr onclick="openStudentDetail('${s._id}')" style="cursor:pointer">
+      return `<tr onclick="openStudentDetail('${s._id}')" style="cursor:pointer">
       <td><span class="s-id">${hl(s.student_code, q)}</span></td>
       <td>
         <div>${hl(s.name, q)}</div>
         <small style="color:var(--text-mute);font-size:.66rem">${s.email || ""}</small>
-        ${s.whatsapp ? `<a href="https://wa.me/${s.whatsapp.replace(/^0/,"92")}" target="_blank"
+        ${
+          s.whatsapp
+            ? `<a href="https://wa.me/${s.whatsapp.replace(/^0/, "92")}" target="_blank"
           onclick="event.stopPropagation()"
           style="color:#15803d;font-size:.66rem;font-weight:600;text-decoration:none;display:block">
-          📱 ${s.whatsapp}</a>` : ""}
+          📱 ${s.whatsapp}</a>`
+            : ""
+        }
       </td>
       <td><span class="tid">${hl(teamCode, q)}</span></td>
       <td>${hl(supName, q)}</td>
-      <td><span class="s-role ${(s.team_role||"member").toLowerCase()}">${s.team_role || "—"}</span></td>
+      <td><span class="s-role ${(s.team_role || "member").toLowerCase()}">${s.team_role || "—"}</span></td>
       <td style="text-align:right">
         <span class="s-marks">${s.total_marks ?? 0}<span class="den">/ ${TOTAL_MARKS}</span></span>
       </td>
@@ -1034,19 +1308,26 @@ function renderStudents(list, q) {
              stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </span></td>
     </tr>`;
-  }).join("");
+    })
+    .join("");
 }
 
 function filterStudents(q) {
   PAGES.students = 1;
   q = (q || "").trim().toLowerCase();
-  const filtered = STUDENTS_DATA.filter(s =>
-    (s.student_code || "").toLowerCase().includes(q) ||
-    (s.name || "").toLowerCase().includes(q) ||
-    (s.group?.team_code || "").toLowerCase().includes(q)
+  const filtered = STUDENTS_DATA.filter(
+    (s) =>
+      (s.student_code || "").toLowerCase().includes(q) ||
+      (s.name || "").toLowerCase().includes(q) ||
+      (s.group?.team_code || "").toLowerCase().includes(q),
   );
   renderStudents(filtered, q);
-  renderChairPagination("students-pagination", filtered.length, 1, "renderStudentsPage");
+  renderChairPagination(
+    "students-pagination",
+    filtered.length,
+    1,
+    "renderStudentsPage",
+  );
 }
 
 /* ═══════════════════════════════════
@@ -1060,7 +1341,9 @@ async function loadInternships() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/supervisors/chairman/internships`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/supervisors/chairman/internships`, {
+      headers: authHeaders,
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
@@ -1078,17 +1361,24 @@ function renderInternshipTable(list) {
     return;
   }
 
-  tbody.innerHTML = list.map(item => {
-    const dateStr = item.createdAt
-      ? new Date(item.createdAt).toLocaleDateString("en-PK", { day:"numeric", month:"short", year:"numeric" })
-      : "—";
+  tbody.innerHTML = list
+    .map((item) => {
+      const dateStr = item.createdAt
+        ? new Date(item.createdAt).toLocaleDateString("en-PK", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "—";
 
-    const cnic = (item.cnic || "").replace(/\D/g, "");
-    const cnicFmt = cnic.length === 13
-      ? `${cnic.slice(0,5)}-${cnic.slice(5,12)}-${cnic.slice(12)}`
-      : item.cnic || "—";
+      const cnic = (item.cnic || "").replace(/\D/g, "");
+      const cnicFmt =
+        cnic.length === 13
+          ? `${cnic.slice(0, 5)}-${cnic.slice(5, 12)}-${cnic.slice(12)}`
+          : item.cnic || "—";
 
-    const letterBtn = item.acceptance_letter_url ? `
+      const letterBtn = item.acceptance_letter_url
+        ? `
       <button onclick="viewDoc('${item.acceptance_letter_url}')"
         style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;
                border-radius:7px;font-size:.74rem;font-weight:700;cursor:pointer;
@@ -1099,47 +1389,53 @@ function renderInternshipTable(list) {
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
           <circle cx="12" cy="12" r="3"/>
         </svg>View Letter
-      </button>` : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic">No file</span>`;
+      </button>`
+        : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic">No file</span>`;
 
-    return `<tr>
+      return `<tr>
       <td><strong>${item.full_name || "—"}</strong></td>
       <td><span style="font-family:monospace;font-size:.82rem">${cnicFmt}</span></td>
       <td><span style="font-size:.8rem">${item.discipline || "—"}</span></td>
       <td style="font-size:.78rem;color:var(--text-mute)">${dateStr}</td>
       <td>${letterBtn}</td>
     </tr>`;
-  }).join("");
+    })
+    .join("");
 }
 
 function filterInternships(q) {
-  const filtered = INTERNSHIP_DATA.filter(item =>
-    (item.full_name || "").toLowerCase().includes((q || "").toLowerCase())
+  const filtered = INTERNSHIP_DATA.filter((item) =>
+    (item.full_name || "").toLowerCase().includes((q || "").toLowerCase()),
   );
   renderInternshipTable(filtered);
 }
 
 async function openStudentDetail(studentId) {
-  const s = STUDENTS_DATA.find(x => x._id === studentId);
+  const s = STUDENTS_DATA.find((x) => x._id === studentId);
   if (!s) return;
 
   /* fetch marks */
   let marks = {};
   try {
     if (s.group?._id) {
-      const res  = await fetch(`${API_BASE}/marks/group/${s.group._id}`, { headers: authHeaders });
+      const res = await fetch(`${API_BASE}/marks/group/${s.group._id}`, {
+        headers: authHeaders,
+      });
       const data = await res.json();
-      const list = Array.isArray(data) ? data : (data.marks || data.data || []);
-      const rec  = list.find(m => {
+      const list = Array.isArray(data) ? data : data.marks || data.data || [];
+      const rec = list.find((m) => {
         const ref = typeof m.student === "string" ? m.student : m.student?._id;
         return ref === studentId;
       });
       if (rec) marks = marksFromRecord(rec);
     }
-  } catch (e) { /* silently continue with empty marks */ }
+  } catch (e) {
+    /* silently continue with empty marks */
+  }
 
   const total = calcTotal(marks);
 
-  document.getElementById("students-list-view").style.display  = "none";
+  document.getElementById("students-list-view").style.display = "none";
   const d = document.getElementById("students-detail-view");
   d.style.display = "";
 
@@ -1156,8 +1452,12 @@ async function openStudentDetail(studentId) {
         </div>
         <div style="margin-top:8px;font-size:.78rem;color:var(--text-mute);display:flex;gap:18px">
           <span>📧 ${s.email || "—"}</span>
-          ${s.whatsapp ? `<a href="https://wa.me/${s.whatsapp.replace(/^0/,"92")}" target="_blank"
-            style="color:#15803d;font-weight:600;text-decoration:none">📱 ${s.whatsapp}</a>` : ""}
+          ${
+            s.whatsapp
+              ? `<a href="https://wa.me/${s.whatsapp.replace(/^0/, "92")}" target="_blank"
+            style="color:#15803d;font-weight:600;text-decoration:none">📱 ${s.whatsapp}</a>`
+              : ""
+          }
         </div>
       </div>
       <div class="gh-stat-box">
@@ -1167,7 +1467,7 @@ async function openStudentDetail(studentId) {
       </div>
     </div>
     <p style="font-size:.78rem;color:var(--text-mute);margin:0 0 12px;padding:0 4px">
-      🔒 Read-only — marks cannot be edited here
+      Read-only — marks cannot be edited here
     </p>
     <div class="mk-grid">${readOnlyMarksHtml(marks)}</div>
     <div class="grand-bar">
@@ -1176,14 +1476,13 @@ async function openStudentDetail(studentId) {
     </div>`;
 }
 
-
 async function viewDoc(url) {
   if (!url) return toast("No document available", "red");
   try {
     if (url.includes("amazonaws.com")) {
-      const res  = await fetch(
+      const res = await fetch(
         `${API_BASE}/uploads/signed-url?url=${encodeURIComponent(url)}`,
-        { headers: authHeaders }
+        { headers: authHeaders },
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -1191,7 +1490,8 @@ async function viewDoc(url) {
     } else {
       window.open(
         url.startsWith("http") ? url : `http://localhost:5001${url}`,
-        "_blank", "noopener"
+        "_blank",
+        "noopener",
       );
     }
   } catch (err) {
@@ -1199,14 +1499,15 @@ async function viewDoc(url) {
   }
 }
 
-
 //Load teh proposals
 async function loadProposals() {
   document.getElementById("proposals-tbody").innerHTML =
     `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res  = await fetch(`${API_BASE}/supervisors/chairman/teams`, { headers: authHeaders });
+    const res = await fetch(`${API_BASE}/supervisors/chairman/teams`, {
+      headers: authHeaders,
+    });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
     window._proposalTeams = data.teams || [];
@@ -1219,25 +1520,38 @@ async function loadProposals() {
 
 function renderProposalsPage(page) {
   PAGES.proposals = page;
-  const all   = window._proposalTeams || [];
+  const all = window._proposalTeams || [];
   const slice = all.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  renderProposals(slice, document.getElementById("search-proposals")?.value || "");
-  renderChairPagination("proposals-pagination", all.length, page, "renderProposalsPage");
+  renderProposals(
+    slice,
+    document.getElementById("search-proposals")?.value || "",
+  );
+  renderChairPagination(
+    "proposals-pagination",
+    all.length,
+    page,
+    "renderProposalsPage",
+  );
 }
 function filterProposals(q) {
   PAGES.proposals = 1;
   const all = window._proposalTeams || [];
   q = (q || "").trim().toLowerCase();
-  const filtered = all.filter(t =>
-    (t.team_code || "").toLowerCase().includes(q) ||
-    (t.project_title || "").toLowerCase().includes(q) ||
-    (t.proposal_status || "").toLowerCase().includes(q) ||
-    (t.supervisor?.name || "").toLowerCase().includes(q)
+  const filtered = all.filter(
+    (t) =>
+      (t.team_code || "").toLowerCase().includes(q) ||
+      (t.project_title || "").toLowerCase().includes(q) ||
+      (t.proposal_status || "").toLowerCase().includes(q) ||
+      (t.supervisor?.name || "").toLowerCase().includes(q),
   );
   renderProposalsPage(filtered, q);
-  renderChairPagination("proposals-pagination", filtered.length, 1, "renderProposalsPage");
+  renderChairPagination(
+    "proposals-pagination",
+    filtered.length,
+    1,
+    "renderProposalsPage",
+  );
 }
-
 
 /* ═══════════════════════════════════
    SIDEBAR (mobile)
@@ -1245,7 +1559,7 @@ function filterProposals(q) {
 function toggleSidebar() {
   const sidebar = document.querySelector(".sidebar");
   const overlay = document.getElementById("sidebarOverlay");
-  const ham     = document.getElementById("hamburgerBtn");
+  const ham = document.getElementById("hamburgerBtn");
   if (sidebar.classList.contains("open")) closeSidebar();
   else {
     sidebar.classList.add("open");
@@ -1260,7 +1574,9 @@ function closeSidebar() {
   document.getElementById("hamburgerBtn")?.classList.remove("open");
   document.body.style.overflow = "";
 }
-document.addEventListener("keydown", e => { if (e.key === "Escape") closeSidebar(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSidebar();
+});
 
 /* ═══════════════════════════════════
    TOAST
@@ -1270,7 +1586,7 @@ function toast(msg, type) {
   const t = document.getElementById("toast");
   if (!t) return;
   t.textContent = msg;
-  t.className   = "toast" + (type ? " " + type : "") + " show";
+  t.className = "toast" + (type ? " " + type : "") + " show";
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
 }
@@ -1281,38 +1597,39 @@ function logout() {
 }
 
 function applyMarkLocks() {
-  document.querySelectorAll(".mk-input.ch-edit").forEach(input => {
-    const key         = input.dataset.key;
+  document.querySelectorAll(".mk-input.ch-edit").forEach((input) => {
+    const key = input.dataset.key;
     const toggleValue = MARK_TOGGLES[key];
 
     // If admin hasn't set this toggle yet → default to ENABLED (unlocked)
-    const enabled = toggleValue === undefined
-      ? true
-      : (toggleValue === true || toggleValue === "true");
+    const enabled =
+      toggleValue === undefined
+        ? true
+        : toggleValue === true || toggleValue === "true";
 
-    input.disabled      = !enabled;
-    input.style.opacity = enabled ? "1"            : "0.5";
-    input.style.cursor  = enabled ? "text"         : "not-allowed";
-    input.title         = enabled ? ""             : "🔒 Locked by admin";
+    input.disabled = !enabled;
+    input.style.opacity = enabled ? "1" : "0.5";
+    input.style.cursor = enabled ? "text" : "not-allowed";
+    input.title = enabled ? "" : " Locked by admin";
 
     if (enabled) input.classList.remove("locked-by-admin");
-    else         input.classList.add("locked-by-admin");
+    else input.classList.add("locked-by-admin");
   });
 
   // Lock Save button only if EVERY field is locked
-  document.querySelectorAll(".btn-save").forEach(btn => {
-    const inputs    = [...document.querySelectorAll(".mk-input.ch-edit")];
-    const allLocked = inputs.length > 0 && inputs.every(inp => inp.disabled);
+  document.querySelectorAll(".btn-save").forEach((btn) => {
+    const inputs = [...document.querySelectorAll(".mk-input.ch-edit")];
+    const allLocked = inputs.length > 0 && inputs.every((inp) => inp.disabled);
     if (allLocked) {
-      btn.disabled      = true;
+      btn.disabled = true;
       btn.style.opacity = "0.4";
-      btn.style.cursor  = "not-allowed";
-      btn.innerHTML     = " All marks locked by admin";
+      btn.style.cursor = "not-allowed";
+      btn.innerHTML = " All marks locked by admin";
     } else {
-      btn.disabled      = false;
+      btn.disabled = false;
       btn.style.opacity = "1";
-      btn.style.cursor  = "pointer";
-      btn.innerHTML     = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      btn.style.cursor = "pointer";
+      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12"/></svg> Save Marks`;
     }
