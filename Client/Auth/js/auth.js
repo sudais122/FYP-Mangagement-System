@@ -733,3 +733,39 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") handleLogin(e);
   });
 });
+
+/* ════════════════════════════════════
+   ENTER KEY — move to next input
+══════════════════════════════════════ */
+document.addEventListener("keydown", function(e) {
+  if (e.key !== "Enter") return;
+
+  const tag = e.target.tagName.toLowerCase();
+  if (tag !== "input" && tag !== "select") return;
+
+  e.preventDefault();
+
+  // All visible inputs on the page
+  const focusable = Array.from(
+    document.querySelectorAll(
+      'input:not([type="hidden"]):not([disabled]):not([readonly])'
+    )
+  ).filter(el => el.offsetParent !== null);
+
+  const currentIndex = focusable.indexOf(e.target);
+  if (currentIndex === -1) return;
+
+  const next = focusable[currentIndex + 1];
+
+  if (next) {
+    // Move to next field
+    next.focus();
+  } else {
+    // Last field — click the submit/login button
+    const submitBtn =
+      document.querySelector('button[onclick*="login"]') ||
+      document.querySelector('button[type="submit"]')    ||
+      document.querySelector(".btn-primary");
+    if (submitBtn) submitBtn.click();
+  }
+});

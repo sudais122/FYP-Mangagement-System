@@ -7,6 +7,6 @@ export const generateSupCode = async () => {
     { new: true, upsert: true }
   );
 
-  const number = String(counter.value).padStart(5, "0");
+  const number = String(counter.value).padStart(4, "0");
   return `SUP-2026${number}`;
 };

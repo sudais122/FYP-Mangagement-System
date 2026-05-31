@@ -4457,6 +4457,58 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") closeMobileSidebar();
 });
 
+
+/* ════════════════════════════════════
+   ENTER KEY — move to next input
+══════════════════════════════════════ */
+function enableEnterNavigation() {
+  document.addEventListener("keydown", function(e) {
+    if (e.key !== "Enter") return;
+
+    const tag = e.target.tagName.toLowerCase();
+
+    // Only handle input and select — not textarea (Enter = new line)
+    if (tag !== "input" && tag !== "select") return;
+
+    // Don't intercept if it's a submit button trigger
+    if (e.target.type === "submit") return;
+
+    e.preventDefault();
+
+    // Find all focusable inputs/selects inside the currently open modal
+    const openModal = document.querySelector(".modal-overlay.open .modal-body");
+    const container = openModal || document;
+
+    const focusable = Array.from(
+      container.querySelectorAll(
+        'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled])'
+      )
+    ).filter(el => {
+      // Must be visible
+      return el.offsetParent !== null;
+    });
+
+    const currentIndex = focusable.indexOf(e.target);
+
+    if (currentIndex === -1) return;
+
+    const nextIndex = currentIndex + 1;
+
+    if (nextIndex < focusable.length) {
+      // Move to next field
+      focusable[nextIndex].focus();
+    } else {
+      // Last field — find and click the primary button in the modal
+      const primaryBtn = document.querySelector(
+        ".modal-overlay.open .modal-footer .btn-primary"
+      );
+      if (primaryBtn) primaryBtn.click();
+    }
+  });
+}
+
+// Call it once at the bottom of initDashboard
+enableEnterNavigation();
 async function initDashboard() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   
