@@ -21,8 +21,6 @@ import adminRoutes      from "./Routes/adminRoutes.js";
 import uploadRoutes     from "./Routes/uploadRoutes.js";
 import { globalLimiter } from "./middleware/rateLimiter.js";
 import internshipRoutes from "./Routes/internshipRoutes.js";
-
-// ── NEW: Maintenance middleware ──
 import { maintenanceGuard } from "./middleware/maintenance.js";
 
 connectDB();
@@ -45,16 +43,18 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 
-app.use(globalLimiter);
+// ── Disable rate limiter during tests ──
+if (process.env.NODE_ENV !== "test") {
+  app.use(globalLimiter);
+}
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ROUTES
+// ── ROUTES ──
 app.use("/api/auth", authRoutes);
 app.use("/api", maintenanceGuard);
 
-// All other routes 
 app.use("/api/students",    studentRoutes);
 app.use("/api/groups",      groupRoutes);
 app.use("/api/marks",       marksRoutes);
@@ -63,12 +63,13 @@ app.use("/api/supervisors", supervisorRoutes);
 app.use("/api/supervisor",  supervisorRoutes);
 app.use("/api/admin",       adminRoutes);
 app.use("/api/uploads",     uploadRoutes);
-app.use("/api/internship", internshipRoutes);
+app.use("/api/internship",  internshipRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "FYP Management System API is running" });
 });
 
+// ── ERROR HANDLER ──
 app.use((err, req, res, next) => {
   console.error("\n── SERVER ERROR ──");
   console.error("URL    :", req.method, req.url);
@@ -82,6 +83,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// ── START SERVER — only when run directly, not when imported by tests ──
+if (process.argv[1] === __filename) {
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;

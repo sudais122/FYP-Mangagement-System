@@ -18,9 +18,8 @@ import {
 
 const router = express.Router();
 
-router.post("/login", loginLimiter, login);
+router.post("/login",    loginLimiter, login);
 
-// ── Registration with CV + optional certificates ──
 router.post("/register",
   registerLimiter,
   (req, res, next) => {
@@ -38,9 +37,9 @@ router.post("/register",
   registerStudent
 );
 
-router.post("/forgot-password",  forgotPasswordLimiter, forgotPassword);
-router.post("/verify-otp",       forgotPasswordLimiter, verifyOtp);
-router.post("/reset-password",   forgotPasswordLimiter, resetPassword);
-router.get("/profile",           protect, getProfile);
+router.post("/forgot-password", forgotPasswordLimiter, forgotPassword);
+router.post("/verify-otp",      forgotPasswordLimiter, verifyOtp);
+router.post("/reset-password",  forgotPasswordLimiter, resetPassword);
+router.get("/profile",          protect, getProfile);
 
 export default router;
