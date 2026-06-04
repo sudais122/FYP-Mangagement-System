@@ -10,4 +10,7 @@ build
 
 logs/
 *.log
-.pm2/
+.pm2/Server/.env
+Server/.env
+.env
+Server/.env.test
