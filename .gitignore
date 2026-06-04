@@ -14,3 +14,4 @@ logs/
 Server/.env
 .env
 Server/.env.test
+coverage/
