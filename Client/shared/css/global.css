@@ -460,23 +460,23 @@ img { display: block; max-width: 100%; }
 /* Image + green overlay — image loads under a green tint so the theme stays intact */
 .slide:nth-child(1) {
   background-image:
-  linear-gradient(135deg, rgba(184,40,40,.1) 0%, rgba(139,1,1,.75) 100%),
+    linear-gradient(135deg, rgba(31,122,58,.15) 0%, rgba(20,83,45,.82) 100%),
     url('../images/dep3.jpg');
 }
 .slide:nth-child(2) {
   background-image:
-  linear-gradient(135deg, rgba(184,40,40,.1) 0%, rgba(139,1,1,.75) 100%),
+    linear-gradient(135deg, rgba(31,122,58,.15) 0%, rgba(20,83,45,.82) 100%),
     url('../images/Dep1.jpg');
 }
 .slide:nth-child(3) {
   background-image:
-    linear-gradient(135deg, rgba(184,40,40,.1) 0%, rgba(139,1,1,.75) 100%),
+    linear-gradient(135deg, rgba(31,122,58,.15) 0%, rgba(20,83,45,.82) 100%),
     url('../images/dep2.jpg');
 }
 .slide:nth-child(4) {
   background-image:
-  linear-gradient(135deg, rgba(184,40,40,.1) 0%, rgba(139,1,1,.75) 100%),
-      url('../images/Road1.jpg');
+    linear-gradient(135deg, rgba(31,122,58,.15) 0%, rgba(20,83,45,.82) 100%),
+    url('../images/Road1.jpg');
 }
 
 /* Decorative pattern layer */
@@ -513,7 +513,7 @@ img { display: block; max-width: 100%; }
   background-position: center;
   background-repeat: no-repeat;
   background-image:
-linear-gradient(135deg, rgba(92,0,0,.5) 0%, rgba(139,1,1,.5) 60%, rgba(184,40,40,.5) 100%),
+  linear-gradient(135deg, rgba(20,83,45,.55) 0%, rgba(31,122,58,.5) 60%, rgba(42,148,80,.45) 100%),
     url('../images/Admins.jpg');
 }
 .coursera-hero::before {
@@ -1159,21 +1159,21 @@ linear-gradient(135deg, rgba(92,0,0,.5) 0%, rgba(139,1,1,.5) 60%, rgba(184,40,40
 /* FAQ — library / study theme */
 .faq-hero {
   background-image:
-linear-gradient(135deg, rgba(92,0,0,.5) 0%, rgba(139,1,1,.5) 60%, rgba(184,40,40,.5) 100%),
+  linear-gradient(135deg, rgba(20,83,45,.55) 0%, rgba(31,122,58,.5) 60%, rgba(42,148,80,.45) 100%),
     url('../images/Admins.jpg');
 }
 
 /* Messages — formal / authority theme */
 .msg-hero {
   background-image:
-linear-gradient(135deg, rgba(92,0,0,.5) 0%, rgba(139,1,1,.5) 60%, rgba(184,40,40,.5) 100%),
+  linear-gradient(135deg, rgba(20,83,45,.55) 0%, rgba(31,122,58,.5) 60%, rgba(42,148,80,.45) 100%),
     url('../images/Admins.jpg');
 }
 
 /* Developers — tech / code theme */
 .dev-hero {
   background-image:
-linear-gradient(135deg, rgba(92,0,0,.5) 0%, rgba(139,1,1,.5) 60%, rgba(184,40,40,.5) 100%),
+linear-gradient(135deg, rgba(20,83,45,.55) 0%, rgba(31,122,58,.5) 60%, rgba(42,148,80,.45) 100%),
     url('../images/Admins.jpg');
 }
 
@@ -1864,7 +1864,7 @@ footer {
   background-size: cover;
   background-position: center;
   background-image:
-    linear-gradient(135deg, rgba(92,0,0,.5) 0%, rgba(139,1,1,.5) 60%, rgba(184,40,40,.5) 100%),
+  linear-gradient(135deg, rgba(20,83,45,.55) 0%, rgba(31,122,58,.5) 60%, rgba(42,148,80,.45) 100%),
     url('../images/Admins.jpg');
 }
 .internship-hero::before {
