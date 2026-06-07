@@ -87,7 +87,18 @@ const studentSchema = new mongoose.Schema(
       type:    String,
       default: null,
     },
-
+    batch: {
+  type: String,
+  default: () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    // Academic year starts in September
+    return month >= 9
+      ? `${year}-${String(year + 1).slice(2)}`
+      : `${year - 1}-${String(year).slice(2)}`;
+  }
+},
     resetPasswordToken:  { type: String },
     resetPasswordExpire: { type: Date   },
   },

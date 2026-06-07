@@ -119,16 +119,21 @@ export const downloadRequestLetter = async (req, res) => {
 ════════════════════════════════════════════════════════════════ */
 
 // GET /api/internship/admin/all
-// Admin — get all internship submissions
 export const getAllSubmissions = async (req, res) => {
   try {
-    const submissions = await Internship.find()
+    const { batch } = req.query;
+
+    const query = {};
+    if (batch && batch !== "all") query.batch = batch;
+
+    const submissions = await Internship.find(query)
       .sort({ createdAt: -1 })
-      .populate("student", "name email student_code");
+      .lean();
 
     res.json({
-      total: submissions.length,
-      data:  submissions,
+      success: true,
+      total:   submissions.length,
+      data:    submissions,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

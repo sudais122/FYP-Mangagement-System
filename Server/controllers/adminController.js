@@ -16,7 +16,9 @@ import https                             from "https";
 import http                              from "http";
 import { logAudit }                      from "../utils/auditLogger.js";
 import bcrypt                             from "bcryptjs";
-
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const XLSX    = require("xlsx");
 
 // ── ADD SUPERVISOR ─────────────────────────────────────────────
 export const addSupervisor = async (req, res) => {
@@ -32,6 +34,14 @@ export const addSupervisor = async (req, res) => {
       return res.status(400).json({ message: "Supervisor with this email already exists" });
     }
 
+    // Calculate current batch
+    const now        = new Date();
+    const year       = now.getFullYear();
+    const month      = now.getMonth() + 1;
+    const batch      = month >= 9
+      ? `${year}-${String(year + 1).slice(2)}`
+      : `${year - 1}-${String(year).slice(2)}`;
+
     const sup_code       = await generateSupCode();
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -46,6 +56,7 @@ export const addSupervisor = async (req, res) => {
       is_chairman: is_chairman === true,
       role:        is_chairman === true ? "chairman" : "supervisor",
       sup_code,
+      batch,                                                   // ← NEW
     });
 
     const { subject, html } = supervisorCredentialsTemplate({
@@ -74,13 +85,14 @@ export const addSupervisor = async (req, res) => {
         whatsapp:    supervisor.whatsapp,
         prefix:      supervisor.prefix,
         is_chairman: supervisor.is_chairman,
+        batch:       supervisor.batch,                         // ← NEW
       },
     });
 
   } catch (error) {
     console.error("Add Supervisor Error:", error);
     if (error.code === 11000) {
-      return res.status(400).json({ message: "Duplicate key error (email or sup_code already exists)" });
+      return res.status(400).json({ message: "Duplicate key error" });
     }
     res.status(500).json({ message: error.message });
   }
@@ -89,10 +101,15 @@ export const addSupervisor = async (req, res) => {
 // ── GET DASHBOARD STATS ────────────────────────────────────────
 export const getDashboardStats = async (req, res) => {
   try {
+    const { batch } = req.query;
+
+    const query = {};
+    if (batch && batch !== "all") query.batch = batch;
+
     const [students, supervisors, groups, marks] = await Promise.all([
-      Student.countDocuments(),
-      Supervisor.countDocuments(),
-      Group.countDocuments(),
+      Student.countDocuments(query),
+      Supervisor.countDocuments(query),
+      Group.countDocuments(query),
       Marks.find(),
     ]);
 
@@ -208,11 +225,16 @@ export const getAllStudents = async (req, res) => {
 // ── GET ALL STUDENTS FOR ADMIN ─────────────────────────────────
 export const getAllStudentsForAdmin = async (req, res) => {
   try {
-    const students = await Student.find()
-      .select("name email student_code whatsapp gender cv_url certificates_url group")
+    const { batch } = req.query;                          
+
+    const query = {};
+    if (batch && batch !== "all") query.batch = batch;    
+
+    const students = await Student.find(query)
+      .select("name email student_code whatsapp gender cv_url certificates_url group batch")
       .populate({
         path:     "group",
-        select:   "group_code project_title proposal_url proposal_status supervisor",
+        select:   "group_code team_code project_title proposal_url proposal_status supervisor batch",
         populate: { path: "supervisor", select: "name prefix sup_code is_chairman designation whatsapp avatar_url" },
       })
       .sort({ createdAt: -1 })
@@ -261,8 +283,13 @@ export const deleteStudent = async (req, res) => {
 // ── GET ALL SUPERVISORS ────────────────────────────────────────
 export const getAllSupervisors = async (req, res) => {
   try {
-    const supervisors = await Supervisor.find()
-      .select("name email prefix sup_code designation whatsapp office is_chairman role avatar_url")
+    const { batch } = req.query;
+
+    const query = {};
+    if (batch && batch !== "all") query.batch = batch;
+
+    const supervisors = await Supervisor.find(query)
+      .select("name email prefix sup_code designation whatsapp office is_chairman role avatar_url batch")
       .lean();
 
     const result = await Promise.all(
@@ -278,15 +305,132 @@ export const getAllSupervisors = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 // ── GET ALL GROUPS ─────────────────────────────────────────────
 export const getAllGroups = async (req, res) => {
   try {
-    const groups = await Group.find()
+    const { batch } = req.query;                          
+
+    const query = {};
+    if (batch && batch !== "all") query.batch = batch;    
+
+    const groups = await Group.find(query)
       .populate("supervisor", "name prefix sup_code email is_chairman designation whatsapp avatar_url");
     res.json(groups);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Get all avalible batcher
+export const getAvailableBatches = async (req, res) => {
+  try {
+    const [studentBatches, groupBatches, internBatches, supBatches] = await Promise.all([
+      Student.distinct("batch"),
+      Group.distinct("batch"),
+      Internship.distinct("batch"),
+      Supervisor.distinct("batch"),       
+    ]);
+
+    const all = [...new Set([
+      ...studentBatches,
+      ...groupBatches,
+      ...internBatches,
+      ...supBatches,                           
+    ])].filter(Boolean).sort((a, b) => b.localeCompare(a));
+
+    res.json({ batches: all });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+//Export stuent to excel sheet
+export const exportStudentsExcel = async (req, res) => {
+  try {
+    const { batch } = req.query;
+
+    const query = {};
+    if (batch && batch !== "all") query.batch = batch;
+
+    const students = await Student.find(query)
+      .select("name email student_code whatsapp gender batch group")
+      .populate({
+        path:     "group",
+        select:   "team_code project_title proposal_status supervisor",
+        populate: { path: "supervisor", select: "name prefix" },
+      })
+      .lean();
+
+    const studentIds = students.map(s => s._id);
+    const allMarks   = await Marks.find({ student: { $in: studentIds } }).lean();
+
+    const marksByStudent = {};
+    allMarks.forEach(m => { marksByStudent[m.student.toString()] = m; });
+
+    // ── Sheet 1: Students Overview ──
+    const overviewData = students.map((s, i) => {
+      const m   = marksByStudent[s._id.toString()];
+      const sup = s.group?.supervisor;
+      return {
+        "#":            i + 1,
+        "Name":         s.name || "—",
+        "Student ID":   s.student_code || "—",
+        "Email":        s.email || "—",
+        "WhatsApp":     s.whatsapp || "—",
+        "Gender":       s.gender || "—",
+        "Batch":        s.batch || "—",
+        "Team ID":      s.group?.team_code || "—",
+        "Project":      s.group?.project_title || "—",
+        "Supervisor":   sup ? `${sup.prefix}. ${sup.name}` : "—",
+        "Proposal":     s.group?.proposal_status || "—",
+        "Total Marks":  m?.total || 0,
+      };
+    });
+    const marksData = students.map((s, i) => {
+      const m = marksByStudent[s._id.toString()];
+      return {
+        "#":               i + 1,
+        "Name":            s.name || "—",
+        "Student ID":      s.student_code || "—",
+        "Batch":           s.batch || "—",
+        "Oct":             m?.monthly?.oct ?? "—",
+        "Nov":             m?.monthly?.nov ?? "—",
+        "Dec":             m?.monthly?.dec ?? "—",
+        "Feb":             m?.monthly?.feb ?? "—",
+        "Mar":             m?.monthly?.mar ?? "—",
+        "Proposal":        m?.submissions?.proposal ?? "—",
+        "Progress Report": m?.submissions?.progress ?? "—",
+        "Thesis":          m?.documentation?.final ?? "—",
+        "Code":            m?.submissions?.code ?? "—",
+        "Prog Similarity": m?.submissions?.prog_sim ?? "—",
+        "Thesis Similarity": m?.submissions?.thesis_sim ?? "—",
+        "Internal Viva 1": m?.viva?.internal1 ?? "—",
+        "Internal Viva 2": m?.viva?.internal2 ?? "—",
+        "External Viva":   m?.viva?.external ?? "—",
+        "Total":           m?.total || 0,
+      };
+    });
+
+    // ── Build Workbook ──
+    const wb  = XLSX.utils.book_new();
+    const ws1 = XLSX.utils.json_to_sheet(overviewData);
+    const ws2 = XLSX.utils.json_to_sheet(marksData);
+
+    XLSX.utils.book_append_sheet(wb, ws1, "Students");
+    XLSX.utils.book_append_sheet(wb, ws2, "Marks Detail");
+
+    const batchLabel = batch && batch !== "all" ? batch : "all";
+    const filename   = `FYP-Students-${batchLabel}-${new Date().getFullYear()}.xlsx`;
+
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    res.setHeader("Content-Type",        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Length",       buffer.length);
+    res.send(buffer);
+
+  } catch (err) {
+    console.error("exportStudentsExcel error:", err);
+    res.status(500).json({ message: err.message });
   }
 };
 
@@ -712,6 +856,171 @@ export const getSystemSettings = async (req, res) => {
       chairman_mode_enabled_at: settings.chairman_mode_enabled_at || null,
     });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// ── EXPORT SUPERVISORS TO EXCEL ────────────────────────────────
+export const exportSupervisorsExcel = async (req, res) => {
+  try {
+    const { batch } = req.query;
+
+    const query = {};
+    if (batch && batch !== "all") query.batch = batch;
+
+    const supervisors = await Supervisor.find(query)
+      .select("name prefix email sup_code designation whatsapp is_chairman role batch createdAt")
+      .lean();
+
+    if (!supervisors.length) {
+      return res.status(404).json({ message: "No supervisors found" });
+    }
+
+    // Fetch team count for each supervisor
+    const withTeams = await Promise.all(
+      supervisors.map(async (s, i) => {
+        const teams = await Group.find({ supervisor: s._id })
+          .select("team_code project_title proposal_status batch status")
+          .lean();
+
+        return {
+          supervisor: s,
+          teams,
+          index: i + 1,
+        };
+      })
+    );
+
+    // ── Sheet 1: Supervisors Overview ────────────────────────────
+const overviewData = withTeams.map(({ supervisor: s, teams, index }) => ({
+  "Name":        `${s.prefix}. ${s.name}`,
+  "SUP ID":      s.sup_code    || "—",
+  "Email":       s.email       || "—",
+  "WhatsApp":    s.whatsapp    || "—",
+  "Designation": s.designation || "—",
+  "Role":        s.is_chairman ? "Chairman / HOD" : "Supervisor",
+  "Batch":       s.batch       || "—",
+  "Total Teams": teams.length,
+  "Joined": s.createdAt
+    ? new Date(s.createdAt).toLocaleDateString("en-PK")
+    : "—",
+}));
+    // ── Sheet 2: Supervisor Teams Detail ─────────────────────────
+    const teamsDetailData = [];
+    for (const { supervisor: s, teams } of withTeams) {
+      if (!teams.length) {
+        teamsDetailData.push({
+          "Supervisor":      `${s.prefix}. ${s.name}`,
+          "SUP ID":          s.sup_code || "—",
+          "Batch":           s.batch    || "—",
+          "Team ID":         "No teams assigned",
+          "Project Title":   "—",
+          "Proposal Status": "—",
+          "Team Status":     "—",
+          "Team Batch":      "—",
+        });
+        continue;
+      }
+
+      for (const t of teams) {
+        teamsDetailData.push({
+          "Supervisor":      `${s.prefix}. ${s.name}`,
+          "SUP ID":          s.sup_code          || "—",
+          "Batch":           s.batch             || "—",
+          "Team ID":         t.team_code         || "—",
+          "Project Title":   t.project_title     || "—",
+          "Proposal Status": t.proposal_status   || "—",
+          "Team Status":     t.status            || "—",
+          "Team Batch":      t.batch             || "—",
+        });
+      }
+    }
+
+    // ── Sheet 3: Marks given by each supervisor ───────────────────
+    const marksData = [];
+    for (const { supervisor: s, teams } of withTeams) {
+      if (!teams.length) continue;
+
+      for (const team of teams) {
+        const fullGroup = await Group.findById(team._id)
+          .populate("leader",  "name student_code")
+          .populate("members", "name student_code")
+          .lean();
+
+        if (!fullGroup) continue;
+
+        const allStudents = [
+          fullGroup.leader
+            ? { ...fullGroup.leader, role: "Leader" }
+            : null,
+          ...(fullGroup.members || []).map(m => ({ ...m, role: "Member" })),
+        ].filter(Boolean);
+
+        for (const student of allStudents) {
+          const marks = await Marks.findOne({ student: student._id }).lean();
+          marksData.push({
+            "Supervisor":    `${s.prefix}. ${s.name}`,
+            "SUP ID":        s.sup_code         || "—",
+            "Team ID":       team.team_code      || "—",
+            "Student":       student.name        || "—",
+            "Student ID":    student.student_code || "—",
+            "Role":          student.role,
+            "Oct":           marks?.monthly?.oct          ?? "—",
+            "Nov":           marks?.monthly?.nov          ?? "—",
+            "Dec":           marks?.monthly?.dec          ?? "—",
+            "Feb":           marks?.monthly?.feb          ?? "—",
+            "Mar":           marks?.monthly?.mar          ?? "—",
+            "Proposal":      marks?.submissions?.proposal ?? "—",
+            "Progress":      marks?.submissions?.progress ?? "—",
+            "Thesis":        marks?.documentation?.final  ?? "—",
+            "Code":          marks?.submissions?.code     ?? "—",
+            "Prog Sim":      marks?.submissions?.prog_sim ?? "—",
+            "Thesis Sim":    marks?.submissions?.thesis_sim ?? "—",
+            "IV1":           marks?.viva?.internal1       ?? "—",
+            "IV2":           marks?.viva?.internal2       ?? "—",
+            "External":      marks?.viva?.external        ?? "—",
+            "Total":         marks?.total                 || 0,
+          });
+        }
+      }
+    }
+
+    // ── Build Workbook ────────────────────────────────────────────
+    const wb  = XLSX.utils.book_new();
+
+    const ws1 = XLSX.utils.json_to_sheet(overviewData);
+    const ws2 = XLSX.utils.json_to_sheet(teamsDetailData);
+    const ws3 = marksData.length
+      ? XLSX.utils.json_to_sheet(marksData)
+      : XLSX.utils.json_to_sheet([{ "Info": "No marks data available" }]);
+
+    // Auto column widths
+    const setColWidths = (ws, data) => {
+      if (!data.length) return;
+      ws["!cols"] = Object.keys(data[0]).map(key => ({
+        wch: Math.max(key.length + 2, 14),
+      }));
+    };
+
+    setColWidths(ws1, overviewData);
+    setColWidths(ws2, teamsDetailData);
+    if (marksData.length) setColWidths(ws3, marksData);
+
+    XLSX.utils.book_append_sheet(wb, ws1, "Supervisors Overview");
+    XLSX.utils.book_append_sheet(wb, ws2, "Teams Detail");
+    XLSX.utils.book_append_sheet(wb, ws3, "Marks Given");
+
+    const batchLabel = batch && batch !== "all" ? batch : "all";
+    const filename   = `FYP-Supervisors-${batchLabel}-${new Date().getFullYear()}.xlsx`;
+    const buffer     = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+
+    res.setHeader("Content-Type",        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Length",       buffer.length);
+    res.send(buffer);
+
+  } catch (err) {
+    console.error("exportSupervisorsExcel error:", err);
     res.status(500).json({ message: err.message });
   }
 };

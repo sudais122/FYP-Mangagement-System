@@ -267,12 +267,15 @@ async function fetchDashboardStats() {
   if (!admin?.token) return;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/stats`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
-    });
+    const res = await fetch(
+      `${API_BASE}/api/admin/stats?batch=${encodeURIComponent(_activeBatch)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+      }
+    );
     const data = await res.json();
     if (!res.ok) return console.error("Stats fetch failed:", data.message);
 
@@ -281,14 +284,18 @@ async function fetchDashboardStats() {
   } catch (err) {
     console.error("Error fetching dashboard stats:", err);
   }
-  // ── Internship count ──
+
+  // Internship count — also batch filtered
   try {
-    const res = await fetch(`${API_BASE}/api/internship/admin/all`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
-    });
+    const res = await fetch(
+      `${API_BASE}/api/internship/admin/all?batch=${encodeURIComponent(_activeBatch)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+      }
+    );
     const data = await res.json();
     const el = document.getElementById("stat-internship-count");
     if (el) el.textContent = data.total ?? data.data?.length ?? 0;
@@ -326,12 +333,16 @@ async function renderRecentTeams() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res = await fetch(`${API_BASE}/api/groups`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
-    });
+    // ← Changed to /api/admin/groups
+    const res = await fetch(
+      `${API_BASE}/api/admin/groups?batch=${encodeURIComponent(_activeBatch)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+      }
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
@@ -343,122 +354,45 @@ async function renderRecentTeams() {
     }
 
     tbody.innerHTML = teams.map((g) => {
-      const code = g.team_code || g.group_code || "—";
-      const title = g.project_title || "—";
-      const members = 1 + (g.members?.length || 0);
-      const supName = g.supervisor
-        ? formatName(g.supervisor.prefix, g.supervisor.name)
-        : "Unassigned";
-
-      const proposalUrl = g.proposal_url || "";
+      const code           = g.team_code || g.group_code || "—";
+      const title          = g.project_title || "—";
+      const members        = 1 + (g.members?.length || 0);
+      const supName        = g.supervisor ? formatName(g.supervisor.prefix, g.supervisor.name) : "Unassigned";
+      const proposalUrl    = g.proposal_url || "";
       const proposalStatus = g.proposal_status || "pending";
 
       let proposalBadge = "";
       if (proposalStatus === "approved") {
-        proposalBadge = `
-          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
-                       border-radius:6px;font-size:.7rem;font-weight:700;
-                       background:rgba(21,128,61,.1);color:#15803d">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-            Approved
-          </span>`;
+        proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(21,128,61,.1);color:#15803d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>Approved</span>`;
       } else if (proposalStatus === "rejected") {
-        proposalBadge = `
-          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
-                       border-radius:6px;font-size:.7rem;font-weight:700;
-                       background:rgba(220,38,38,.08);color:#dc2626">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-            Rejected
-          </span>`;
+        proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(220,38,38,.08);color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rejected</span>`;
       } else {
-        proposalBadge = `
-          <span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
-                       border-radius:6px;font-size:.7rem;font-weight:700;
-                       background:rgba(234,179,8,.1);color:#a16207">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" width="12" height="12">
-              <circle cx="12" cy="12" r="10"/>
-              <polyline points="12 6 12 12 16 14"/>
-            </svg>
-            Pending
-          </span>`;
+        proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(234,179,8,.1);color:#a16207"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Pending</span>`;
       }
 
       let proposalActions = "";
       if (proposalUrl && proposalStatus === "pending") {
         proposalActions = `
           <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
-            <button onclick="viewDoc('${proposalUrl}')"
-              style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
-                     border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
-                     border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);color:var(--primary)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              View
-            </button>
-            <button onclick="updateProposalStatus('${g._id}','approved')"
-              style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
-                     border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
-                     border:1px solid rgba(21,128,61,.2);background:rgba(21,128,61,.06);color:#15803d">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                   stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              Accept
-            </button>
-            <button onclick="updateProposalStatus('${g._id}','rejected')"
-              style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
-                     border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;
-                     border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:#dc2626">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                   stroke-linecap="round" stroke-linejoin="round" width="11" height="11">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-              Reject
-            </button>
+            <button onclick="viewDoc('${proposalUrl}')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);color:var(--primary)">View</button>
+            <button onclick="updateProposalStatus('${g._id}','approved')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(21,128,61,.2);background:rgba(21,128,61,.06);color:#15803d">Accept</button>
+            <button onclick="updateProposalStatus('${g._id}','rejected')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:#dc2626">Reject</button>
           </div>`;
       }
 
       return `
         <tr>
-          <td>
-            <div class="team-info">
-              <strong>${title.length > 28 ? title.slice(0, 28) + "…" : title}</strong>
-              <span style="display:block;font-size:.72rem;color:var(--text-mute)">${members} member${members !== 1 ? "s" : ""}</span>
-            </div>
-          </td>
+          <td><div class="team-info"><strong>${title.length > 28 ? title.slice(0, 28) + "…" : title}</strong><span style="display:block;font-size:.72rem;color:var(--text-mute)">${members} member${members !== 1 ? "s" : ""}</span></div></td>
           <td><span class="id-pill gold">${code}</span></td>
           <td><span style="font-weight:600;color:var(--text)">${supName}</span></td>
           <td>${proposalBadge}${proposalActions}</td>
           <td>
             <div class="action-row">
-              <button class="icon-action" title="Reassign supervisor"
-                onclick="event.stopPropagation();openReassignModal('${g._id}')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                  <polyline points="1 4 1 10 7 10"/>
-                  <polyline points="23 20 23 14 17 14"/>
-                  <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
-                </svg>
+              <button class="icon-action" title="Reassign supervisor" onclick="event.stopPropagation();openReassignModal('${g._id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
               </button>
-              <button class="icon-action" title="View team"
-                onclick="event.stopPropagation();openTeamDetail('${g._id}')">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                     stroke-linecap="round" stroke-linejoin="round" width="14" height="14">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
+              <button class="icon-action" title="View team" onclick="event.stopPropagation();openTeamDetail('${g._id}')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
           </td>
@@ -478,12 +412,15 @@ async function renderSupervisors() {
   grid.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-mute)">Loading...</div>`;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/supervisors`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
-    });
+    const res = await fetch(
+      `${API_BASE}/api/admin/supervisors?batch=${encodeURIComponent(_activeBatch)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+      }
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
 
@@ -1112,11 +1049,10 @@ async function renderTeams() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res = await fetch(`${API_BASE}/api/groups`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
+    // ← Changed to /api/admin/groups
+    const url = `${API_BASE}/api/admin/groups?batch=${encodeURIComponent(_activeBatch)}`;
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${admin.token}` },
     });
     const ct = res.headers.get("content-type") || "";
     if (!ct.includes("application/json"))
@@ -1508,7 +1444,7 @@ async function confirmReassign() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
     const res = await fetch(
-      `${API_BASE}/api/groups/${reassignTeamId}/reassign`,
+      `${API_BASE}/api/groups/${reassignTeamId}/reassign`,  // ← this one stays /api/groups (it's a group action, not admin list)
       {
         method: "PUT",
         headers: {
@@ -1541,11 +1477,9 @@ async function renderStudents() {
   tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text-mute)">Loading...</td></tr>`;
 
   try {
-    const res = await fetch(`${API_BASE}/api/admin/students`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
+    const url = `${API_BASE}/api/admin/students?batch=${encodeURIComponent(_activeBatch)}`;
+    const res = await fetch(url, {
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${admin.token}` },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -3377,18 +3311,20 @@ async function renderInternships() {
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-mute)">Loading…</td></tr>`;
 
   try {
-    const res = await fetch(`${API_BASE}/api/internship/admin/all`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${admin.token}`,
-      },
-    });
+    const res = await fetch(
+      `${API_BASE}/api/internship/admin/all?batch=${encodeURIComponent(_activeBatch)}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${admin.token}`,
+        },
+      }
+    );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to load");
 
     INTERNSHIP_DATA = data.data || [];
 
-    // Update badge
     const badge = document.getElementById("internship-badge");
     if (badge) badge.textContent = INTERNSHIP_DATA.length || "";
 
@@ -3398,7 +3334,6 @@ async function renderInternships() {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
   }
 }
-
 function renderInternshipPage(page) {
   INTERNSHIP_PAGE.current = page;
   const { perPage } = INTERNSHIP_PAGE;
@@ -4397,6 +4332,162 @@ async function updateMaintenanceReason() {
     toast("Error", err.message, "error");
   }
 }
+/* ════════════════════════════════════
+   BATCH SELECTOR — GLOBAL
+══════════════════════════════════════ */
+let _activeBatch = localStorage.getItem("admin_batch") || null;
+
+function getCurrentBatch() {
+  const now   = new Date();
+  const year  = now.getFullYear();
+  const month = now.getMonth() + 1;
+  return month >= 9
+    ? `${year}-${String(year + 1).slice(2)}`
+    : `${year - 1}-${String(year).slice(2)}`;
+}
+
+async function loadBatches() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+
+  // Set default to current batch if nothing saved
+  if (!_activeBatch) {
+    _activeBatch = getCurrentBatch();
+    localStorage.setItem("admin_batch", _activeBatch);
+  }
+
+  try {
+    const res   = await fetch(`${API_BASE}/api/admin/batches`, {
+      headers: { Authorization: `Bearer ${admin.token}` },
+    });
+    const data  = await res.json();
+    const batches = data.batches || [];
+
+    const current = getCurrentBatch();
+    if (!batches.includes(current)) batches.unshift(current);
+
+    renderBatchSelector(batches);
+  } catch (err) {
+    console.error("loadBatches error:", err);
+    renderBatchSelector([getCurrentBatch()]);
+  }
+}
+
+function renderBatchSelector(batches) {
+  const el = document.getElementById("global-batch-selector");
+  if (!el) return;
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" width="16" height="16"
+           style="color:var(--primary);flex-shrink:0">
+        <rect x="3" y="4" width="18" height="18" rx="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span style="font-size:.78rem;font-weight:700;color:var(--text)">Academic Year</span>
+      <select id="batch-select"
+        onchange="onBatchChange(this.value)"
+        style="padding:6px 12px;border-radius:9px;border:1.5px solid var(--border);
+               background:var(--surface);color:var(--text);font-size:.82rem;
+               font-weight:600;cursor:pointer;outline:none">
+        <option value="all" ${_activeBatch === "all" ? "selected" : ""}>All Years</option>
+        ${batches.map(b => `
+          <option value="${b}" ${_activeBatch === b ? "selected" : ""}>${b}</option>
+        `).join("")}
+      </select>
+      <span id="batch-label" style="font-size:.72rem;color:var(--text-mute);font-weight:600">
+        ${_activeBatch === "all" ? "Showing all batches" : `Showing batch ${_activeBatch}`}
+      </span>
+    </div>`;
+}
+
+async function onBatchChange(batch) {
+  _activeBatch = batch;
+  localStorage.setItem("admin_batch", batch);
+
+  const label = document.getElementById("batch-label");
+  if (label) {
+    label.textContent = batch === "all"
+      ? "Showing all batches"
+      : `Showing batch ${batch}`;
+  }
+
+  toast("Switching batch…", batch === "all" ? "All years" : batch, "success");
+
+  await Promise.all([
+    fetchDashboardStats(),
+    renderRecentTeams(),
+    renderSupervisors(),       
+    renderTeams(),
+    renderStudents(),
+    renderInternships(),
+  ]);
+}
+
+/* ════════════════════════════════════
+   EXPORT TO EXCEL
+══════════════════════════════════════ */
+async function exportToExcel(type = "students") {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin?.token)
+    return toast("Not authenticated", "Please log in again", "error");
+
+  const batch    = _activeBatch;
+  const label    = batch === "all" ? "all" : batch;
+  const filename = `FYP-${type}-${label}.xlsx`;
+
+  showDownloadProgress(filename);
+  document.getElementById("dl-prog-sub").textContent = "Generating Excel…";
+
+  try {
+    const url = `${API_BASE}/api/admin/export/${type}?batch=${encodeURIComponent(batch)}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${admin.token}` },
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || `Server error ${res.status}`);
+    }
+
+    await streamDownload(res, filename);
+  } catch (err) {
+    setDlError(err.message);
+    toast("Export failed", err.message, "error");
+  }
+}
+
+async function exportSupervisors() {
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  if (!admin?.token)
+    return toast("Not authenticated", "Please log in again", "error");
+
+  const batch    = _activeBatch;
+  const label    = batch === "all" ? "all" : batch;
+  const filename = `FYP-Supervisors-${label}.xlsx`;
+
+  showDownloadProgress(filename);
+  document.getElementById("dl-prog-sub").textContent = "Generating supervisors report…";
+
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/admin/export/supervisors?batch=${encodeURIComponent(batch)}`,
+      { headers: { Authorization: `Bearer ${admin.token}` } }
+    );
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.message || `Server error ${res.status}`);
+    }
+
+    await streamDownload(res, filename);
+  } catch (err) {
+    setDlError(err.message);
+    toast("Export failed", err.message, "error");
+  }
+}
 
 /* MOBILE SIDEBAR */
 function openMobileSidebar() {
@@ -4457,7 +4548,6 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") closeMobileSidebar();
 });
 
-
 /* ════════════════════════════════════
    ENTER KEY — move to next input
 ══════════════════════════════════════ */
@@ -4511,8 +4601,7 @@ function enableEnterNavigation() {
 enableEnterNavigation();
 async function initDashboard() {
   const admin = JSON.parse(localStorage.getItem("admin"));
-  
-  // DEBUG — check these in console
+
   console.log("admin object:", admin);
   console.log("admin token:", admin?.token ? "✓ present" : "✗ MISSING");
   console.log("API_BASE:", API_BASE);
@@ -4523,6 +4612,7 @@ async function initDashboard() {
   }
 
   displayAdminInfo();
+  await loadBatches();
   await fetchDashboardStats();
   await renderRecentTeams();
   await renderSupervisors();
@@ -4534,5 +4624,4 @@ async function initDashboard() {
   await loadSystemSettings();
   await renderInternships();
 }
-
 initDashboard();

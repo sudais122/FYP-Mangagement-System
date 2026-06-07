@@ -268,7 +268,12 @@
             </div>
           </div>
         </div>
-
+<!-- ── GLOBAL BATCH SELECTOR ── -->
+<div id="global-batch-selector"
+     style="margin-bottom:20px;padding:14px 20px;
+            background:var(--surface);border-radius:12px;
+            border:1px solid var(--border-soft)">
+</div>
         <div class="dash-stats">
           <div class="dstat-card" data-color="primary">
             <div class="dstat-head">
@@ -388,21 +393,32 @@
               Click any card to view details
             </p>
           </div>
-          <div class="section-head-actions">
-            <button class="btn btn-primary" onclick="openSupervisorModal()">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.2"
-                stroke-linecap="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Add Supervisor
-            </button>
-          </div>
+<!-- Inside view-supervisors section-head-actions -->
+<div class="section-head-actions">
+  <button onclick="exportSupervisors()"
+    style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+           border-radius:9px;border:1.5px solid rgba(0,75,45,.25);
+           background:rgba(0,75,45,.07);color:var(--primary);
+           font-size:.78rem;font-weight:700;cursor:pointer;margin-right:8px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+         width="14" height="14">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Export Excel
+  </button>
+
+  <button class="btn btn-primary" onclick="openSupervisorModal()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.2" stroke-linecap="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Add Supervisor
+  </button>
+</div>
         </div>
 
         <div class="filter-bar">
@@ -589,8 +605,23 @@
               marks
             </p>
           </div>
+          <div class="section-head-actions">
+  <button onclick="exportToExcel('students')"
+    style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;
+           border-radius:9px;border:1.5px solid rgba(0,75,45,.25);
+           background:rgba(0,75,45,.07);color:var(--primary);
+           font-size:.78rem;font-weight:700;cursor:pointer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+         width="14" height="14">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+      <polyline points="7 10 12 15 17 10"/>
+      <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Export Excel
+  </button>
+</div>
         </div>
-
         <div class="filter-bar">
           <div class="filter-search">
             <svg
