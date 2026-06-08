@@ -196,7 +196,7 @@ svg { display: block; flex-shrink: 0; }
   cursor: pointer;
 }
 .remember input { accent-color: var(--pr); width: 15px; height: 15px; cursor: pointer; }
-.forgot { font-size: 0.82rem; color: var(--sec); font-weight: 700; transition: var(--tr); }
+.forgot { font-size: 0.82rem; color: var(--sec); font-weight: 700; transition: var(--tr); margin-top: 10px;}
 .forgot:hover { color: var(--pr); }
 
 /* Divider */

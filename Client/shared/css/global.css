@@ -1308,7 +1308,7 @@ linear-gradient(135deg, rgba(20,83,45,.55) 0%, rgba(31,122,58,.5) 60%, rgba(42,1
   transition: max-height .4s cubic-bezier(.4,0,.2,1), padding .3s ease;
   padding: 0 20px;
 }
-.faq-item.open .faq-a { max-height: 300px; padding: 0 20px 18px; }
+.faq-item.open .faq-a {padding: 0 20px 18px; }
 .faq-a p {
   font-size: .87rem;
   color: var(--text-soft);
@@ -1367,7 +1367,7 @@ linear-gradient(135deg, rgba(20,83,45,.55) 0%, rgba(31,122,58,.5) 60%, rgba(42,1
   margin-bottom: 3px;
 }
 .msg-card-meta span {
-  color: rgba(191,161,74,.85);
+  color: #FFC11D;
   font-size: .76rem;
   font-weight: 500;
 }
@@ -1657,7 +1657,7 @@ linear-gradient(135deg, rgba(20,83,45,.55) 0%, rgba(31,122,58,.5) 60%, rgba(42,1
 .form-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
 .remember { display: flex; align-items: center; gap: 7px; font-size: .82rem; color: var(--text-soft); cursor: pointer; }
 .remember input { accent-color: var(--primary); width: 15px; height: 15px; }
-.forgot { font-size: .82rem; color: var(--secondary); font-weight: 600; transition: var(--tr); }
+.forgot { font-size: .82rem; color: var(--secondary); font-weight: 600; transition: var(--tr); margin-top: 10px;}
 .forgot:hover { color: var(--primary); }
 
 .btn-login {
