@@ -12,24 +12,33 @@ import Supervisor from "./Models/supervisor.js";
 import Group from "./Models/group.js";
 import Marks from "./Models/marks.js";
 import Counter from "./Models/counter.js";
+import Student from "./Models/student.js";
 
 await mongoose.connect(process.env.MONGO_URI);
 
 console.log("MongoDB connected\n");
 
-// ───DELETE ONLY SUPERVISORS─────────────
+// ─── DELETE RECORDS ────────────────────────────────────────────
+
+const studentsDeleted = await Student.deleteMany({});
+console.log(` Deleted ${studentsDeleted.deletedCount} students`);
 
 const supervisorsDeleted = await Supervisor.deleteMany({});
-console.log(`🧹 Deleted ${supervisorsDeleted.deletedCount} supervisors`);
+console.log(`Deleted ${supervisorsDeleted.deletedCount} supervisors`);
 
 const groupsDeleted = await Group.deleteMany({});
-console.log(`🧹 Deleted ${groupsDeleted.deletedCount} teams`);
+console.log(` Deleted ${groupsDeleted.deletedCount} teams`);
 
 const marksDeleted = await Marks.deleteMany({});
-console.log(`🧹 Deleted ${marksDeleted.deletedCount} marks records`);
+console.log(`Deleted ${marksDeleted.deletedCount} marks records`);
 
+// ─── RESET COUNTERS ────────────────────────────────────────────
 
-// ─── RESET ONLY SUPERVISOR + TEAM COUNTERS ─────────────
+await Counter.findOneAndUpdate(
+  { name: "student" },
+  { value: 0 },
+  { upsert: true }
+);
 
 await Counter.findOneAndUpdate(
   { name: "supervisor" },
@@ -43,12 +52,12 @@ await Counter.findOneAndUpdate(
   { upsert: true }
 );
 
-console.log(`\n Supervisor and Team counters reset`);
+console.log(`\nStudent, Supervisor and Team counters reset`);
 
 const year = new Date().getFullYear();
 
 console.log(`\nNext IDs will be:`);
-
+console.log(`   Student    → STD-${year}0001`);
 console.log(`   Supervisor → SUP-${year}0001`);
 console.log(`   Team       → TEAM-${year}0001`);
 
