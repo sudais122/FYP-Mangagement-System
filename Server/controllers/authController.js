@@ -145,6 +145,7 @@ export const registerStudent = async (req, res) => {
   }
 };
 // ── FORGOT PASSWORD (sends OTP) ──────────────────────
+// ── FORGOT PASSWORD (sends OTP) ──────────────────────
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -180,15 +181,11 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    //  GENERATE OTP
+    // ── GENERATE OTP ───────────────────────────────────────────
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log("Generated OTP:", otp); // temporary — compare with the email
 
-    user.resetPasswordToken = otp;
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
-
-    await user.save({ validateBeforeSave: false });
-
-    //EMAIL TEMPLATE
+    // ── EMAIL TEMPLATE ─────────────────────────────────────────
     let emailTemplate;
 
     if (userType === "supervisor") {
@@ -203,7 +200,7 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    // SEND EMAIL
+    // ── SEND EMAIL ─────────────────────────────────────────────
     const result = await sendEmail({
       to: email,
       subject: emailTemplate.subject,
@@ -217,6 +214,12 @@ export const forgotPassword = async (req, res) => {
         message: "Failed to send OTP email",
       });
     }
+
+    // ── SAVE OTP — only after the email actually sent ──────────
+    user.resetPasswordToken = otp;
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+    await user.save({ validateBeforeSave: false });
 
     res.json({
       message: "If this email is registered, an OTP has been sent.",

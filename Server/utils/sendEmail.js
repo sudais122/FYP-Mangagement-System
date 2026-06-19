@@ -1,28 +1,29 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 export async function sendEmail({ to, subject, html }) {
   console.log("=== sendEmail called ===");
+  console.log("GMAIL_USER:", process.env.GMAIL_USER);
+console.log("APP_PASSWORD length:", process.env.GMAIL_APP_PASSWORD?.length);
   console.log("To:", to);
-  console.log("RESEND_API_KEY exists:", !!process.env.RESEND_API_KEY);
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,       
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
 
   try {
-    const data = await resend.emails.send({
-      from: "FYP Management AWKUM <onboarding@resend.dev>",
+    const data = await transporter.sendMail({
+      from: `"FYP Management AWKUM" <${process.env.GMAIL_USER}>`,
       to,
       subject,
       html,
     });
 
-    console.log("Resend response:", JSON.stringify(data));
-
-    if (data.error) {
-      return { success: false, error: data.error.message };
-    }
-
+    console.log("Email sent:", data.messageId);
     return { success: true, data };
-
   } catch (err) {
     console.error("Email failed:", err.message);
     return { success: false, error: err.message };

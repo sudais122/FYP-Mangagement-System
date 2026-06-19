@@ -1,70 +1,111 @@
-export function proposalApprovedTemplate({ studentName, groupCode, projectTitle }) {
-  return {
-    subject: `Proposal Approved — ${groupCode}`,
-    html: `
-      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:540px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">
-        <div style="background:linear-gradient(135deg,#003d24,#004b2d,#1f7a5c);padding:32px 36px">
-          <div style="color:#fff;font-size:.95rem;font-weight:700">FYP Management System</div>
-          <div style="color:rgba(191,161,74,.9);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em">AWKUM · CS Department</div>
-          <div style="color:rgba(255,255,255,.4);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-top:16px;margin-bottom:6px">Proposal Status Update</div>
-          <div style="color:#fff;font-size:1.4rem;font-weight:800">Proposal Approved</div>
-        </div>
-        <div style="padding:32px 36px">
-          <p style="color:#1c1c1c;font-size:.95rem;font-weight:600;margin:0 0 8px">Hi ${studentName},</p>
-          <p style="color:#4a5568;font-size:.86rem;line-height:1.7;margin:0 0 24px">
-            Great news! Your team's proposal for <strong>${projectTitle}</strong> has been <strong style="color:#15803d">approved</strong> by the department.
+// Shared building blocks ──────────────────────────────────────────────
+
+const FONT = "'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+function shell({ accent, accentSoft, badgeBg, badgeText, label, heading, body }) {
+  return `
+  <div style="background:#eef1f0;padding:32px 16px">
+    <div style="font-family:${FONT};max-width:520px;margin:0 auto;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 6px 30px rgba(0,0,0,.07)">
+
+      <!-- Header -->
+      <div style="padding:34px 38px 28px;border-bottom:1px solid #f0f0f0">
+        <div style="color:#111827;font-size:.92rem;font-weight:700;line-height:1.1">FYP Management System</div>
+        <div style="color:#9ca3af;font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-top:3px">AWKUM · CS Department</div>
+      </div>
+
+      <!-- Body -->
+      <div style="padding:34px 38px 12px">
+        <span style="display:inline-block;background:${badgeBg};color:${badgeText};font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:6px 14px;border-radius:999px">${label}</span>
+
+        <h1 style="color:#0f172a;font-size:1.5rem;font-weight:800;margin:18px 0 22px;line-height:1.25">${heading}</h1>
+
+        ${body}
+      </div>
+
+      <!-- Footer -->
+      <div style="padding:24px 38px 30px">
+        <div style="border-top:1px solid #f0f0f0;padding-top:18px">
+          <p style="color:#9ca3af;font-size:.7rem;line-height:1.5;margin:0">
+            This is an automated message from the FYP Management System.<br>
+            AWKUM · Department of Computer Science
           </p>
-          <div style="background:#f0faf4;border:1.5px solid #d4e8dc;border-left:4px solid #15803d;border-radius:12px;padding:20px 24px;margin-bottom:24px">
-            <div style="font-size:.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Team Details</div>
-            <div style="font-size:.88rem;color:#1c1c1c"><strong>Team:</strong> ${groupCode}</div>
-            <div style="font-size:.88rem;color:#1c1c1c;margin-top:4px"><strong>Project:</strong> ${projectTitle}</div>
-          </div>
-          <div style="background:#f0faf4;border:1px solid #d4e8dc;border-radius:10px;padding:16px;text-align:center">
-            <div style="font-size:.88rem;font-weight:700;color:#15803d">You may now proceed to the next phase of your FYP.</div>
-          </div>
-        </div>
-        <div style="background:#f8faf8;border-top:1px solid #e8f0eb;padding:20px 36px;text-align:center">
-          <p style="color:#9ca3af;font-size:.72rem;margin:0">AWKUM · CS Department · FYP Management System</p>
         </div>
       </div>
-    `
+
+    </div>
+  </div>`;
+}
+
+function projectCard(accent, projectTitle) {
+  return `
+    <div style="background:#f8fafc;border:1px solid #eef0f2;border-left:3px solid ${accent};border-radius:12px;padding:18px 22px;margin:0 0 24px">
+      <div style="font-size:.66rem;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px">Project</div>
+      <div style="font-size:1rem;font-weight:700;color:#0f172a;line-height:1.4">${projectTitle}</div>
+    </div>`;
+}
+
+// Templates ───────────────────────────────────────────────────────────
+
+export function proposalApprovedTemplate({ studentName, projectTitle }) {
+  const accent = "#15803d";
+  const body = `
+    <p style="color:#334155;font-size:.92rem;line-height:1.7;margin:0 0 22px">
+      Hi <strong>${studentName}</strong>,
+    </p>
+    <p style="color:#475569;font-size:.88rem;line-height:1.7;margin:0 0 22px">
+      Great news — your proposal has been <strong style="color:${accent}">approved</strong> by the department.
+    </p>
+
+    ${projectCard(accent, projectTitle)}
+
+    <div style="background:#f0faf4;border-radius:12px;padding:16px 20px;text-align:center;margin-bottom:8px">
+      <span style="font-size:.88rem;font-weight:700;color:${accent}">You may now proceed to the next phase of your FYP.</span>
+    </div>`;
+
+  return {
+    subject: `Proposal Approved — ${projectTitle}`,
+    html: shell({
+      accent,
+      label: "Approved",
+      badgeBg: "#dcfce7",
+      badgeText: "#15803d",
+      heading: "Your proposal is approved",
+      body,
+    }),
   };
 }
 
-export function proposalRejectedTemplate({ studentName, groupCode, projectTitle, reason }) {
+export function proposalRejectedTemplate({ studentName, projectTitle, reason }) {
+  const accent = "#dc2626";
+  const body = `
+    <p style="color:#334155;font-size:.92rem;line-height:1.7;margin:0 0 22px">
+      Hi <strong>${studentName}</strong>,
+    </p>
+    <p style="color:#475569;font-size:.88rem;line-height:1.7;margin:0 0 22px">
+      Unfortunately, your proposal has been <strong style="color:${accent}">rejected</strong> by the department.
+    </p>
+
+    ${projectCard(accent, projectTitle)}
+
+    ${reason ? `
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #d97706;border-radius:12px;padding:16px 20px;margin-bottom:24px">
+      <div style="font-size:.66rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Reason</div>
+      <div style="font-size:.88rem;color:#78350f;line-height:1.6">${reason}</div>
+    </div>` : ""}
+
+    <p style="color:#475569;font-size:.84rem;line-height:1.7;margin:0">
+      Please review the feedback and resubmit an improved proposal. Reach out to your supervisor for guidance.
+    </p>`;
+
   return {
-    subject: `Proposal Rejected — ${groupCode}`,
-    html: `
-      <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:540px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08)">
-        <div style="background:linear-gradient(135deg,#7f1d1d,#991b1b,#dc2626);padding:32px 36px">
-          <div style="color:#fff;font-size:.95rem;font-weight:700">FYP Management System</div>
-          <div style="color:rgba(255,200,200,.8);font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em">AWKUM · CS Department</div>
-          <div style="color:rgba(255,255,255,.4);font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;margin-top:16px;margin-bottom:6px">Proposal Status Update</div>
-          <div style="color:#fff;font-size:1.4rem;font-weight:800">Proposal Rejected</div>
-        </div>
-        <div style="padding:32px 36px">
-          <p style="color:#1c1c1c;font-size:.95rem;font-weight:600;margin:0 0 8px">Hi ${studentName},</p>
-          <p style="color:#4a5568;font-size:.86rem;line-height:1.7;margin:0 0 24px">
-            Unfortunately, your team's proposal for <strong>${projectTitle}</strong> has been <strong style="color:#dc2626">rejected</strong> by the department.
-          </p>
-          <div style="background:#fff5f5;border:1.5px solid #fecaca;border-left:4px solid #dc2626;border-radius:12px;padding:20px 24px;margin-bottom:24px">
-            <div style="font-size:.7rem;font-weight:700;color:#6c757d;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Team Details</div>
-            <div style="font-size:.88rem;color:#1c1c1c"><strong>Team:</strong> ${groupCode}</div>
-            <div style="font-size:.88rem;color:#1c1c1c;margin-top:4px"><strong>Project:</strong> ${projectTitle}</div>
-          </div>
-          ${reason ? `
-          <div style="background:#fffbeb;border:1px solid #fde68a;border-left:4px solid #d97706;border-radius:10px;padding:16px 20px;margin-bottom:24px">
-            <div style="font-size:.7rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Rejection Reason</div>
-            <div style="font-size:.88rem;color:#78350f;line-height:1.6">${reason}</div>
-          </div>` : ""}
-          <p style="color:#4a5568;font-size:.82rem;line-height:1.6">
-            Please review the feedback and resubmit an improved proposal. Contact your supervisor for guidance.
-          </p>
-        </div>
-        <div style="background:#f8faf8;border-top:1px solid #e8f0eb;padding:20px 36px;text-align:center">
-          <p style="color:#9ca3af;font-size:.72rem;margin:0">AWKUM · CS Department · FYP Management System</p>
-        </div>
-      </div>
-    `
+    subject: `Proposal Rejected — ${projectTitle}`,
+    html: shell({
+      accent,
+      label: "Rejected",
+      badgeBg: "#fee2e2",
+      badgeText: "#dc2626",
+      heading: "Your proposal was rejected",
+      body,
+    }),
   };
 }

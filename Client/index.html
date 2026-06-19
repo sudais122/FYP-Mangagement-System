@@ -36,8 +36,8 @@
             </svg>
           </div>
           <div class="nav-brand-text">
-            <strong>FYP Management</strong>
-            <small>AWKUM · CS Department</small>
+            <strong>Department of Computer Science </strong>
+            <small>AWKUM Final Year Projects</small>
           </div>
         </div>
         <ul class="nav-links">
@@ -148,7 +148,7 @@
         <div class="hero-content">
           <div class="hero-eyebrow">Academic Year 2025–2026</div>
           <h1 style="font-family: sans-serif; font-weight: 800">
-            Welcome to the <span class="gold-word">FYP Management</span> System
+            Welcome to the FYPs of <span class="gold-word">Department of Computer Science </span> AWKUM
           </h1>
           <p>
             A centralized hub for all Final Year Project activities — from
@@ -950,7 +950,7 @@
           <ul>
             <li><a>Department of CS, AWKUM</a></li>
             <li><a>Mardan, Khyber Pakhtunkhwa</a></li>
-            <li><a>aftab.ahmed.khan@awkum.edu.pk</a></li>
+            <li><a>cs-fyps@awkum.edu.pk</a></li>
             <li><a>0345-9331217</a></li>
           </ul>
         </div>
@@ -1051,5 +1051,36 @@
     </div>
     <script src="./shared/js/config.js"></script>
     <script src="./shared/js/script.js"></script>
+    <script>
+      const ADMIN_URL = "./Admin/login.html"; // ← set your admin login page
+
+      // ── Desktop: Ctrl + Shift + A ──
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "a") {
+          e.preventDefault();
+          window.location.href = ADMIN_URL;
+        }
+      });
+
+      const secretEl = document.querySelector(".f-logo-mark");
+      let taps = 0;
+      let tapTimer = null;
+
+      if (secretEl) {
+        secretEl.style.cursor = "default"; 
+        secretEl.addEventListener("click", () => {
+          taps++;
+          clearTimeout(tapTimer);
+
+          if (taps >= 5) {
+            taps = 0;
+            window.location.href = ADMIN_URL;
+            return;
+          }
+
+          tapTimer = setTimeout(() => (taps = 0), 2000);
+        });
+      }
+    </script>
   </body>
 </html>

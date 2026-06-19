@@ -10,6 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../shared/css/theme.css">
   <link rel="stylesheet" href="./css/auth.css">
+
+  <!-- UI fix: balance the right panel so there's no dead space below the button -->
 </head>
 <body>
 
@@ -62,18 +64,6 @@
     <h3 style="font-family: sans-serif;">Welcome Back</h3>
     <p class="sub">Sign in to continue to your FYP portal</p>
 
-    <!-- Role Tabs -->
-    <div class="role-tabs">
-      <div class="role-tab active" onclick="setRole('student',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/></svg>
-        Student
-      </div>
-      <div class="role-tab" onclick="setRole('supervisor',this)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Supervisor
-      </div>
-    </div>
-
     <!-- ID -->
     <div class="form-group">
       <label id="id-label">Email.</label>
@@ -84,7 +74,7 @@
     </div>
 
     <!-- Password -->
-    <div class="form-group">
+    <div class="form-group" style="margin-top: 1rem;">
       <label>Password</label>
       <div class="input-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -117,6 +107,12 @@
     <div class="student-register-section" id="student-register-section">
       <div class="register-divider">New student? <a href="./register.html"><span style="font-weight: bolder; color: green; cursor: pointer;">Create an account</span></a></div>
     </div>
+
+    <!-- Help line — fills the lower space gracefully -->
+    <p class="login-help">
+      Trouble signing in? Contact the CS Department office<br>
+      or reach out to your supervisor.
+    </p>
   </div>
 </div>
 <script src="../shared/js/config.js"></script>
