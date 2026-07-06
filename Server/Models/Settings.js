@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const settingsSchema = new mongoose.Schema(
   {
     type:    { type: String, required: true, unique: true },
-    toggles: { type: Map, of: Boolean, default: {} }, // ← Map not Object
+    toggles: { type: Map, of: Boolean, default: {} }, 
   },
   { timestamps: true }
 );

@@ -1,70 +1,70 @@
 import mongoose from "mongoose";
-import bcrypt   from "bcrypt";
+import bcrypt from "bcrypt";
 
 const supervisorSchema = new mongoose.Schema(
   {
     sup_code: {
-      type:     String,
-      unique:   true,
+      type: String,
+      unique: true,
       required: true,
     },
 
     name: {
-      type:     String,
+      type: String,
       required: true,
-      trim:     true,
-      index:    true,
+      trim: true,
+      index: true,
     },
 
     prefix: {
-      type:     String,
-      enum:     ["Mr", "Ms", "Mrs", "Dr", "Prof", "Lect", "Engr"],
-      default:  "Mr",
+      type: String,
+      enum: ["Mr", "Ms", "Mrs", "Dr", "Prof", "Lect", "Engr"],
+      default: "Mr",
       required: true,
-      index:    true,
+      index: true,
     },
 
     email: {
-      type:      String,
-      required:  true,
-      unique:    true,
+      type: String,
+      required: true,
+      unique: true,
       lowercase: true,
-      trim:      true,
+      trim: true,
     },
 
     password: {
-      type:     String,
+      type: String,
       required: true,
     },
 
     whatsapp: {
-      type:    String,
+      type: String,
       default: "",
-      trim:    true,
+      trim: true,
     },
 
     department: {
-      type:    String,
+      type: String,
       default: "Computer Science",
-      index:   true,
+      index: true,
     },
 
     designation: {
-      type:    String,
+      type: String,
       default: "Supervisor",
-      index:   true,
+      index: true,
     },
 
     office: {
-      type:    String,
+      type: String,
       default: "",
-      trim:    true,
+      trim: true,
     },
 
     office_hours: {
-      type:    String,
+      type: String,
       default: "",
-      trim:    true,
+      trim: true,
     },
 
     research_areas: [
@@ -75,38 +75,38 @@ const supervisorSchema = new mongoose.Schema(
     ],
 
     max_groups: {
-      type:    Number,
+      type: Number,
       default: 5,
     },
 
     is_chairman: {
-      type:    Boolean,
+      type: Boolean,
       default: false,
-      index:   true,
+      index: true,
     },
 
     role: {
-      type:    String,
-      enum:    ["supervisor", "chairman"],
+      type: String,
+      enum: ["supervisor", "chairman"],
       default: "supervisor",
-      index:   true,
+      index: true,
     },
 
     force_password_change: {
-      type:    Boolean,
+      type: Boolean,
       default: true,
     },
 
     avatar_url: {
-      type:    String,
+      type: String,
       default: null,
     },
 
     batch: {
-      type:    String,
+      type: String,
       default: () => {
-        const now   = new Date();
-        const year  = now.getFullYear();
+        const now = new Date();
+        const year = now.getFullYear();
         const month = now.getMonth() + 1;
         return month >= 9
           ? `${year}-${String(year + 1).slice(2)}`
@@ -115,29 +115,26 @@ const supervisorSchema = new mongoose.Schema(
       index: true,
     },
 
-    resetPasswordToken:  { type: String },
-    resetPasswordExpire: { type: Date   },
+    resetPasswordToken: { type: String },
+    resetPasswordExpire: { type: Date },
 
     createdAt: {
-      type:    Date,
+      type: Date,
       default: Date.now,
-      index:   true,
+      index: true,
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // ── Indexes ──────────────────────────────────────────────────────
 supervisorSchema.index({ department: 1, name: 1 });
-supervisorSchema.index({ role: 1, is_chairman: 1 });   
-supervisorSchema.index({ batch: 1, role: 1 });         
-supervisorSchema.index({ batch: 1, is_chairman: 1 });  
-supervisorSchema.index(
-  { resetPasswordToken: 1 },
-  { sparse: true }
-);
+supervisorSchema.index({ role: 1, is_chairman: 1 });
+supervisorSchema.index({ batch: 1, role: 1 });
+supervisorSchema.index({ batch: 1, is_chairman: 1 });
+supervisorSchema.index({ resetPasswordToken: 1 }, { sparse: true });
 supervisorSchema.index({ name: "text" });
 
 // ── Password hashing ─────────────────────────────────────────────

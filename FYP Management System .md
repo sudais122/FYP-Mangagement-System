@@ -62,20 +62,20 @@ The FYP Management System is a full-stack web application built to digitize and 
 
 ### Backend
 | Technology | Version | Purpose |
-|-----------|---------|---------|
-| Node.js | 18+ | Runtime environment |
-| Express.js | 4.x | Web framework |
-| MongoDB | 6.x | Database |
-| Mongoose | 7.x | ODM for MongoDB |
-| JWT | 9.x | Authentication tokens |
-| Bcrypt | 5.x | Password hashing |
-| Multer | 1.x | File upload handling |
+|-----------|-----|---------|
+| Node.js   | 18+ | Runtime environment |
+| Express.js| 4.x | Web framework |
+| MongoDB   | 6.x | Database |
+| Mongoose  | 7.x | ODM for MongoDB |
+| JWT       | 9.x | Authentication tokens |
+| Bcrypt    | 5.x | Password hashing |
+| Multer    | 1.x | File upload handling |
 | Multer-S3 | 3.x | Direct S3 upload |
-| AWS SDK v3 | 3.x | S3 client |
-| Resend | 2.x | Email delivery |
-| Winston | 3.x | Audit logging |
-| CORS | 2.x | Cross-origin requests |
-| Dotenv / Dotenvx | - | Environment variables |
+| AWS SDK v3| 3.x | S3 client |
+| Resend    | 2.x | Email delivery |
+| Winston   | 3.x | Audit logging |
+| CORS      | 2.x | Cross-origin requests |
+| Dotenv    | -   | Environment variables |
 
 ### Frontend
 | Technology | Purpose |

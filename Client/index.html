@@ -1052,7 +1052,7 @@
     <script src="./shared/js/config.js"></script>
     <script src="./shared/js/script.js"></script>
     <script>
-      const ADMIN_URL = "./Admin/login.html"; // ← set your admin login page
+      const ADMIN_URL = "./Admin/login.html";
 
       // ── Desktop: Ctrl + Shift + A ──
       document.addEventListener("keydown", (e) => {
@@ -1066,6 +1066,7 @@
       let taps = 0;
       let tapTimer = null;
 
+      // ── Mobile + desktop: tap the footer logo 5 times quickly ──
       if (secretEl) {
         secretEl.style.cursor = "default"; 
         secretEl.addEventListener("click", () => {
