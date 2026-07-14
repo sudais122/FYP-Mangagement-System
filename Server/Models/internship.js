@@ -14,7 +14,7 @@ const internshipSchema = new mongoose.Schema(
       trim:      true,
       minlength: [13, "CNIC must be 13 digits"],
       maxlength: [13, "CNIC must be 13 digits"],
-      match:     [/^\d{13}$/, "CNIC must contain exactly 13 digits without dashes"],
+      match:     [/^\d{13}$/, "CNIC must contain exactly 13 digits dashes"],
     },
 
     discipline: {
