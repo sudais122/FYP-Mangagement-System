@@ -2,10 +2,10 @@
   "name": "server",
   "version": "1.0.0",
   "type": "module",
-  "main": "server.js",
+  "main": "Server/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
+    "start": "node Server/server.js",
+    "dev": "nodemon Server/server.js",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --testPathPatterns=tests --forceExit",
     "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --testPathPatterns=tests --watch --forceExit",
     "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --testPathPatterns=tests --coverage --forceExit"
