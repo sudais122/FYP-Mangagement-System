@@ -1,6 +1,5 @@
-
 const _origFetch = window.fetch;
-window.fetch = async function(...args) {
+window.fetch = async function (...args) {
   const res = await _origFetch(...args);
   if (res.status === 503) {
     const clone = res.clone();
@@ -14,7 +13,7 @@ window.fetch = async function(...args) {
   }
   return res;
 };
-let memberCountBeforeModal = 0; 
+let memberCountBeforeModal = 0;
 const user = JSON.parse(localStorage.getItem("user"));
 
 if (!user) {
@@ -22,17 +21,17 @@ if (!user) {
 }
 function logout() {
   localStorage.removeItem("user");
-  window.location.href = "../../Auth/login.html"; 
+  window.location.href = "../../Auth/login.html";
 }
 // API Configuration
-const API_BASE = "http://localhost:5001/api"; 
+const API_BASE = "http://localhost:5001/api";
 const API_HEADERS = {
   "Content-Type": "application/json",
-  Authorization: `Bearer ${user.token}`, 
+  Authorization: `Bearer ${user.token}`,
 };
 
 function toggleSidebar() {
-  const overlay   = document.getElementById("sidebarOverlay");
+  const overlay = document.getElementById("sidebarOverlay");
   const hamburger = document.getElementById("hamburgerBtn");
 
   if (overlay.classList.contains("show")) {
@@ -40,34 +39,34 @@ function toggleSidebar() {
     return;
   }
   overlay.classList.remove("show");
-  void overlay.offsetWidth; 
+  void overlay.offsetWidth;
   overlay.classList.add("show");
   hamburger?.classList.add("open");
 
   const dName = document.getElementById("drawer-name");
-  const dId   = document.getElementById("drawer-std-id");
-  const dAv   = document.getElementById("drawer-initials");
+  const dId = document.getElementById("drawer-std-id");
+  const dAv = document.getElementById("drawer-initials");
   if (dName) dName.textContent = STATE.studentName || "";
-  if (dId)   dId.textContent   = STATE.studentId   || "";
-  if (dAv)   dAv.textContent   = initials(STATE.studentName || "");
+  if (dId) dId.textContent = STATE.studentId || "";
+  if (dAv) dAv.textContent = initials(STATE.studentName || "");
 }
 
 function closeSidebar() {
-  const overlay   = document.getElementById("sidebarOverlay");
-  const drawer    = document.getElementById("sidebarDrawer");
+  const overlay = document.getElementById("sidebarOverlay");
+  const drawer = document.getElementById("sidebarDrawer");
   const hamburger = document.getElementById("hamburgerBtn");
 
   if (!overlay.classList.contains("show")) return;
 
   if (drawer) {
     drawer.style.transition = "transform .25s cubic-bezier(.4, 0, .2, 1)";
-    drawer.style.transform  = "translateX(-100%)";
+    drawer.style.transform = "translateX(-100%)";
   }
 
   const backdrop = overlay.querySelector(".sidebar-backdrop");
   if (backdrop) {
     backdrop.style.transition = "opacity .25s ease";
-    backdrop.style.opacity    = "0";
+    backdrop.style.opacity = "0";
   }
 
   setTimeout(() => {
@@ -76,21 +75,20 @@ function closeSidebar() {
 
     if (drawer) {
       drawer.style.transition = "";
-      drawer.style.transform  = "";
+      drawer.style.transform = "";
     }
     if (backdrop) {
       backdrop.style.transition = "";
-      backdrop.style.opacity    = "";
+      backdrop.style.opacity = "";
     }
   }, 260);
 }
-
 
 // STATE MANAGEMENT
 const STATE = {
   studentId: user.student_code,
   studentName: user.name,
-  userId: user._id, 
+  userId: user._id,
   teamId: null,
   projectTitle: null,
   category: null,
@@ -98,32 +96,32 @@ const STATE = {
   selectedSupervisor: null,
   supervisorData: null,
   teamCreated: false,
-  teamRole: null, 
+  teamRole: null,
   uploadedFiles: [],
   unreadNotifs: 2,
   proposalState: "idle",
   proposalFile: null,
   selectedEvalStudent: 0,
-  groupData: null, 
-  deadlines: [], 
+  groupData: null,
+  deadlines: [],
 };
 
-  //  MARKS DATA TEMPLATE
+//  MARKS DATA TEMPLATE
 const MARKS_TEMPLATE = [
-  { section: "Monthly Meetings", component: "October",  max: 10 },
+  { section: "Monthly Meetings", component: "October", max: 10 },
   { section: "Monthly Meetings", component: "November", max: 10 },
   { section: "Monthly Meetings", component: "December", max: 10 },
   { section: "Monthly Meetings", component: "February", max: 10 },
-  { section: "Monthly Meetings", component: "March",    max: 10 },
-  { section: "Submissions", component: "Proposal Submission",      max: 10 },
-  { section: "Submissions", component: "Progress Report",          max: 20 },
-  { section: "Submissions", component: "Progress Similarity Check", max: 5  },
-  { section: "Documentation", component: "Thesis / Final Report",   max: 20 },
-  { section: "Documentation", component: "Thesis Similarity Check", max: 5  },
+  { section: "Monthly Meetings", component: "March", max: 10 },
+  { section: "Submissions", component: "Proposal Submission", max: 10 },
+  { section: "Submissions", component: "Progress Report", max: 20 },
+  { section: "Submissions", component: "Progress Similarity Check", max: 5 },
+  { section: "Documentation", component: "Thesis / Final Report", max: 20 },
+  { section: "Documentation", component: "Thesis Similarity Check", max: 5 },
   { section: "Practical", component: "Code / Practical Work", max: 10 },
   { section: "Viva", component: "Internal Viva 1", max: 25 },
   { section: "Viva", component: "Internal Viva 2", max: 25 },
-  { section: "Viva", component: "External Viva",   max: 30 },
+  { section: "Viva", component: "External Viva", max: 30 },
 ];
 
 let STUDENT_MARKS = {};
@@ -131,12 +129,12 @@ let STUDENT_MARKS = {};
 function getAllStudents() {
   return [
     {
-      id: STATE.studentId,                    
+      id: STATE.studentId,
       name: STATE.studentName,
       initials: initials(STATE.studentName),
     },
     ...STATE.members.map((m) => ({
-      id: m.student_code,                     
+      id: m.student_code,
       name: m.name,
       initials: initials(m.name),
     })),
@@ -147,18 +145,21 @@ function ensureMarksExist() {
   const students = getAllStudents();
   students.forEach((s) => {
     if (!STUDENT_MARKS[s.id]) {
-      STUDENT_MARKS[s.id] = MARKS_TEMPLATE.map(item => ({ ...item, marks: null }));
+      STUDENT_MARKS[s.id] = MARKS_TEMPLATE.map((item) => ({
+        ...item,
+        marks: null,
+      }));
     }
   });
 }
 /*API CALLS*/
-let SUPERVISORS = []; 
+let SUPERVISORS = [];
 
 async function loadSupervisors() {
   try {
     const response = await fetch(`${API_BASE}/supervisors/available`, {
       method: "GET",
-      headers: API_HEADERS, 
+      headers: API_HEADERS,
     });
 
     const data = await response.json();
@@ -169,7 +170,6 @@ async function loadSupervisors() {
 
     SUPERVISORS = data.supervisors;
     return SUPERVISORS;
-
   } catch (error) {
     console.error("Supervisor load error:", error);
     toast("Failed to load supervisors: " + error.message, "red");
@@ -195,58 +195,64 @@ async function loadDashboard() {
       return;
     }
 
-    STATE.teamCreated  = true;
-    STATE.teamId       = data.group.team_code || data.group.group_code || data.group._id;
+    STATE.teamCreated = true;
+    STATE.teamId =
+      data.group.team_code || data.group.group_code || data.group._id;
     STATE.projectTitle = data.group.project_title;
-    STATE.category     = data.group.category;
-    STATE.teamRole     = data.student.team_role;
-    STATE.groupData    = data.group;
+    STATE.category = data.group.category;
+    STATE.teamRole = data.student.team_role;
+    STATE.groupData = data.group;
 
     // ── Fetch full profile to get cv_url + certificates_url ──
     try {
-      const profileRes  = await fetch(`${API_BASE}/auth/profile`, { headers: API_HEADERS });
+      const profileRes = await fetch(`${API_BASE}/auth/profile`, {
+        headers: API_HEADERS,
+      });
       const profileData = await profileRes.json();
-      STATE.cvUrl   = profileData.cv_url           || null;
+      STATE.cvUrl = profileData.cv_url || null;
       STATE.certUrl = profileData.certificates_url || null;
     } catch {
-      STATE.cvUrl   = null;
+      STATE.cvUrl = null;
       STATE.certUrl = null;
     }
 
-    const proposalUrl    = data.group.proposal_url;
+    const proposalUrl = data.group.proposal_url;
     const proposalStatus = data.group.proposal_status;
 
     if (proposalUrl) {
       STATE.proposalState = proposalStatus || "pending";
-      STATE.proposalFile  = data.group.proposal_filename || proposalUrl;
+      STATE.proposalFile = data.group.proposal_filename || proposalUrl;
     } else {
       STATE.proposalState = "idle";
     }
 
     STATE.members = [];
-    if (data.group.leader && data.group.leader.student_code !== STATE.studentId) {
+    if (
+      data.group.leader &&
+      data.group.leader.student_code !== STATE.studentId
+    ) {
       STATE.members.push({
-        id:           data.group.leader._id,
+        id: data.group.leader._id,
         student_code: data.group.leader.student_code,
-        name:         data.group.leader.name,
-        initials:     initials(data.group.leader.name),
-        avatar_url:   data.group.leader.avatar_url || "",
-        gender:       data.group.leader.gender     || "male",
-        role:         "Leader",
+        name: data.group.leader.name,
+        initials: initials(data.group.leader.name),
+        avatar_url: data.group.leader.avatar_url || "",
+        gender: data.group.leader.gender || "male",
+        role: "Leader",
       });
     }
 
     if (data.group.members) {
-      data.group.members.forEach(m => {
+      data.group.members.forEach((m) => {
         if (m.student_code !== STATE.studentId) {
           STATE.members.push({
-            id:           m._id,
+            id: m._id,
             student_code: m.student_code,
-            name:         m.name,
-            initials:     initials(m.name),
-            avatar_url:   m.avatar_url || "",
-            gender:       m.gender     || "male",
-            role:         "Member",
+            name: m.name,
+            initials: initials(m.name),
+            avatar_url: m.avatar_url || "",
+            gender: m.gender || "male",
+            role: "Member",
           });
         }
       });
@@ -256,17 +262,17 @@ async function loadDashboard() {
       const sup = data.group.supervisor;
       STATE.selectedSupervisor = sup._id;
       STATE.supervisorData = {
-        _id:            sup._id,
-        prefix:         sup.prefix         || "",
-        name:           sup.name,
-        email:          sup.email,
-        designation:    sup.designation    || "Faculty Member",
+        _id: sup._id,
+        prefix: sup.prefix || "",
+        name: sup.name,
+        email: sup.email,
+        designation: sup.designation || "Faculty Member",
         research_areas: sup.research_areas || [],
-        office:         sup.office         || "CS Department",
-        office_hours:   sup.office_hours   || "Contact supervisor",
-        sup_code:       sup.sup_code,
-        whatsapp:       sup.whatsapp       || "",
-        avatar_url:     sup.avatar_url     || "",
+        office: sup.office || "CS Department",
+        office_hours: sup.office_hours || "Contact supervisor",
+        sup_code: sup.sup_code,
+        whatsapp: sup.whatsapp || "",
+        avatar_url: sup.avatar_url || "",
       };
     }
 
@@ -276,7 +282,6 @@ async function loadDashboard() {
     updateBannerForTeam();
     renderSupervisorTab();
     renderProjectDetails();
-
   } catch (error) {
     console.error("Dashboard load error:", error);
     toast("Failed to load dashboard: " + error.message, "red");
@@ -330,7 +335,8 @@ async function createTeamAPI() {
     }
 
     // Update state with created group
-    STATE.teamId = data.group.team_code || data.group.group_code || data.group._id;
+    STATE.teamId =
+      data.group.team_code || data.group.group_code || data.group._id;
     STATE.teamCreated = true;
     STATE.teamRole = "Leader";
     STATE.groupData = data.group;
@@ -349,20 +355,20 @@ async function loadTeamMarks() {
       method: "GET",
       headers: API_HEADERS,
     });
-    
+
     if (!response.ok) {
       const errText = await response.text();
       console.warn(`team-marks endpoint returned ${response.status}:`, errText);
       throw new Error(`HTTP ${response.status}`);
     }
-    
+
     const data = await response.json();
 
     // Reset and rebuild from backend response
     STUDENT_MARKS = {};
 
     if (Array.isArray(data)) {
-      data.forEach(markRecord => {
+      data.forEach((markRecord) => {
         const studentCode = markRecord.student?.student_code;
         if (studentCode) {
           STUDENT_MARKS[studentCode] = convertBackendMarks(markRecord);
@@ -382,41 +388,59 @@ async function loadTeamMarks() {
 }
 // Convert backend marks format to frontend format
 function convertBackendMarks(markRecord) {
-  const m             = markRecord || {};
-  const monthly       = m.monthly       || {};
-  const submissions   = m.submissions   || {};
-  const viva          = m.viva          || {};
+  const m = markRecord || {};
+  const monthly = m.monthly || {};
+  const submissions = m.submissions || {};
+  const viva = m.viva || {};
   const documentation = m.documentation || {};
-  const practical     = m.practical     || {};
+  const practical = m.practical || {};
 
   const valueFor = (component) => {
     switch (component) {
-      case "October":                  return monthly.oct          ?? null;
-      case "November":                 return monthly.nov          ?? null;
-      case "December":                 return monthly.dec          ?? null;
-      case "February":                 return monthly.feb          ?? null;
-      case "March":                    return monthly.mar          ?? null;
+      case "October":
+        return monthly.oct ?? null;
+      case "November":
+        return monthly.nov ?? null;
+      case "December":
+        return monthly.dec ?? null;
+      case "February":
+        return monthly.feb ?? null;
+      case "March":
+        return monthly.mar ?? null;
 
-      case "Proposal Submission":      return submissions.proposal ?? null;
-      case "Progress Report":          return submissions.progress ?? null;
+      case "Proposal Submission":
+        return submissions.proposal ?? null;
+      case "Progress Report":
+        return submissions.progress ?? null;
 
       // ── Similarity fields — match admin's save keys ──
-      case "Progress Similarity Check": return submissions.prog_sim   ?? null;   
-      case "Thesis Similarity Check":   return submissions.thesis_sim ?? null;   
-      case "Code / Practical Work":     return submissions.code       ?? practical.code ?? null;   // ← FIX
+      case "Progress Similarity Check":
+        return submissions.prog_sim ?? null;
+      case "Thesis Similarity Check":
+        return submissions.thesis_sim ?? null;
+      case "Code / Practical Work":
+        return submissions.code ?? practical.code ?? null; // ← FIX
 
       // ── Thesis goes into documentation.final ──
-      case "Thesis / Final Report":     return documentation.final    ?? documentation.thesis ?? null;   // ← FIX
+      case "Thesis / Final Report":
+        return documentation.final ?? documentation.thesis ?? null; // ← FIX
 
-      case "Internal Viva 1":          return viva.internal1         ?? null;
-      case "Internal Viva 2":          return viva.internal2         ?? null;
-      case "External Viva":            return viva.external          ?? null;
+      case "Internal Viva 1":
+        return viva.internal1 ?? null;
+      case "Internal Viva 2":
+        return viva.internal2 ?? null;
+      case "External Viva":
+        return viva.external ?? null;
 
-      default:                         return null;
+      default:
+        return null;
     }
   };
 
-  return MARKS_TEMPLATE.map(item => ({ ...item, marks: valueFor(item.component) }));
+  return MARKS_TEMPLATE.map((item) => ({
+    ...item,
+    marks: valueFor(item.component),
+  }));
 }
 
 /* ══════════════════════════════════
@@ -428,7 +452,7 @@ const TITLES = {
   project: "My Project",
   supervisor: "Supervisor",
   progress: "Progress & Evaluation",
-  documents: "My Documents",          
+  documents: "My Documents",
 };
 const SUBS = {
   home: "Welcome back — here's your project overview",
@@ -436,21 +460,28 @@ const SUBS = {
   project: "Submit proposal, upload files, and track deadlines",
   supervisor: "Supervisor information and contact details",
   progress: "Marks breakdown, charts, and evaluation progress",
-  documents: "View and access all your uploaded documents",  
+  documents: "View and access all your uploaded documents",
 };
 
 function switchTab(tab, el) {
-    closeSidebar();
-    document.querySelectorAll(".drawer-item").forEach(i => i.classList.remove("active"));
-    document.querySelectorAll(`.drawer-item[onclick*="'${tab}'"]`).forEach(i => i.classList.add("active"));
+  closeSidebar();
+  document
+    .querySelectorAll(".drawer-item")
+    .forEach((i) => i.classList.remove("active"));
+  document
+    .querySelectorAll(`.drawer-item[onclick*="'${tab}'"]`)
+    .forEach((i) => i.classList.add("active"));
   // 1. Hide all subpages, show the selected one
-  document.querySelectorAll(".dash-subpage")
-          .forEach(p => p.classList.remove("active"));
+  document
+    .querySelectorAll(".dash-subpage")
+    .forEach((p) => p.classList.remove("active"));
   const t = document.getElementById("tab-" + tab);
   if (t) t.classList.add("active");
 
   // 2. Update sidebar active state
-  document.querySelectorAll(".sb-item").forEach((i) => i.classList.remove("active"));
+  document
+    .querySelectorAll(".sb-item")
+    .forEach((i) => i.classList.remove("active"));
   if (el) el.classList.add("active");
 
   // 3. Update topbar title/subtitle
@@ -467,11 +498,16 @@ function switchTab(tab, el) {
         ensureMarksExist();
         renderEvaluation();
       }
-    }, 150); 
+    }, 150);
   }
-  if (tab === "project") { loadProposalSection(); renderMyDocuments();}
+  if (tab === "project") {
+    loadProposalSection();
+    renderMyDocuments();
+  }
   if (tab === "supervisor") renderSupervisorTab();
-  if (tab === "documents") { renderMyDocuments(); }           
+  if (tab === "documents") {
+    renderMyDocuments();
+  }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -569,8 +605,24 @@ function setProposalState(state) {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </div>
           <div class="pstate-info">
-            <strong>Proposal Rejected</strong>
-            <span>Your proposal was not approved. Please revise and re-upload.</span>
+<strong>Proposal Rejected</strong>
+<span>Your proposal was not approved. Please revise and re-upload.</span>
+${
+  STATE.groupData?.proposal_rejection_reason
+    ? `<div style="margin-top:10px;padding:10px 12px;
+               background:rgba(220,38,38,.06);
+               border:1px solid rgba(220,38,38,.15);
+               border-left:3px solid #dc2626;
+               border-radius:8px;
+               font-size:.78rem;color:#7f1d1d;line-height:1.55">
+       <strong style="display:block;margin-bottom:3px;font-size:.72rem;
+                       text-transform:uppercase;letter-spacing:.05em;color:#dc2626">
+         Rejection Reason
+       </strong>
+       ${STATE.groupData.proposal_rejection_reason}
+     </div>`
+    : ""
+}
           </div>
         </div>
         <div class="proposal-upload-zone" style="margin-top:12px"
@@ -611,8 +663,8 @@ async function handleProposalUpload(files) {
 
   const group = result.data?.group;
   if (group) {
-    STATE.groupData.proposal_url         = group.proposal_url;
-    STATE.groupData.proposal_status      = group.proposal_status || "pending";
+    STATE.groupData.proposal_url = group.proposal_url;
+    STATE.groupData.proposal_status = group.proposal_status || "pending";
     STATE.groupData.proposal_uploaded_by = group.proposal_uploaded_by;
     STATE.groupData.proposal_uploaded_at = group.proposal_uploaded_at;
     STATE.proposalFile = group.proposal_url;
@@ -636,18 +688,18 @@ let marksChart = null;
 
 function renderEvaluation() {
   ensureMarksExist();
-  
+
   const students = getAllStudents();
-  
+
   // Make sure we have students
   if (students.length === 0) {
     console.error("No students found!");
     return;
   }
-  
+
   // Render the tabs
   renderStudentTabs();
-  
+
   // Render marks for the selected student
   if (STATE.selectedEvalStudent >= students.length) {
     STATE.selectedEvalStudent = 0; // Reset to first student if out of bounds
@@ -658,21 +710,22 @@ function renderEvaluation() {
 function renderMarksForStudent(idx) {
   const students = getAllStudents();
   const student = students[idx];
-  
+
   if (!student) {
     console.error("No student at index", idx);
     return;
   }
-  
+
   const marks = STUDENT_MARKS[student.id];
-  
+
   if (!marks) {
     console.error("No marks found for student:", student.id);
-    
+
     // Show empty state
     const tbody = document.getElementById("marks-comp-tbody");
     if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">No marks available yet</td></tr>';
+      tbody.innerHTML =
+        '<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--text-mute)">No marks available yet</td></tr>';
     }
     return;
   }
@@ -705,7 +758,6 @@ function renderMarksForStudent(idx) {
   renderMarksTable(marks, totalObtained, totalMax);
   renderPieChart(marks);
   renderBreakdown(marks, totalObtained, totalMax);
-  
 }
 
 function renderStudentTabs() {
@@ -714,10 +766,14 @@ function renderStudentTabs() {
   const students = getAllStudents();
   tabs.innerHTML = students
     .map((s, i) => {
-      const gender = i === 0 ? (user.gender || "male") : (STATE.members[i - 1]?.gender || "male");
-      const avatarSrc = gender === "female"
-        ? "../../images/Avatars/female.png"
-        : "../../images/Avatars/male.jpg"
+      const gender =
+        i === 0
+          ? user.gender || "male"
+          : STATE.members[i - 1]?.gender || "male";
+      const avatarSrc =
+        gender === "female"
+          ? "../../images/Avatars/female.png"
+          : "../../images/Avatars/male.jpg";
       return `
         <button class="student-tab-btn ${i === STATE.selectedEvalStudent ? "active" : ""}"
                 onclick="selectEvalStudent(${i})">
@@ -737,7 +793,6 @@ function selectEvalStudent(idx) {
   renderMarksForStudent(idx);
 }
 
-
 function getMarkColor(marks, max) {
   if (marks === null) return "mark-pending";
   const pct = (marks / max) * 100;
@@ -748,7 +803,7 @@ function getMarkColor(marks, max) {
 
 function renderMarksTable(marks, totalObtained, totalMax) {
   const tbody = document.getElementById("marks-comp-tbody");
-  if (!tbody){
+  if (!tbody) {
     console.error("marks-comp-tbody not found in DOM");
     return;
   }
@@ -809,21 +864,21 @@ function renderPieChart(marks) {
   const sections = {};
   marks.forEach((m) => {
     if (!sections[m.section]) sections[m.section] = { obtained: 0, max: 0 };
-    sections[m.section].max     += m.max;
+    sections[m.section].max += m.max;
     if (m.marks !== null) sections[m.section].obtained += m.marks;
   });
 
   const labels = Object.keys(sections);
-  const data   = labels.map((l) => sections[l].obtained || 0);
+  const data = labels.map((l) => sections[l].obtained || 0);
 
   const COLOR_MAP = {
     "Monthly Meetings": "#004b2d",
-    "Submissions":      "#1f7a5c",
-    "Documentation":    "#bfa14a",
-    "Practical":        "#2a9670",
-    "Viva":             "#7c3aed",
+    Submissions: "#1f7a5c",
+    Documentation: "#bfa14a",
+    Practical: "#2a9670",
+    Viva: "#7c3aed",
   };
-  const colors = labels.map(l => COLOR_MAP[l] || "#888");
+  const colors = labels.map((l) => COLOR_MAP[l] || "#888");
 
   if (marksChart) marksChart.destroy();
 
@@ -831,13 +886,15 @@ function renderPieChart(marks) {
     type: "doughnut",
     data: {
       labels,
-      datasets: [{
-        data,
-        backgroundColor: colors,
-        borderWidth: 2,
-        borderColor: "#fff",
-        hoverOffset: 8,
-      }],
+      datasets: [
+        {
+          data,
+          backgroundColor: colors,
+          borderWidth: 2,
+          borderColor: "#fff",
+          hoverOffset: 8,
+        },
+      ],
     },
     options: {
       responsive: true,
@@ -847,16 +904,21 @@ function renderPieChart(marks) {
         legend: { display: false },
         tooltip: {
           backgroundColor: "#003520",
-          titleFont: { family: "'DM Sans', sans-serif", size: 12, weight: "700" },
-          bodyFont:  { family: "'DM Sans', sans-serif", size: 11 },
+          titleFont: {
+            family: "'DM Sans', sans-serif",
+            size: 12,
+            weight: "700",
+          },
+          bodyFont: { family: "'DM Sans', sans-serif", size: 11 },
           padding: 10,
           cornerRadius: 8,
           callbacks: {
             label: (ctx) => {
               const section = labels[ctx.dataIndex];
-              const pct = sections[section].max > 0
-                ? Math.round((ctx.parsed / sections[section].max) * 100)
-                : 0;
+              const pct =
+                sections[section].max > 0
+                  ? Math.round((ctx.parsed / sections[section].max) * 100)
+                  : 0;
               return ` ${ctx.parsed} / ${sections[section].max} marks  (${pct}%)`;
             },
           },
@@ -868,17 +930,21 @@ function renderPieChart(marks) {
   // Legend
   const legend = document.getElementById("chart-legend");
   if (legend) {
-    legend.innerHTML = labels.map((l, i) => {
-      const pct = sections[l].max > 0
-        ? Math.round((data[i] / sections[l].max) * 100) : 0;
-      return `
+    legend.innerHTML = labels
+      .map((l, i) => {
+        const pct =
+          sections[l].max > 0
+            ? Math.round((data[i] / sections[l].max) * 100)
+            : 0;
+        return `
         <div class="cl-item">
           <div class="cl-dot" style="background:${colors[i]}"></div>
           <span style="flex:1">${l}</span>
           <strong style="color:${colors[i]}">${data[i]} / ${sections[l].max}</strong>
           <span style="color:var(--text-mute);font-size:.7rem;margin-left:4px">(${pct}%)</span>
         </div>`;
-    }).join("");
+      })
+      .join("");
   }
 }
 function renderBreakdown(marks, totalObtained, totalMax) {
@@ -894,16 +960,17 @@ function renderBreakdown(marks, totalObtained, totalMax) {
 
   const COLOR_MAP = {
     "Monthly Meetings": "#004b2d",
-    "Submissions":      "#1f7a5c",
-    "Documentation":    "#bfa14a",
-    "Practical":        "#2a9670",
-    "Viva":             "#7c3aed",
+    Submissions: "#1f7a5c",
+    Documentation: "#bfa14a",
+    Practical: "#2a9670",
+    Viva: "#7c3aed",
   };
 
-  list.innerHTML = Object.entries(sections).map(([name, s]) => {
-    const pct   = s.max > 0 ? Math.round((s.obtained / s.max) * 100) : 0;
-    const color = COLOR_MAP[name] || "#004b2d";
-    return `
+  list.innerHTML = Object.entries(sections)
+    .map(([name, s]) => {
+      const pct = s.max > 0 ? Math.round((s.obtained / s.max) * 100) : 0;
+      const color = COLOR_MAP[name] || "#004b2d";
+      return `
       <div style="margin-bottom:10px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
           <span style="font-size:.78rem;font-weight:700;color:var(--text-soft)">${name}</span>
@@ -916,7 +983,8 @@ function renderBreakdown(marks, totalObtained, totalMax) {
           <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width .8s cubic-bezier(.34,1.56,.64,1)"></div>
         </div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 }
 
 /* ══════════════════════════════════
@@ -1048,17 +1116,17 @@ async function openSetup() {
   STATE.teamId = nextTeamId;
 
   // ── update all ID display elements ──
-  const step1Id    = document.getElementById("display-team-id");
-  const step2Id    = document.getElementById("step2-team-id");   
+  const step1Id = document.getElementById("display-team-id");
+  const step2Id = document.getElementById("step2-team-id");
   const leaderStdId = document.getElementById("leader-std-id");
-  const leaderName  = document.getElementById("leader-name");
-  const leaderAv    = document.getElementById("leader-av");
+  const leaderName = document.getElementById("leader-name");
+  const leaderAv = document.getElementById("leader-av");
 
-  if (step1Id)    step1Id.textContent    = nextTeamId;
-  if (step2Id)    step2Id.textContent    = nextTeamId;            
+  if (step1Id) step1Id.textContent = nextTeamId;
+  if (step2Id) step2Id.textContent = nextTeamId;
   if (leaderStdId) leaderStdId.textContent = STATE.studentId;
-  if (leaderName)  leaderName.textContent  = STATE.studentName;
-  if (leaderAv)    leaderAv.textContent    = initials(STATE.studentName);
+  if (leaderName) leaderName.textContent = STATE.studentName;
+  if (leaderAv) leaderAv.textContent = initials(STATE.studentName);
 
   showStep(1);
 }
@@ -1081,24 +1149,30 @@ function showStep(n) {
 }
 
 function goStep2() {
-  const projInput     = document.getElementById("s1-proj");
+  const projInput = document.getElementById("s1-proj");
   const categoryInput = document.getElementById("s1-cat");
 
-  if (!projInput) { toast("Project title field not found", "red"); return; }
+  if (!projInput) {
+    toast("Project title field not found", "red");
+    return;
+  }
 
-  const proj     = projInput.value.trim();
+  const proj = projInput.value.trim();
   const category = categoryInput ? categoryInput.value.trim() : "";
 
-  if (!proj) { toast("Please fill in Project Title", "red"); return; }
+  if (!proj) {
+    toast("Please fill in Project Title", "red");
+    return;
+  }
 
   STATE.projectTitle = proj;
-  STATE.category     = category;
+  STATE.category = category;
 
   const step1Id = document.getElementById("display-team-id");
   const step2Id = document.getElementById("step2-team-id");
 
   if (step1Id) step1Id.textContent = STATE.teamId || "Generating...";
-  if (step2Id) step2Id.textContent = STATE.teamId || "Generating..."; 
+  if (step2Id) step2Id.textContent = STATE.teamId || "Generating...";
 
   renderMemberSlots();
   clearSearch();
@@ -1112,15 +1186,17 @@ function goStep3() {
   // Populate supervisor dropdown with real data
   const supSelect = document.getElementById("sup-select");
   if (supSelect) {
-    supSelect.innerHTML = '<option value="">— Choose a supervisor —</option>' +
-      SUPERVISORS.map(sup => {
-        const researchAreas = sup.research_areas && sup.research_areas.length > 0
-          ? ` — ${sup.research_areas.slice(0, 3).join(", ")}`
-          : "";
-        
+    supSelect.innerHTML =
+      '<option value="">— Choose a supervisor —</option>' +
+      SUPERVISORS.map((sup) => {
+        const researchAreas =
+          sup.research_areas && sup.research_areas.length > 0
+            ? ` — ${sup.research_areas.slice(0, 3).join(", ")}`
+            : "";
+
         return `<option value="${sup.id}">${formatName(sup.prefix, sup.name)}${researchAreas}</option>`;
       }).join("");
-    
+
     // Set previously selected supervisor if exists
     if (STATE.selectedSupervisor) {
       supSelect.value = STATE.selectedSupervisor;
@@ -1146,25 +1222,27 @@ function updateSupPreview(id) {
     if (preview) preview.style.display = "none";
     return;
   }
-  
+
   const sup = SUPERVISORS.find((s) => s.id === id);
   if (!sup) {
     preview.style.display = "none";
     return;
   }
-  
+
   const supPreviewName = document.getElementById("sup-preview-name");
   const supPreviewDept = document.getElementById("sup-preview-dept");
 
-  if (supPreviewName) supPreviewName.textContent = formatName(sup.prefix, sup.name);
+  if (supPreviewName)
+    supPreviewName.textContent = formatName(sup.prefix, sup.name);
   if (supPreviewDept) {
     const deptText = sup.designation || "Faculty Member";
-    const researchText = sup.research_areas && sup.research_areas.length > 0
-      ? ` · ${sup.research_areas.slice(0, 2).join(", ")}`
-      : "";
+    const researchText =
+      sup.research_areas && sup.research_areas.length > 0
+        ? ` · ${sup.research_areas.slice(0, 2).join(", ")}`
+        : "";
     supPreviewDept.textContent = deptText + researchText;
   }
-  
+
   preview.style.display = "flex";
 }
 
@@ -1198,18 +1276,14 @@ async function finishSetup() {
 
   STATE.teamCreated = true;
   STATE.teamId =
-    result.group.team_code ||
-    result.group.group_code ||
-    result.group._id;
+    result.group.team_code || result.group.group_code || result.group._id;
 
   STUDENT_MARKS = {};
 
   updateDashboardUI();
   updateBannerForTeam();
 
-  const selSup = SUPERVISORS.find(
-    (s) => s.id === STATE.selectedSupervisor
-  );
+  const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
 
   if (result.group?.supervisor) {
     const sup = result.group.supervisor;
@@ -1394,9 +1468,10 @@ function renderMemberSlots() {
   const list = document.getElementById("members-list");
   if (!list) return;
 
-  const leaderAvatarSrc = (user.gender || "male") === "female"
-    ? "../../images/Avatars/female.png"
-    : "../../images/Avatars/male.jpg";
+  const leaderAvatarSrc =
+    (user.gender || "male") === "female"
+      ? "../../images/Avatars/female.png"
+      : "../../images/Avatars/male.jpg";
 
   const leaderHTML = `<div class="tm-item">
     <div class="tm-av" style="padding:0;overflow:hidden;background:none">
@@ -1407,12 +1482,14 @@ function renderMemberSlots() {
     <span class="tm-role tm-lead">Team Leader</span>
   </div>`;
 
-  const membersHTML = STATE.members.map((m, i) => {
-    const mGender = m.gender || "male";
-    const mAvatarSrc = mGender === "female"
-      ? "../../images/Avatars/female.png"
-      :"../../images/Avatars/male.jpg";
-    return `
+  const membersHTML = STATE.members
+    .map((m, i) => {
+      const mGender = m.gender || "male";
+      const mAvatarSrc =
+        mGender === "female"
+          ? "../../images/Avatars/female.png"
+          : "../../images/Avatars/male.jpg";
+      return `
       <div class="tm-item" style="margin-top:8px">
         <div class="tm-av" style="padding:0;overflow:hidden;background:none">
           <img src="${mAvatarSrc}" alt="avatar"
@@ -1424,7 +1501,8 @@ function renderMemberSlots() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>`;
-  }).join("");
+    })
+    .join("");
 
   list.innerHTML = leaderHTML + membersHTML;
 
@@ -1471,7 +1549,7 @@ function renderTeamTab() {
       isYou: false,
     })),
   ];
-// ── Update Team Info card with real created date + nearest deadline ──
+  // ── Update Team Info card with real created date + nearest deadline ──
   const createdEl = document.getElementById("team-created-date");
   if (createdEl && STATE.groupData?.createdAt) {
     createdEl.textContent = formatShortDate(STATE.groupData.createdAt);
@@ -1481,12 +1559,17 @@ function renderTeamTab() {
   if (deadlineEl) {
     const nearest = getNearestDeadline(STATE.deadlines);
     if (nearest) {
-      const due      = new Date(nearest.dueDate);
+      const due = new Date(nearest.dueDate);
       const diffDays = Math.ceil((due - new Date()) / 86400000);
-      const label    = nearest.type === "Other" && nearest.customName
-        ? nearest.customName : nearest.type;
-      const dateStr  = due.toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
-      const urgent   = diffDays <= 3;
+      const label =
+        nearest.type === "Other" && nearest.customName
+          ? nearest.customName
+          : nearest.type;
+      const dateStr = due.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+      });
+      const urgent = diffDays <= 3;
       deadlineEl.innerHTML = `
         <span style="color:${urgent ? "#dc2626" : "var(--primary)"}">
           ${urgent ? "⚠ " : ""}${dateStr}
@@ -1499,13 +1582,15 @@ function renderTeamTab() {
     }
   }
   // Replace the allMembers map inside renderTeamTab:
-display.innerHTML = allMembers.map(m => {
-  const gender = m.isYou ? (user.gender || "male") : (m.gender || "male");
-  const avatarSrc = gender === "female"
-    ? "../../images/Avatars/female.png"
-    : "../../images/Avatars/male.jpg"
+  display.innerHTML = allMembers
+    .map((m) => {
+      const gender = m.isYou ? user.gender || "male" : m.gender || "male";
+      const avatarSrc =
+        gender === "female"
+          ? "../../images/Avatars/female.png"
+          : "../../images/Avatars/male.jpg";
 
-  return `
+      return `
     <div class="tm-item" style="margin-bottom:8px">
       <div class="tm-av" style="padding:0;overflow:hidden;background:none">
         <img src="${avatarSrc}" alt="avatar"
@@ -1517,17 +1602,18 @@ display.innerHTML = allMembers.map(m => {
       </div>
       <span class="tm-role ${m.role === "Team Leader" || m.role === "Leader" ? "tm-lead" : "tm-member"}">${m.role}</span>
     </div>`;
-}).join("");
-    const totalMembers = 1 + STATE.members.length; 
-    if (totalMembers < 3 && STATE.teamRole === "Leader") {
-display.innerHTML += `
+    })
+    .join("");
+  const totalMembers = 1 + STATE.members.length;
+  if (totalMembers < 3 && STATE.teamRole === "Leader") {
+    display.innerHTML += `
     <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--border-soft);display:flex;justify-content:center">
       <button onclick="openAddMemberModal()" style="background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:.9rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;box-shadow:0 4px 14px rgba(0,75,45,.3);transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Add Member
       </button>
     </div>`;
-}
+  }
 }
 
 function openAddMemberModal() {
@@ -1537,7 +1623,7 @@ function openAddMemberModal() {
   if (setupOverlay) setupOverlay.style.display = "flex";
 
   // Hide all steps, show only step 2
-  ["setup-step-1", "setup-step-3", "setup-step-done"].forEach(id => {
+  ["setup-step-1", "setup-step-3", "setup-step-done"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.style.display = "none";
   });
@@ -1549,12 +1635,12 @@ function openAddMemberModal() {
   if (step2Id) step2Id.textContent = STATE.teamId || "—";
 
   // ── FIX 2: populate leader info ──
-  const leaderAv     = document.getElementById("leader-av");
-  const leaderName   = document.getElementById("leader-name");
-  const leaderStdId  = document.getElementById("leader-std-id");
+  const leaderAv = document.getElementById("leader-av");
+  const leaderName = document.getElementById("leader-name");
+  const leaderStdId = document.getElementById("leader-std-id");
 
-  if (leaderAv)    leaderAv.textContent    = initials(STATE.studentName);
-  if (leaderName)  leaderName.textContent  = STATE.studentName;
+  if (leaderAv) leaderAv.textContent = initials(STATE.studentName);
+  if (leaderName) leaderName.textContent = STATE.studentName;
   if (leaderStdId) leaderStdId.textContent = STATE.studentId;
 
   // ── FIX 3: render member slots so search result area works ──
@@ -1607,7 +1693,6 @@ function saveNewMember() {
   closeAddMemberModal();
   toast("Member added successfully");
 }
-
 
 /* ══ Render supervisor tab ══ */
 function renderSupervisorTab() {
@@ -1698,8 +1783,14 @@ function renderSupervisorTab() {
 
 function updateBannerForTeam() {
   if (STATE.teamId) {
-    const ids = ["banner-team-id", "ov-team-id", "proj-team-id", "team-tab-id", "proj-tab-team-id"];
-    ids.forEach(id => {
+    const ids = [
+      "banner-team-id",
+      "ov-team-id",
+      "proj-team-id",
+      "team-tab-id",
+      "proj-tab-team-id",
+    ];
+    ids.forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.textContent = STATE.teamId;
     });
@@ -1713,19 +1804,23 @@ function updateDashboardUI() {
     "ov-team-id": STATE.teamId,
     "team-tab-id": STATE.teamId,
     "team-tab-proj": STATE.projectTitle,
-    "proj-team-id": STATE.teamId,       
+    "proj-team-id": STATE.teamId,
     "proj-tab-team-id": STATE.teamId,
     "stat-project-title": STATE.projectTitle,
-    "ov-proj-title": STATE.projectTitle,    
-    "ov-student-id": STATE.studentId,        
-    "proj-student-id": STATE.studentId,      
-    "proj-team-id": STATE.teamId,     
-    "ov-proj-category": STATE.category, 
-    "proj-tab-team-id": STATE.teamId,   
-    "proj-tab-title": STATE.projectTitle,    
-    "proj-tab-category": STATE.category,  
-    "stat-supervisor-name":  STATE.supervisorData ? formatName(STATE.supervisorData.prefix, STATE.supervisorData.name) : "Not assigned",
-    "proj-supervisor-name":  STATE.supervisorData ? formatName(STATE.supervisorData.prefix, STATE.supervisorData.name) : "Not assigned",
+    "ov-proj-title": STATE.projectTitle,
+    "ov-student-id": STATE.studentId,
+    "proj-student-id": STATE.studentId,
+    "proj-team-id": STATE.teamId,
+    "ov-proj-category": STATE.category,
+    "proj-tab-team-id": STATE.teamId,
+    "proj-tab-title": STATE.projectTitle,
+    "proj-tab-category": STATE.category,
+    "stat-supervisor-name": STATE.supervisorData
+      ? formatName(STATE.supervisorData.prefix, STATE.supervisorData.name)
+      : "Not assigned",
+    "proj-supervisor-name": STATE.supervisorData
+      ? formatName(STATE.supervisorData.prefix, STATE.supervisorData.name)
+      : "Not assigned",
   };
 
   Object.entries(elements).forEach(([id, value]) => {
@@ -1734,12 +1829,16 @@ function updateDashboardUI() {
   });
 
   // Update supervisor info if available
-if (STATE.supervisorData) {
-  const supNameElements = document.querySelectorAll(".supervisor-name");
-  supNameElements.forEach((el) => {
-    if (el) el.textContent = formatName(STATE.supervisorData.prefix, STATE.supervisorData.name);
-  });
-}
+  if (STATE.supervisorData) {
+    const supNameElements = document.querySelectorAll(".supervisor-name");
+    supNameElements.forEach((el) => {
+      if (el)
+        el.textContent = formatName(
+          STATE.supervisorData.prefix,
+          STATE.supervisorData.name,
+        );
+    });
+  }
 }
 
 /* ══════════════════════════════════
@@ -1748,7 +1847,9 @@ if (STATE.supervisorData) {
 function formatShortDate(dateString) {
   if (!dateString) return "—";
   return new Date(dateString).toLocaleDateString("en-GB", {
-    day: "2-digit", month: "short", year: "numeric"
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   });
 }
 
@@ -1756,7 +1857,7 @@ function getNearestDeadline(deadlines) {
   if (!deadlines || !deadlines.length) return null;
   const now = new Date();
   const upcoming = deadlines
-    .filter(d => new Date(d.dueDate) > now)
+    .filter((d) => new Date(d.dueDate) > now)
     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
   return upcoming[0] || null;
 }
@@ -1839,11 +1940,14 @@ async function addMember(studentCode, name, ini) {
   // ── CASE 2: Team already exists (clicking "Add Member" from dashboard) ──
   // Call backend API to add member to existing team
   try {
-    const response = await fetch(`${API_BASE}/groups/${STATE.groupData._id}/add-member`, {
-      method: "PUT",
-      headers: API_HEADERS,
-      body: JSON.stringify({ student_code: studentCode }),
-    });
+    const response = await fetch(
+      `${API_BASE}/groups/${STATE.groupData._id}/add-member`,
+      {
+        method: "PUT",
+        headers: API_HEADERS,
+        body: JSON.stringify({ student_code: studentCode }),
+      },
+    );
 
     const data = await response.json();
     if (!response.ok) {
@@ -1869,7 +1973,6 @@ async function addMember(studentCode, name, ini) {
 
     renderMemberSlots();
     toast(name + " added to team ✓");
-
   } catch (error) {
     console.error("Add member error:", error);
     toast("Failed to add member: " + error.message, "red");
@@ -1878,23 +1981,22 @@ async function addMember(studentCode, name, ini) {
 async function uploadCV(file) {
   const user = JSON.parse(localStorage.getItem("user"));
   const formData = new FormData();
-  formData.append("cv", file);  // "cv" must match upload.single("cv") in the route
+  formData.append("cv", file); // "cv" must match upload.single("cv") in the route
 
   try {
-      const res = await fetch(`${API_BASE}/uploads/student/cv`, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${user.token}`,
-        },
-        body: formData,
-      });
+    const res = await fetch(`${API_BASE}/uploads/student/cv`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+      body: formData,
+    });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Upload failed");
 
     toast("CV uploaded", "gold");
     return data.cv_url;
-
   } catch (err) {
     toast("Upload failed: " + err.message, "red");
     return null;
@@ -1911,7 +2013,7 @@ async function uploadProposalAPI(file) {
   try {
     const res = await fetch(`${API_BASE}/uploads/group/${groupId}/proposal`, {
       method: "POST",
-      headers: { "Authorization": `Bearer ${user.token}` },
+      headers: { Authorization: `Bearer ${user.token}` },
       body: formData,
     });
     const data = await res.json();
@@ -1929,30 +2031,43 @@ async function loadStudentDeadlines() {
 
   try {
     const res = await fetch(`${API_BASE}/deadlines`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${user.token}` }
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
-    STATE.deadlines = Array.isArray(data) ? data : []; 
+    STATE.deadlines = Array.isArray(data) ? data : [];
     if (!data.length) {
       container.innerHTML = `<p style="color:var(--text-mute)">No upcoming deadlines.</p>`;
       return;
     }
 
-container.innerHTML = data.map(d => {
-  const due = new Date(d.dueDate);
-  const diffMs = due - new Date();
-  const diffDays = Math.ceil(diffMs / 86400000);
-  const expired = diffMs < 0;
-  const near = !expired && diffDays <= 2;
-  const label = d.type === "Other" && d.customName ? d.customName : d.type;
-  const day = due.getDate().toString().padStart(2, "0");
-  const mo = due.toLocaleString("en-PK", { month: "short" });
-  const tagText = expired ? "Expired" : diffDays === 0 ? "Today!" : `${diffDays} days`;
-  const tagCls = expired ? "tag-urgent" : near ? "tag-near" : "tag-ok";
-  const bgColor = expired ? "#dc2626" : near ? "var(--gold)" : "var(--primary)";
+    container.innerHTML = data
+      .map((d) => {
+        const due = new Date(d.dueDate);
+        const diffMs = due - new Date();
+        const diffDays = Math.ceil(diffMs / 86400000);
+        const expired = diffMs < 0;
+        const near = !expired && diffDays <= 2;
+        const label =
+          d.type === "Other" && d.customName ? d.customName : d.type;
+        const day = due.getDate().toString().padStart(2, "0");
+        const mo = due.toLocaleString("en-PK", { month: "short" });
+        const tagText = expired
+          ? "Expired"
+          : diffDays === 0
+            ? "Today!"
+            : `${diffDays} days`;
+        const tagCls = expired ? "tag-urgent" : near ? "tag-near" : "tag-ok";
+        const bgColor = expired
+          ? "#dc2626"
+          : near
+            ? "var(--gold)"
+            : "var(--primary)";
 
-  return `<div class="dl-item">
+        return `<div class="dl-item">
     <div class="dl-date" style="background:${bgColor}">
       <span class="dl-day">${day}</span>
       <span class="dl-mo">${mo}</span>
@@ -1963,7 +2078,8 @@ container.innerHTML = data.map(d => {
     </div>
     <span class="dl-tag ${tagCls}">${tagText}</span>
   </div>`;
-}).join("");
+      })
+      .join("");
   } catch (err) {
     container.innerHTML = `<p style="color:#dc2626">Failed to load: ${err.message}</p>`;
   }
@@ -1972,22 +2088,31 @@ function getGreeting(name, gender) {
   const hour = new Date().getHours();
   let greeting, icon;
 
-  if      (hour >= 5  && hour < 12) { greeting = "Good Morning";   icon = "☀️"; }
-  else if (hour >= 12 && hour < 17) { greeting = "Good Afternoon"; icon = "🌤️"; }
-  else if (hour >= 17 && hour < 21) { greeting = "Good Evening";   icon = "🌆"; }
-  else                               { greeting = "Good Night";     icon = "🌙"; }
+  if (hour >= 5 && hour < 12) {
+    greeting = "Good Morning";
+    icon = "☀️";
+  } else if (hour >= 12 && hour < 17) {
+    greeting = "Good Afternoon";
+    icon = "🌤️";
+  } else if (hour >= 17 && hour < 21) {
+    greeting = "Good Evening";
+    icon = "🌆";
+  } else {
+    greeting = "Good Night";
+    icon = "🌙";
+  }
 
   const title = gender === "female" ? "Ms" : "Mr";
   return `${greeting}, ${title}. ${name} ${icon}`;
 }
-document.addEventListener("keydown", e => {
+document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeEditProjectModal();
 });
 
 async function loadProposalSection() {
   // If we already have groupData, use it directly
   if (STATE.groupData) {
-    const proposalUrl    = STATE.groupData.proposal_url    || null;
+    const proposalUrl = STATE.groupData.proposal_url || null;
     const proposalStatus = STATE.groupData.proposal_status || null;
 
     if (!proposalUrl) {
@@ -2003,22 +2128,23 @@ async function loadProposalSection() {
 
   // No groupData yet — fetch fresh from backend
   try {
-    const res  = await fetch(`${API_BASE}/students/dashboard`, {
-      headers: API_HEADERS
+    const res = await fetch(`${API_BASE}/students/dashboard`, {
+      headers: API_HEADERS,
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
     if (data.hasGroup) {
       STATE.groupData = data.group;
-      const proposalUrl    = data.group.proposal_url    || null;
+      const proposalUrl = data.group.proposal_url || null;
       const proposalStatus = data.group.proposal_status || null;
 
       if (!proposalUrl) {
         STATE.proposalState = "idle";
       } else {
         STATE.proposalState = proposalStatus || "pending";
-        STATE.proposalFile  = data.group.proposal_filename || data.group.proposal_url;
+        STATE.proposalFile =
+          data.group.proposal_filename || data.group.proposal_url;
       }
     } else {
       STATE.proposalState = "idle";
@@ -2033,31 +2159,33 @@ async function loadProposalSection() {
 }
 /* INIT */
 function initDashboard() {
-  const navStdId    = document.getElementById("nav-std-id");
-  const navName     = document.getElementById("nav-name");
+  const navStdId = document.getElementById("nav-std-id");
+  const navName = document.getElementById("nav-name");
   const navInitials = document.getElementById("nav-initials");
-  const bannerName  = document.getElementById("banner-name");
-  const studentId   = document.getElementById("student-id");
+  const bannerName = document.getElementById("banner-name");
+  const studentId = document.getElementById("student-id");
 
-  if (navStdId)  navStdId.textContent  = STATE.studentId;
-  if (navName)   navName.textContent   = STATE.studentName;
+  if (navStdId) navStdId.textContent = STATE.studentId;
+  if (navName) navName.textContent = STATE.studentName;
 
   if (navInitials) {
-    const gender    = user.gender || "male";
-    const avatarSrc = gender === "female"
-      ? "../../images/Avatars/female.png"
-      : "../../images/Avatars/male.jpg";
+    const gender = user.gender || "male";
+    const avatarSrc =
+      gender === "female"
+        ? "../../images/Avatars/female.png"
+        : "../../images/Avatars/male.jpg";
 
-    navInitials.textContent      = "";
-    navInitials.style.padding    = "0";
-    navInitials.style.overflow   = "hidden";
+    navInitials.textContent = "";
+    navInitials.style.padding = "0";
+    navInitials.style.overflow = "hidden";
     navInitials.innerHTML = `<img src="${avatarSrc}" alt="${gender}"
       style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block"
       onerror="this.style.display='none';this.parentElement.textContent='${initials(STATE.studentName)}'">`;
   }
 
-  if (bannerName) bannerName.textContent = getGreeting(STATE.studentName, user.gender);
-  if (studentId)  studentId.textContent  = STATE.studentId;
+  if (bannerName)
+    bannerName.textContent = getGreeting(STATE.studentName, user.gender);
+  if (studentId) studentId.textContent = STATE.studentId;
 
   startBannerClock();
   loadDashboard();
@@ -2069,15 +2197,36 @@ function startBannerClock() {
     const el = document.getElementById("banner-datetime");
     if (!el) return;
     const now = new Date();
-    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const day   = days[now.getDay()];
-    const date  = now.getDate();
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const day = days[now.getDay()];
+    const date = now.getDate();
     const month = months[now.getMonth()];
-    const year  = now.getFullYear();
-    let hours   = now.getHours();
-    const mins  = String(now.getMinutes()).padStart(2, "0");
-    const ampm  = hours >= 12 ? "PM" : "AM";
+    const year = now.getFullYear();
+    let hours = now.getHours();
+    const mins = String(now.getMinutes()).padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
 
     el.innerHTML = `
@@ -2102,36 +2251,38 @@ if (document.readyState === "loading") {
 ══════════════════════════════════ */
 function renderProjectDetails() {
   const isApproved = STATE.groupData?.proposal_status === "approved";
-  const isLeader   = STATE.teamRole === "Leader";
-  const canEdit    = isLeader && !isApproved;
+  const isLeader = STATE.teamRole === "Leader";
+  const canEdit = isLeader && !isApproved;
 
   const editBtnProject = document.getElementById("edit-project-btn");
-  const editBtnHome    = document.getElementById("edit-project-btn-home");
+  const editBtnHome = document.getElementById("edit-project-btn-home");
 
-  if (editBtnProject) editBtnProject.style.display = canEdit ? "inline-flex" : "none";
-  if (editBtnHome)    editBtnHome.style.display    = canEdit ? "inline-flex" : "none";
+  if (editBtnProject)
+    editBtnProject.style.display = canEdit ? "inline-flex" : "none";
+  if (editBtnHome) editBtnHome.style.display = canEdit ? "inline-flex" : "none";
 
-  const titleEl    = document.getElementById("proj-tab-title");
+  const titleEl = document.getElementById("proj-tab-title");
   const categoryEl = document.getElementById("proj-tab-category");
-  if (titleEl)    titleEl.textContent    = STATE.projectTitle || "—";
-  if (categoryEl) categoryEl.textContent = STATE.category     || "—";
+  if (titleEl) titleEl.textContent = STATE.projectTitle || "—";
+  if (categoryEl) categoryEl.textContent = STATE.category || "—";
 }
 
 function openEditProjectModal() {
   const isApproved = STATE.groupData?.proposal_status === "approved";
-  const modal      = document.getElementById("editProjectModal");
-  const banner     = document.getElementById("edit-modal-banner");
-  const saveBtn    = document.getElementById("edit-modal-save-btn");
+  const modal = document.getElementById("editProjectModal");
+  const banner = document.getElementById("edit-modal-banner");
+  const saveBtn = document.getElementById("edit-modal-save-btn");
   const titleInput = document.getElementById("modal-proj-title");
-  const catInput   = document.getElementById("modal-proj-category");
+  const catInput = document.getElementById("modal-proj-category");
 
   // Pre-fill fields
   if (titleInput) titleInput.value = STATE.projectTitle || "";
-  if (catInput)   catInput.value   = STATE.category     || "";
+  if (catInput) catInput.value = STATE.category || "";
 
   if (isApproved) {
     // Locked state
-    banner.style.cssText += "background:rgba(0,75,45,.07);border:1.5px solid rgba(0,75,45,.2);color:#004b2d";
+    banner.style.cssText +=
+      "background:rgba(0,75,45,.07);border:1.5px solid rgba(0,75,45,.2);color:#004b2d";
     banner.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" width="18" height="18" style="flex-shrink:0;margin-top:1px">
@@ -2141,12 +2292,23 @@ function openEditProjectModal() {
       <span>Your proposal has been <strong>approved</strong> — project details are now locked.
       Contact your supervisor if changes are needed.</span>`;
 
-    if (titleInput) { titleInput.disabled = true; titleInput.style.opacity = ".55"; titleInput.style.cursor = "not-allowed"; }
-    if (catInput)   { catInput.disabled   = true; catInput.style.opacity   = ".55"; catInput.style.cursor = "not-allowed"; }
-    if (saveBtn)    { saveBtn.style.display = "none"; }
+    if (titleInput) {
+      titleInput.disabled = true;
+      titleInput.style.opacity = ".55";
+      titleInput.style.cursor = "not-allowed";
+    }
+    if (catInput) {
+      catInput.disabled = true;
+      catInput.style.opacity = ".55";
+      catInput.style.cursor = "not-allowed";
+    }
+    if (saveBtn) {
+      saveBtn.style.display = "none";
+    }
   } else {
     // Editable state
-    banner.style.cssText += "background:rgba(234,179,8,.08);border:1.5px solid rgba(234,179,8,.35);color:#92660a";
+    banner.style.cssText +=
+      "background:rgba(234,179,8,.08);border:1.5px solid rgba(234,179,8,.35);color:#92660a";
     banner.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" width="18" height="18" style="flex-shrink:0;margin-top:1px">
@@ -2157,9 +2319,23 @@ function openEditProjectModal() {
       <span>You can edit your project details <strong>until your proposal is approved</strong>.
       Once approved, these fields will be locked permanently.</span>`;
 
-    if (titleInput) { titleInput.disabled = false; titleInput.style.opacity = "1"; titleInput.style.cursor = "text"; }
-    if (catInput)   { catInput.disabled   = false; catInput.style.opacity   = "1"; catInput.style.cursor = "pointer"; }
-    if (saveBtn)    { saveBtn.style.display = "inline-flex"; saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Save Changes'; saveBtn.disabled = false; saveBtn.style.opacity = "1"; }
+    if (titleInput) {
+      titleInput.disabled = false;
+      titleInput.style.opacity = "1";
+      titleInput.style.cursor = "text";
+    }
+    if (catInput) {
+      catInput.disabled = false;
+      catInput.style.opacity = "1";
+      catInput.style.cursor = "pointer";
+    }
+    if (saveBtn) {
+      saveBtn.style.display = "inline-flex";
+      saveBtn.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = "1";
+    }
   }
 
   modal.style.display = "flex";
@@ -2172,15 +2348,15 @@ function closeEditProjectModal() {
 
 async function saveProjectDetails() {
   const titleInput = document.getElementById("modal-proj-title");
-  const catInput   = document.getElementById("modal-proj-category");
-  const saveBtn    = document.getElementById("edit-modal-save-btn");
+  const catInput = document.getElementById("modal-proj-category");
+  const saveBtn = document.getElementById("edit-modal-save-btn");
 
-  const newTitle    = titleInput?.value.trim();
+  const newTitle = titleInput?.value.trim();
   const newCategory = catInput?.value.trim();
 
   if (!newTitle) {
     titleInput.style.borderColor = "#dc2626";
-    titleInput.style.boxShadow   = "0 0 0 3px rgba(220,38,38,.1)";
+    titleInput.style.boxShadow = "0 0 0 3px rgba(220,38,38,.1)";
     titleInput.focus();
     toast("Project title cannot be empty", "red");
     return;
@@ -2188,37 +2364,43 @@ async function saveProjectDetails() {
 
   if (saveBtn) {
     saveBtn.innerHTML = "Saving…";
-    saveBtn.disabled  = true;
+    saveBtn.disabled = true;
     saveBtn.style.opacity = ".6";
   }
 
   try {
-    const res = await fetch(`${API_BASE}/groups/${STATE.groupData._id}/update-project`, {
-      method: "PUT",
-      headers: API_HEADERS,
-      body: JSON.stringify({ project_title: newTitle, category: newCategory }),
-    });
+    const res = await fetch(
+      `${API_BASE}/groups/${STATE.groupData._id}/update-project`,
+      {
+        method: "PUT",
+        headers: API_HEADERS,
+        body: JSON.stringify({
+          project_title: newTitle,
+          category: newCategory,
+        }),
+      },
+    );
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to save");
 
     // Update local state
-    STATE.projectTitle            = newTitle;
-    STATE.category                = newCategory;
+    STATE.projectTitle = newTitle;
+    STATE.category = newCategory;
     STATE.groupData.project_title = newTitle;
-    STATE.groupData.category      = newCategory;
+    STATE.groupData.category = newCategory;
 
     // Refresh all display elements
     updateDashboardUI();
     renderProjectDetails();
     closeEditProjectModal();
     toast("Project details updated ✓");
-
   } catch (err) {
     toast("Save failed: " + err.message, "red");
     if (saveBtn) {
-      saveBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
-      saveBtn.disabled  = false;
+      saveBtn.innerHTML =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> Save Changes';
+      saveBtn.disabled = false;
       saveBtn.style.opacity = "1";
     }
   }
@@ -2229,7 +2411,9 @@ async function apiFetch(url, options = {}) {
 
   if (res.status === 429) {
     const data = await res.json().catch(() => ({}));
-    throw new Error(data.message || "Too many requests. Please wait and try again.");
+    throw new Error(
+      data.message || "Too many requests. Please wait and try again.",
+    );
   }
 
   return res;
@@ -2242,9 +2426,9 @@ async function viewDoc(url) {
   if (!url) return toast("No document available", "red");
   try {
     if (url.includes("amazonaws.com")) {
-      const res  = await fetch(
+      const res = await fetch(
         `${API_BASE}/uploads/signed-url?url=${encodeURIComponent(url)}`,
-        { headers: { Authorization: `Bearer ${user.token}` } }
+        { headers: { Authorization: `Bearer ${user.token}` } },
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
@@ -2268,13 +2452,13 @@ async function renderMyDocuments() {
 
   // ── Proposal (only if approved) ──
   const proposalApproved = STATE.groupData?.proposal_status === "approved";
-  const proposalUrl      = proposalApproved ? STATE.groupData?.proposal_url : null;
+  const proposalUrl = proposalApproved ? STATE.groupData?.proposal_url : null;
 
   const docs = [
     {
-      label:  "My CV",
-      desc:   "Your uploaded curriculum vitae",
-      url:    STATE.cvUrl || null,
+      label: "My CV",
+      desc: "Your uploaded curriculum vitae",
+      url: STATE.cvUrl || null,
       status: STATE.cvUrl ? "uploaded" : "not_uploaded",
       icon: `<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
              <polyline points="14 2 14 8 20 8"/>
@@ -2282,41 +2466,45 @@ async function renderMyDocuments() {
              <line x1="16" y1="17" x2="8" y2="17"/>`,
     },
     {
-      label:  "Certificates",
-      desc:   "Internship / Coursera certificates",
-      url:    STATE.certUrl || null,
+      label: "Certificates",
+      desc: "Internship / Coursera certificates",
+      url: STATE.certUrl || null,
       status: STATE.certUrl ? "uploaded" : "not_uploaded",
       icon: `<path d="M9 11l3 3L22 4"/>
              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
     },
     {
-      label:  "Project Proposal",
-      desc:   proposalApproved
-              ? "Your approved FYP proposal"
-              : "Only viewable once proposal is approved",
-      url:    proposalUrl,
+      label: "Project Proposal",
+      desc: proposalApproved
+        ? "Your approved FYP proposal"
+        : "Only viewable once proposal is approved",
+      url: proposalUrl,
       status: proposalApproved
-              ? "approved"
-              : (STATE.groupData?.proposal_status || "not_submitted"),
+        ? "approved"
+        : STATE.groupData?.proposal_status || "not_submitted",
       icon: `<path d="M9 11l3 3L22 4"/>
              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>`,
     },
   ];
 
   const statusConfig = {
-    uploaded:      { label: "Uploaded",       cls: "s-approved" },
-    submitted:     { label: "Submitted",      cls: "s-approved" },
-    approved:      { label: "Approved",       cls: "s-approved" },
-    not_uploaded:  { label: "Not Uploaded",   cls: "s-none"     },
-    not_submitted: { label: "Not Submitted",  cls: "s-none"     },
-    pending:       { label: "Pending Review", cls: "s-pending"  },
-    rejected:      { label: "Rejected",       cls: "s-rejected" },
+    uploaded: { label: "Uploaded", cls: "s-approved" },
+    submitted: { label: "Submitted", cls: "s-approved" },
+    approved: { label: "Approved", cls: "s-approved" },
+    not_uploaded: { label: "Not Uploaded", cls: "s-none" },
+    not_submitted: { label: "Not Submitted", cls: "s-none" },
+    pending: { label: "Pending Review", cls: "s-pending" },
+    rejected: { label: "Rejected", cls: "s-rejected" },
   };
 
-  body.innerHTML = docs.map((doc, i) => {
-    const sc  = statusConfig[doc.status] || { label: doc.status, cls: "s-none" };
-    const btn = doc.url
-      ? `<button onclick="viewDoc('${doc.url}')"
+  body.innerHTML = docs
+    .map((doc, i) => {
+      const sc = statusConfig[doc.status] || {
+        label: doc.status,
+        cls: "s-none",
+      };
+      const btn = doc.url
+        ? `<button onclick="viewDoc('${doc.url}')"
            style="display:inline-flex;align-items:center;gap:6px;
                   padding:7px 16px;border-radius:8px;font-size:.76rem;font-weight:700;
                   cursor:pointer;border:1.5px solid rgba(0,75,45,.2);
@@ -2331,12 +2519,17 @@ async function renderMyDocuments() {
            </svg>
            View
          </button>`
-      : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic;padding:7px 0">
-           ${doc.status === "pending"  ? "Under Review" :
-             doc.status === "rejected" ? "Rejected"     : "—"}
+        : `<span style="font-size:.74rem;color:var(--text-mute);font-style:italic;padding:7px 0">
+           ${
+             doc.status === "pending"
+               ? "Under Review"
+               : doc.status === "rejected"
+                 ? "Rejected"
+                 : "—"
+           }
          </span>`;
 
-    return `
+      return `
       <div style="display:flex;align-items:center;gap:14px;
                   padding:16px 22px;
                   ${i < docs.length - 1 ? "border-bottom:1px solid var(--border-soft)" : ""}">
@@ -2365,5 +2558,6 @@ async function renderMyDocuments() {
 
         <div style="flex-shrink:0">${btn}</div>
       </div>`;
-  }).join("");
+    })
+    .join("");
 }
