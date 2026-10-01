@@ -16,7 +16,6 @@ The FYP Management System is a full-stack web application designed to manage Fin
 ## User Roles
 - Student
 - Supervisor
-- Chairman
 - Admin
 - Public User
 
