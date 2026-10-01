@@ -1,94 +1,110 @@
-import { GetObjectCommand }              from "@aws-sdk/client-s3";
-import { createS3Client }                from "../config/s3.js";
-import Admin                             from "../Models/admin.js";
-import Supervisor                        from "../Models/supervisor.js";
-import Student                           from "../Models/student.js";
-import Group                             from "../Models/group.js";
-import Marks                             from "../Models/marks.js";
-import Settings                          from "../Models/Settings.js";
-import Maintaince                        from "../Models/Maintaince.js";
-import Internship                         from"../Models/internship.js";
-import { generateSupCode }               from "../utils/generateSupCode.js";
-import { sendEmail }                     from "../utils/sendEmail.js";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { createS3Client } from "../config/s3.js";
+import Admin from "../Models/admin.js";
+import Supervisor from "../Models/supervisor.js";
+import Student from "../Models/student.js";
+import Group from "../Models/group.js";
+import Marks from "../Models/marks.js";
+import Settings from "../Models/Settings.js";
+import Maintaince from "../Models/Maintaince.js";
+import Internship from "../Models/internship.js";
+import { generateSupCode } from "../utils/generateSupCode.js";
+import { sendEmail } from "../utils/sendEmail.js";
 import { supervisorCredentialsTemplate } from "../utils/emailTemplates/supervisorCredentials.js";
-import JSZip                             from "jszip";
-import https                             from "https";
-import http                              from "http";
-import { logAudit }                      from "../utils/auditLogger.js";
-import bcrypt                             from "bcryptjs";
+import JSZip from "jszip";
+import https from "https";
+import http from "http";
+import { logAudit } from "../utils/auditLogger.js";
+import bcrypt from "bcryptjs";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const XLSX    = require("xlsx");
+const XLSX = require("xlsx");
 
 // ── ADD SUPERVISOR ─────────────────────────────────────────────
 export const addSupervisor = async (req, res) => {
-  const { name, email, password, designation, office, whatsapp, is_chairman, prefix } = req.body;
+  const {
+    name,
+    email,
+    password,
+    designation,
+    office,
+    whatsapp,
+    is_chairman,
+    prefix,
+  } = req.body;
 
   try {
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "Name, email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Name, email and password are required" });
     }
 
     const exists = await Supervisor.findOne({ email });
     if (exists) {
-      return res.status(400).json({ message: "Supervisor with this email already exists" });
+      return res
+        .status(400)
+        .json({ message: "Supervisor with this email already exists" });
     }
 
     // Calculate current batch
-    const now        = new Date();
-    const year       = now.getFullYear();
-    const month      = now.getMonth() + 1;
-    const batch      = month >= 9
-      ? `${year}-${String(year + 1).slice(2)}`
-      : `${year - 1}-${String(year).slice(2)}`;
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const batch =
+      month >= 9
+        ? `${year}-${String(year + 1).slice(2)}`
+        : `${year - 1}-${String(year).slice(2)}`;
 
-    const sup_code       = await generateSupCode();
+    const sup_code = await generateSupCode();
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const supervisor = await Supervisor.create({
       name,
       email,
-      password:    hashedPassword,
+      password: hashedPassword,
       designation: designation || "Supervisor",
-      office:      office      || "",
-      whatsapp:    whatsapp    || "",
-      prefix:      prefix      || "Mr",
+      office: office || "",
+      whatsapp: whatsapp || "",
+      prefix: prefix || "Mr",
       is_chairman: is_chairman === true,
-      role:        is_chairman === true ? "chairman" : "supervisor",
+      role: is_chairman === true ? "chairman" : "supervisor",
       sup_code,
-      batch,                                                   // ← NEW
+      batch, // ← NEW
     });
 
     const { subject, html } = supervisorCredentialsTemplate({
-      name, email, sup_code: supervisor.sup_code, password,
+      name,
+      email,
+      sup_code: supervisor.sup_code,
+      password,
     });
 
-    sendEmail({ to: email, subject, html }).then(result => {
+    sendEmail({ to: email, subject, html }).then((result) => {
       if (!result.success) console.warn("Email failed silently:", result.error);
     });
 
     logAudit("SUPERVISOR_ADDED", "ADMIN", req.user, {
       supervisorId: supervisor._id,
-      name:         supervisor.name,
-      email:        supervisor.email,
-      sup_code:     supervisor.sup_code,
+      name: supervisor.name,
+      email: supervisor.email,
+      sup_code: supervisor.sup_code,
     });
 
     res.status(201).json({
       message: "Supervisor created successfully",
       supervisor: {
-        _id:         supervisor._id,
-        name:        supervisor.name,
-        email:       supervisor.email,
-        sup_code:    supervisor.sup_code,
+        _id: supervisor._id,
+        name: supervisor.name,
+        email: supervisor.email,
+        sup_code: supervisor.sup_code,
         designation: supervisor.designation,
-        whatsapp:    supervisor.whatsapp,
-        prefix:      supervisor.prefix,
+        whatsapp: supervisor.whatsapp,
+        prefix: supervisor.prefix,
         is_chairman: supervisor.is_chairman,
-        batch:       supervisor.batch,                         // ← NEW
+        batch: supervisor.batch, // ← NEW
       },
     });
-
   } catch (error) {
     console.error("Add Supervisor Error:", error);
     if (error.code === 11000) {
@@ -113,12 +129,14 @@ export const getDashboardStats = async (req, res) => {
       Marks.find(),
     ]);
 
-    const totalMarks   = marks.reduce((sum, m) => sum + m.total, 0);
-    const avgScore     = marks.length ? Math.round(totalMarks / marks.length) : 0;
-    const topScore     = marks.length ? Math.max(...marks.map(m => m.total)) : 0;
-    const pendingMarks = marks.filter(m => m.total === 0).length;
+    const totalMarks = marks.reduce((sum, m) => sum + m.total, 0);
+    const avgScore = marks.length ? Math.round(totalMarks / marks.length) : 0;
+    const topScore = marks.length ? Math.max(...marks.map((m) => m.total)) : 0;
+    const pendingMarks = marks.filter((m) => m.total === 0).length;
     const completedPct = marks.length
-      ? Math.round((marks.filter(m => m.total > 0).length / marks.length) * 100)
+      ? Math.round(
+          (marks.filter((m) => m.total > 0).length / marks.length) * 100,
+        )
       : 0;
 
     res.json({
@@ -143,13 +161,16 @@ export const updateSupervisor = async (req, res) => {
     if (prefix) updateData.prefix = prefix;
 
     const supervisor = await Supervisor.findByIdAndUpdate(
-      req.params.id, updateData, { new: true }
+      req.params.id,
+      updateData,
+      { new: true },
     );
-    if (!supervisor) return res.status(404).json({ message: "Supervisor not found" });
+    if (!supervisor)
+      return res.status(404).json({ message: "Supervisor not found" });
 
     logAudit("SUPERVISOR_UPDATED", "ADMIN", req.user, {
       supervisorId: req.params.id,
-      changes:      req.body,
+      changes: req.body,
     });
 
     res.json({ message: "Updated successfully", supervisor });
@@ -180,17 +201,22 @@ export const getGroupMarks = async (req, res) => {
     const group = await Group.findById(groupId)
       .populate("leader")
       .populate("members")
-      .populate("supervisor", "name prefix sup_code email designation whatsapp is_chairman avatar_url");
+      .populate(
+        "supervisor",
+        "name prefix sup_code email designation whatsapp is_chairman avatar_url",
+      );
 
     if (!group) return res.status(404).json({ message: "Group not found" });
 
     const studentIds = [
       group.leader?._id,
-      ...(group.members || []).map(m => m._id),
+      ...(group.members || []).map((m) => m._id),
     ].filter(Boolean);
 
-    const marks = await Marks.find({ student: { $in: studentIds } })
-      .populate("student", "name email");
+    const marks = await Marks.find({ student: { $in: studentIds } }).populate(
+      "student",
+      "name email",
+    );
 
     res.json({ group, marks });
   } catch (error) {
@@ -204,16 +230,20 @@ export const getAllStudents = async (req, res) => {
     const students = await Student.find()
       .select("name email student_code whatsapp team_role group")
       .populate({
-        path:     "group",
-        select:   "group_code project_title supervisor",
-        populate: { path: "supervisor", select: "name prefix sup_code is_chairman designation whatsapp avatar_url" },
+        path: "group",
+        select: "group_code project_title supervisor",
+        populate: {
+          path: "supervisor",
+          select:
+            "name prefix sup_code is_chairman designation whatsapp avatar_url",
+        },
       });
 
     const result = await Promise.all(
-      students.map(async s => {
+      students.map(async (s) => {
         const marks = await Marks.findOne({ student: s._id });
         return { ...s.toObject(), total_marks: marks?.total || 0 };
-      })
+      }),
     );
 
     res.json(result);
@@ -225,27 +255,42 @@ export const getAllStudents = async (req, res) => {
 // ── GET ALL STUDENTS FOR ADMIN ─────────────────────────────────
 export const getAllStudentsForAdmin = async (req, res) => {
   try {
-    const { batch } = req.query;                          
+    const { batch } = req.query;
 
     const query = {};
-    if (batch && batch !== "all") query.batch = batch;    
+    if (batch && batch !== "all") query.batch = batch;
 
     const students = await Student.find(query)
-      .select("name email student_code whatsapp gender cv_url certificates_url group batch")
+      .select(
+        "name email student_code whatsapp gender cv_url certificates_url group batch team_role",
+      )
       .populate({
-        path:     "group",
-        select:   "group_code team_code project_title proposal_url proposal_status supervisor batch",
-        populate: { path: "supervisor", select: "name prefix sup_code is_chairman designation whatsapp avatar_url" },
+        path: "group",
+        select:
+          "group_code team_code project_title category proposal_url proposal_status supervisor leader members batch",
+        populate: [
+          {
+            path: "supervisor",
+            select:
+              "name prefix sup_code is_chairman designation whatsapp avatar_url",
+          },
+          { path: "leader", select: "name student_code" },
+          { path: "members", select: "name student_code" },
+        ],
       })
       .sort({ createdAt: -1 })
       .lean();
 
-    const studentIds = students.map(s => s._id);
-    const allMarks   = await Marks.find({ student: { $in: studentIds } }).lean();
+    const studentIds = students.map((s) => s._id);
+    const allMarks = await Marks.find({ student: { $in: studentIds } }).lean();
 
     const totalByStudent = {};
-    allMarks.forEach(m => { totalByStudent[m.student.toString()] = m.total || 0; });
-    students.forEach(s => { s.total_marks = totalByStudent[s._id.toString()] || 0; });
+    allMarks.forEach((m) => {
+      totalByStudent[m.student.toString()] = m.total || 0;
+    });
+    students.forEach((s) => {
+      s.total_marks = totalByStudent[s._id.toString()] || 0;
+    });
 
     res.json(students);
   } catch (err) {
@@ -263,11 +308,16 @@ export const deleteStudent = async (req, res) => {
       const group = await Group.findById(student.group);
       if (group) {
         if (group.leader?.toString() === student._id.toString()) {
-          await Student.updateMany({ group: group._id }, { $set: { group: null, team_role: null } });
+          await Student.updateMany(
+            { group: group._id },
+            { $set: { group: null, team_role: null } },
+          );
           await Marks.deleteMany({ group: group._id });
           await Group.findByIdAndDelete(group._id);
         } else {
-          await Group.findByIdAndUpdate(group._id, { $pull: { members: student._id } });
+          await Group.findByIdAndUpdate(group._id, {
+            $pull: { members: student._id },
+          });
           await Marks.deleteMany({ student: student._id });
         }
       }
@@ -289,14 +339,16 @@ export const getAllSupervisors = async (req, res) => {
     if (batch && batch !== "all") query.batch = batch;
 
     const supervisors = await Supervisor.find(query)
-      .select("name email prefix sup_code designation whatsapp office is_chairman role avatar_url batch")
+      .select(
+        "name email prefix sup_code designation whatsapp office is_chairman role avatar_url batch",
+      )
       .lean();
 
     const result = await Promise.all(
-      supervisors.map(async s => {
+      supervisors.map(async (s) => {
         const teamCount = await Group.countDocuments({ supervisor: s._id });
         return { ...s, teamCount };
-      })
+      }),
     );
 
     res.json(result);
@@ -308,13 +360,15 @@ export const getAllSupervisors = async (req, res) => {
 // ── GET ALL GROUPS ─────────────────────────────────────────────
 export const getAllGroups = async (req, res) => {
   try {
-    const { batch } = req.query;                          
+    const { batch } = req.query;
 
     const query = {};
-    if (batch && batch !== "all") query.batch = batch;    
+    if (batch && batch !== "all") query.batch = batch;
 
-    const groups = await Group.find(query)
-      .populate("supervisor", "name prefix sup_code email is_chairman designation whatsapp avatar_url");
+    const groups = await Group.find(query).populate(
+      "supervisor",
+      "name prefix sup_code email is_chairman designation whatsapp avatar_url",
+    );
     res.json(groups);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -324,19 +378,24 @@ export const getAllGroups = async (req, res) => {
 // Get all avalible batcher
 export const getAvailableBatches = async (req, res) => {
   try {
-    const [studentBatches, groupBatches, internBatches, supBatches] = await Promise.all([
-      Student.distinct("batch"),
-      Group.distinct("batch"),
-      Internship.distinct("batch"),
-      Supervisor.distinct("batch"),       
-    ]);
+    const [studentBatches, groupBatches, internBatches, supBatches] =
+      await Promise.all([
+        Student.distinct("batch"),
+        Group.distinct("batch"),
+        Internship.distinct("batch"),
+        Supervisor.distinct("batch"),
+      ]);
 
-    const all = [...new Set([
-      ...studentBatches,
-      ...groupBatches,
-      ...internBatches,
-      ...supBatches,                           
-    ])].filter(Boolean).sort((a, b) => b.localeCompare(a));
+    const all = [
+      ...new Set([
+        ...studentBatches,
+        ...groupBatches,
+        ...internBatches,
+        ...supBatches,
+      ]),
+    ]
+      .filter(Boolean)
+      .sort((a, b) => b.localeCompare(a));
 
     res.json({ batches: all });
   } catch (err) {
@@ -354,64 +413,66 @@ export const exportStudentsExcel = async (req, res) => {
     const students = await Student.find(query)
       .select("name email student_code whatsapp gender batch group")
       .populate({
-        path:     "group",
-        select:   "team_code project_title proposal_status supervisor",
+        path: "group",
+        select: "team_code project_title proposal_status supervisor",
         populate: { path: "supervisor", select: "name prefix" },
       })
       .lean();
 
-    const studentIds = students.map(s => s._id);
-    const allMarks   = await Marks.find({ student: { $in: studentIds } }).lean();
+    const studentIds = students.map((s) => s._id);
+    const allMarks = await Marks.find({ student: { $in: studentIds } }).lean();
 
     const marksByStudent = {};
-    allMarks.forEach(m => { marksByStudent[m.student.toString()] = m; });
+    allMarks.forEach((m) => {
+      marksByStudent[m.student.toString()] = m;
+    });
 
     // ── Sheet 1: Students Overview ──
     const overviewData = students.map((s, i) => {
-      const m   = marksByStudent[s._id.toString()];
+      const m = marksByStudent[s._id.toString()];
       const sup = s.group?.supervisor;
       return {
-        "#":            i + 1,
-        "Name":         s.name || "—",
-        "Student ID":   s.student_code || "—",
-        "Email":        s.email || "—",
-        "WhatsApp":     s.whatsapp || "—",
-        "Gender":       s.gender || "—",
-        "Batch":        s.batch || "—",
-        "Team ID":      s.group?.team_code || "—",
-        "Project":      s.group?.project_title || "—",
-        "Supervisor":   sup ? `${sup.prefix}. ${sup.name}` : "—",
-        "Proposal":     s.group?.proposal_status || "—",
-        "Total Marks":  m?.total || 0,
+        "#": i + 1,
+        Name: s.name || "—",
+        "Student ID": s.student_code || "—",
+        Email: s.email || "—",
+        WhatsApp: s.whatsapp || "—",
+        Gender: s.gender || "—",
+        Batch: s.batch || "—",
+        "Team ID": s.group?.team_code || "—",
+        Project: s.group?.project_title || "—",
+        Supervisor: sup ? `${sup.prefix}. ${sup.name}` : "—",
+        Proposal: s.group?.proposal_status || "—",
+        "Total Marks": m?.total || 0,
       };
     });
     const marksData = students.map((s, i) => {
       const m = marksByStudent[s._id.toString()];
       return {
-        "#":               i + 1,
-        "Name":            s.name || "—",
-        "Student ID":      s.student_code || "—",
-        "Batch":           s.batch || "—",
-        "Oct":             m?.monthly?.oct ?? "—",
-        "Nov":             m?.monthly?.nov ?? "—",
-        "Dec":             m?.monthly?.dec ?? "—",
-        "Feb":             m?.monthly?.feb ?? "—",
-        "Mar":             m?.monthly?.mar ?? "—",
-        "Proposal":        m?.submissions?.proposal ?? "—",
+        "#": i + 1,
+        Name: s.name || "—",
+        "Student ID": s.student_code || "—",
+        Batch: s.batch || "—",
+        Oct: m?.monthly?.oct ?? "—",
+        Nov: m?.monthly?.nov ?? "—",
+        Dec: m?.monthly?.dec ?? "—",
+        Feb: m?.monthly?.feb ?? "—",
+        Mar: m?.monthly?.mar ?? "—",
+        Proposal: m?.submissions?.proposal ?? "—",
         "Progress Report": m?.submissions?.progress ?? "—",
-        "Thesis":          m?.documentation?.final ?? "—",
-        "Code":            m?.submissions?.code ?? "—",
+        Thesis: m?.documentation?.final ?? "—",
+        Code: m?.submissions?.code ?? "—",
         "Prog Similarity": m?.submissions?.prog_sim ?? "—",
         "Thesis Similarity": m?.submissions?.thesis_sim ?? "—",
         "Internal Viva 1": m?.viva?.internal1 ?? "—",
         "Internal Viva 2": m?.viva?.internal2 ?? "—",
-        "External Viva":   m?.viva?.external ?? "—",
-        "Total":           m?.total || 0,
+        "External Viva": m?.viva?.external ?? "—",
+        Total: m?.total || 0,
       };
     });
 
     // ── Build Workbook ──
-    const wb  = XLSX.utils.book_new();
+    const wb = XLSX.utils.book_new();
     const ws1 = XLSX.utils.json_to_sheet(overviewData);
     const ws2 = XLSX.utils.json_to_sheet(marksData);
 
@@ -419,15 +480,17 @@ export const exportStudentsExcel = async (req, res) => {
     XLSX.utils.book_append_sheet(wb, ws2, "Marks Detail");
 
     const batchLabel = batch && batch !== "all" ? batch : "all";
-    const filename   = `FYP-Students-${batchLabel}-${new Date().getFullYear()}.xlsx`;
+    const filename = `FYP-Students-${batchLabel}-${new Date().getFullYear()}.xlsx`;
 
     const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-    res.setHeader("Content-Type",        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.setHeader("Content-Length",       buffer.length);
+    res.setHeader("Content-Length", buffer.length);
     res.send(buffer);
-
   } catch (err) {
     console.error("exportStudentsExcel error:", err);
     res.status(500).json({ message: err.message });
@@ -437,17 +500,22 @@ export const exportStudentsExcel = async (req, res) => {
 // ── CLEANUP ORPHANED TEAMS ─────────────────────────────────────
 export const cleanupOrphanedTeams = async (req, res) => {
   try {
-    const groups      = await Group.find();
-    let deletedCount  = 0;
+    const groups = await Group.find();
+    let deletedCount = 0;
 
     for (const group of groups) {
-      const leaderExists = group.leader ? await Student.findById(group.leader) : null;
+      const leaderExists = group.leader
+        ? await Student.findById(group.leader)
+        : null;
       let anyMemberExists = false;
 
       if (group.members?.length > 0) {
         for (const memberId of group.members) {
           const exists = await Student.findById(memberId);
-          if (exists) { anyMemberExists = true; break; }
+          if (exists) {
+            anyMemberExists = true;
+            break;
+          }
         }
       }
 
@@ -458,7 +526,10 @@ export const cleanupOrphanedTeams = async (req, res) => {
       }
     }
 
-    res.json({ message: `Cleanup complete — deleted ${deletedCount} orphaned teams`, deleted: deletedCount });
+    res.json({
+      message: `Cleanup complete — deleted ${deletedCount} orphaned teams`,
+      deleted: deletedCount,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -469,18 +540,37 @@ export const adminSaveMarks = async (req, res) => {
   const { student_id, monthly, submissions, viva, documentation } = req.body;
   try {
     let marks = await Marks.findOne({ student: student_id });
-    if (!marks) return res.status(404).json({ message: "Marks record not found" });
+    if (!marks)
+      return res.status(404).json({ message: "Marks record not found" });
 
-    if (monthly)       Object.entries(monthly).forEach(([k, v])       => { if (v != null) marks.monthly[k] = v; });
-    if (submissions)   Object.entries(submissions).forEach(([k, v])   => { if (v != null) marks.submissions[k] = v; });
-    if (viva)          Object.entries(viva).forEach(([k, v])          => { if (v != null) marks.viva[k] = v; });
-    if (documentation) Object.entries(documentation).forEach(([k, v]) => { if (v != null) marks.documentation[k] = v; });
+    if (monthly)
+      Object.entries(monthly).forEach(([k, v]) => {
+        if (v != null) marks.monthly[k] = v;
+      });
+    if (submissions)
+      Object.entries(submissions).forEach(([k, v]) => {
+        if (v != null) marks.submissions[k] = v;
+      });
+    if (viva)
+      Object.entries(viva).forEach(([k, v]) => {
+        if (v != null) marks.viva[k] = v;
+      });
+    if (documentation)
+      Object.entries(documentation).forEach(([k, v]) => {
+        if (v != null) marks.documentation[k] = v;
+      });
 
     let total = 0;
-    ["oct","nov","dec","feb","mar"].forEach(k => { total += Number(marks.monthly?.[k]) || 0; });
-    ["proposal","progress","code","prog_sim","thesis_sim"].forEach(k => { total += Number(marks.submissions?.[k]) || 0; });
+    ["oct", "nov", "dec", "feb", "mar"].forEach((k) => {
+      total += Number(marks.monthly?.[k]) || 0;
+    });
+    ["proposal", "progress", "code", "prog_sim", "thesis_sim"].forEach((k) => {
+      total += Number(marks.submissions?.[k]) || 0;
+    });
     total += Number(marks.documentation?.final) || 0;
-    ["internal1","internal2","external"].forEach(k => { total += Number(marks.viva?.[k]) || 0; });
+    ["internal1", "internal2", "external"].forEach((k) => {
+      total += Number(marks.viva?.[k]) || 0;
+    });
     marks.total = total;
 
     marks.markModified("monthly");
@@ -499,28 +589,42 @@ export const adminSaveMarks = async (req, res) => {
 export const saveMarks = async (req, res) => {
   try {
     const { student_id, monthly, submissions, viva, documentation } = req.body;
-    if (!student_id) return res.status(400).json({ message: "student_id is required" });
+    if (!student_id)
+      return res.status(400).json({ message: "student_id is required" });
 
     const student = await Student.findById(student_id);
-    if (!student)       return res.status(404).json({ message: "Student not found" });
-    if (!student.group) return res.status(404).json({ message: "Student is not in a group" });
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    if (!student.group)
+      return res.status(404).json({ message: "Student is not in a group" });
 
     const setObj = {};
-    if (monthly)       setObj.monthly       = monthly;
-    if (submissions)   setObj.submissions   = submissions;
-    if (viva)          setObj.viva          = viva;
+    if (monthly) setObj.monthly = monthly;
+    if (submissions) setObj.submissions = submissions;
+    if (viva) setObj.viva = viva;
     if (documentation) setObj.documentation = documentation;
 
-    const sumObj = obj => Object.values(obj || {}).reduce((s, v) => s + (Number(v) || 0), 0);
-    setObj.total = sumObj(monthly) + sumObj(submissions) + sumObj(viva) + sumObj(documentation);
+    const sumObj = (obj) =>
+      Object.values(obj || {}).reduce((s, v) => s + (Number(v) || 0), 0);
+    setObj.total =
+      sumObj(monthly) +
+      sumObj(submissions) +
+      sumObj(viva) +
+      sumObj(documentation);
 
     const marks = await Marks.findOneAndUpdate(
       { student: student_id, group: student.group },
-      { $set: setObj, $setOnInsert: { student: student_id, group: student.group } },
-      { upsert: true, new: true }
+      {
+        $set: setObj,
+        $setOnInsert: { student: student_id, group: student.group },
+      },
+      { upsert: true, new: true },
     );
 
-    res.json({ message: "Marks saved successfully", total: marks.total, marks });
+    res.json({
+      message: "Marks saved successfully",
+      total: marks.total,
+      marks,
+    });
   } catch (err) {
     console.error("saveMarks error:", err);
     res.status(500).json({ message: err.message });
@@ -531,7 +635,9 @@ export const saveMarks = async (req, res) => {
 export const getMarkToggles = async (req, res) => {
   try {
     const settings = await Settings.findOne({ type: "marks" });
-    const toggles  = settings?.toggles ? Object.fromEntries(settings.toggles) : {};
+    const toggles = settings?.toggles
+      ? Object.fromEntries(settings.toggles)
+      : {};
     res.json({ toggles });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -548,7 +654,7 @@ export const saveMarkToggles = async (req, res) => {
     const updated = await Settings.findOneAndUpdate(
       { type: "marks" },
       { $set: { toggles } },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     const saved = Object.fromEntries(updated.toggles);
@@ -568,8 +674,8 @@ export const getMaintenanceStatus = async (req, res) => {
     if (!settings) settings = await Maintaince.create({});
 
     res.json({
-      maintenance_mode:       settings.maintenance_mode,
-      maintenance_reason:     settings.maintenance_reason,
+      maintenance_mode: settings.maintenance_mode,
+      maintenance_reason: settings.maintenance_reason,
       maintenance_started_at: settings.maintenance_started_at,
     });
   } catch (err) {
@@ -588,7 +694,8 @@ export const toggleMaintenanceMode = async (req, res) => {
     settings.maintenance_mode = !!enabled;
 
     if (enabled) {
-      settings.maintenance_reason     = reason || "We're upgrading the system. Please check back shortly.";
+      settings.maintenance_reason =
+        reason || "We're upgrading the system. Please check back shortly.";
       settings.maintenance_started_at = new Date();
       settings.maintenance_enabled_by = req.user.id;
     } else {
@@ -600,13 +707,15 @@ export const toggleMaintenanceMode = async (req, res) => {
 
     logAudit("MAINTENANCE_TOGGLED", "ADMIN", req.user, {
       enabled: !!enabled,
-      reason:  settings.maintenance_reason,
+      reason: settings.maintenance_reason,
     });
 
     res.json({
-      message:                enabled ? "Maintenance mode enabled" : "Maintenance mode disabled",
-      maintenance_mode:       settings.maintenance_mode,
-      maintenance_reason:     settings.maintenance_reason,
+      message: enabled
+        ? "Maintenance mode enabled"
+        : "Maintenance mode disabled",
+      maintenance_mode: settings.maintenance_mode,
+      maintenance_reason: settings.maintenance_reason,
       maintenance_started_at: settings.maintenance_started_at,
     });
   } catch (err) {
@@ -620,7 +729,9 @@ export const downloadAllProposals = async (req, res) => {
   try {
     const { status = "all" } = req.query;
 
-    const query = { proposal_url: { $exists: true, $ne: null, $nin: ["", null] } };
+    const query = {
+      proposal_url: { $exists: true, $ne: null, $nin: ["", null] },
+    };
     if (status !== "all") query.proposal_status = status;
 
     const groups = await Group.find(query)
@@ -641,51 +752,53 @@ export const downloadAllProposals = async (req, res) => {
         if (!url) continue;
 
         const teamCode = group.team_code || "UNKNOWN";
-        const title    = (group.project_title || "untitled")
+        const title = (group.project_title || "untitled")
           .replace(/[^\w\s-]/g, "")
           .trim()
           .replace(/\s+/g, "-")
           .slice(0, 50);
 
         // Keep original extension (some files are .docx)
-        const ext      = url.split(".").pop().split("?")[0].toLowerCase();
+        const ext = url.split(".").pop().split("?")[0].toLowerCase();
         const filename = `${teamCode}-${title}.${ext}`;
 
         let fileBuffer;
 
         if (url.includes("amazonaws.com")) {
           const urlObj = new URL(url);
-          const key    = decodeURIComponent(urlObj.pathname.slice(1));
+          const key = decodeURIComponent(urlObj.pathname.slice(1));
 
           console.log("Fetching from S3:", key);
 
-          const s3Res  = await createS3Client().send(
+          const s3Res = await createS3Client().send(
             new GetObjectCommand({
               Bucket: process.env.AWS_BUCKET_NAME,
-              Key:    key,
-            })
+              Key: key,
+            }),
           );
 
           const chunks = [];
           for await (const chunk of s3Res.Body) chunks.push(chunk);
           fileBuffer = Buffer.concat(chunks);
-
         } else {
-          const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+          const finalUrl = url.startsWith("http")
+            ? url
+            : `http://127.0.0.1:5001${url}`;
           fileBuffer = await new Promise((resolve, reject) => {
             const protocol = finalUrl.startsWith("https") ? https : http;
-            protocol.get(finalUrl, response => {
-              const chunks = [];
-              response.on("data", chunk => chunks.push(chunk));
-              response.on("end",  ()    => resolve(Buffer.concat(chunks)));
-              response.on("error", reject);
-            }).on("error", reject);
+            protocol
+              .get(finalUrl, (response) => {
+                const chunks = [];
+                response.on("data", (chunk) => chunks.push(chunk));
+                response.on("end", () => resolve(Buffer.concat(chunks)));
+                response.on("error", reject);
+              })
+              .on("error", reject);
           });
         }
 
         console.log(`Added: ${filename} (${fileBuffer?.length} bytes)`);
         zip.file(filename, fileBuffer);
-
       } catch (fileErr) {
         console.error("Skipped", group.team_code, ":", fileErr.message);
       }
@@ -693,19 +806,18 @@ export const downloadAllProposals = async (req, res) => {
 
     console.log("Total files in ZIP:", Object.keys(zip.files).length);
 
-    const label     = status === "all" ? "all" : status;
-    const zipName   = `fyp-proposals-${label}-${new Date().getFullYear()}.zip`;
+    const label = status === "all" ? "all" : status;
+    const zipName = `fyp-proposals-${label}-${new Date().getFullYear()}.zip`;
     const zipBuffer = await zip.generateAsync({
-      type:               "nodebuffer",
-      compression:        "DEFLATE",
+      type: "nodebuffer",
+      compression: "DEFLATE",
       compressionOptions: { level: 6 },
     });
 
-    res.setHeader("Content-Type",        "application/zip");
+    res.setHeader("Content-Type", "application/zip");
     res.setHeader("Content-Disposition", `attachment; filename="${zipName}"`);
-    res.setHeader("Content-Length",       zipBuffer.length);
+    res.setHeader("Content-Length", zipBuffer.length);
     res.send(zipBuffer);
-
   } catch (err) {
     console.error("downloadAllProposals error:", err);
     if (!res.headersSent) res.status(500).json({ message: err.message });
@@ -714,9 +826,8 @@ export const downloadAllProposals = async (req, res) => {
 // ── DOWNLOAD ALL INTERNSHIP LETTERS ZIP ───────────────────────────
 export const downloadInternships = async (req, res) => {
   try {
-
     const submissions = await Internship.find({
-      acceptance_letter_url: { $exists: true, $ne: null, $nin: ["", null] }
+      acceptance_letter_url: { $exists: true, $ne: null, $nin: ["", null] },
     })
       .select("full_name cnic discipline acceptance_letter_url")
       .lean();
@@ -741,44 +852,46 @@ export const downloadInternships = async (req, res) => {
           .slice(0, 40);
 
         const cnic = (item.cnic || "").replace(/[^\d]/g, "").slice(0, 13);
-        const ext  = url.split(".").pop().split("?")[0].toLowerCase();
+        const ext = url.split(".").pop().split("?")[0].toLowerCase();
         const filename = `${name}-${cnic}.${ext}`;
 
         let fileBuffer;
 
         if (url.includes("amazonaws.com")) {
           const urlObj = new URL(url);
-          const key    = decodeURIComponent(urlObj.pathname.slice(1));
+          const key = decodeURIComponent(urlObj.pathname.slice(1));
 
           console.log("Fetching from S3:", key);
 
           const s3Res = await createS3Client().send(
             new GetObjectCommand({
               Bucket: process.env.AWS_BUCKET_NAME,
-              Key:    key,
-            })
+              Key: key,
+            }),
           );
 
           const chunks = [];
           for await (const chunk of s3Res.Body) chunks.push(chunk);
           fileBuffer = Buffer.concat(chunks);
-
         } else {
-          const finalUrl = url.startsWith("http") ? url : `http://127.0.0.1:5001${url}`;
+          const finalUrl = url.startsWith("http")
+            ? url
+            : `http://127.0.0.1:5001${url}`;
           fileBuffer = await new Promise((resolve, reject) => {
             const protocol = finalUrl.startsWith("https") ? https : http;
-            protocol.get(finalUrl, response => {
-              const chunks = [];
-              response.on("data", chunk => chunks.push(chunk));
-              response.on("end",  ()    => resolve(Buffer.concat(chunks)));
-              response.on("error", reject);
-            }).on("error", reject);
+            protocol
+              .get(finalUrl, (response) => {
+                const chunks = [];
+                response.on("data", (chunk) => chunks.push(chunk));
+                response.on("end", () => resolve(Buffer.concat(chunks)));
+                response.on("error", reject);
+              })
+              .on("error", reject);
           });
         }
 
         console.log(`Added: ${filename} (${fileBuffer?.length} bytes)`);
         zip.file(filename, fileBuffer);
-
       } catch (fileErr) {
         console.error("Skipped", item.full_name, ":", fileErr.message);
       }
@@ -786,18 +899,17 @@ export const downloadInternships = async (req, res) => {
 
     console.log("Total letters in ZIP:", Object.keys(zip.files).length);
 
-    const zipName   = `fyp-internship-letters-${new Date().getFullYear()}.zip`;
+    const zipName = `fyp-internship-letters-${new Date().getFullYear()}.zip`;
     const zipBuffer = await zip.generateAsync({
-      type:               "nodebuffer",
-      compression:        "DEFLATE",
+      type: "nodebuffer",
+      compression: "DEFLATE",
       compressionOptions: { level: 6 },
     });
 
-    res.setHeader("Content-Type",        "application/zip");
+    res.setHeader("Content-Type", "application/zip");
     res.setHeader("Content-Disposition", `attachment; filename="${zipName}"`);
-    res.setHeader("Content-Length",       zipBuffer.length);
+    res.setHeader("Content-Length", zipBuffer.length);
     res.send(zipBuffer);
-
   } catch (err) {
     console.error("downloadInternships error:", err);
     if (!res.headersSent) res.status(500).json({ message: err.message });
@@ -822,7 +934,9 @@ export const toggleChairmanMode = async (req, res) => {
     await settings.save();
 
     res.json({
-      message:                  enabled ? "Chairman analytics enabled" : "Chairman analytics disabled",
+      message: enabled
+        ? "Chairman analytics enabled"
+        : "Chairman analytics disabled",
       chairman_monitoring_mode: settings.chairman_monitoring_mode,
       chairman_mode_enabled_at: settings.chairman_mode_enabled_at,
     });
@@ -831,7 +945,7 @@ export const toggleChairmanMode = async (req, res) => {
   }
 };
 
-// ── CHAIRMAN CHECKS OWN ACCESS 
+// ── CHAIRMAN CHECKS OWN ACCESS
 export const getChairmanModePublic = async (req, res) => {
   try {
     const settings = await Maintaince.findOne().lean();
@@ -849,9 +963,9 @@ export const getSystemSettings = async (req, res) => {
     if (!settings) settings = await Maintaince.create({});
 
     res.json({
-      maintenance_mode:         settings.maintenance_mode,
-      maintenance_reason:       settings.maintenance_reason,
-      maintenance_started_at:   settings.maintenance_started_at,
+      maintenance_mode: settings.maintenance_mode,
+      maintenance_reason: settings.maintenance_reason,
+      maintenance_started_at: settings.maintenance_started_at,
       chairman_monitoring_mode: settings.chairman_monitoring_mode || false,
       chairman_mode_enabled_at: settings.chairman_mode_enabled_at || null,
     });
@@ -869,7 +983,9 @@ export const exportSupervisorsExcel = async (req, res) => {
     if (batch && batch !== "all") query.batch = batch;
 
     const supervisors = await Supervisor.find(query)
-      .select("name prefix email sup_code designation whatsapp is_chairman role batch createdAt")
+      .select(
+        "name prefix email sup_code designation whatsapp is_chairman role batch createdAt",
+      )
       .lean();
 
     if (!supervisors.length) {
@@ -888,50 +1004,50 @@ export const exportSupervisorsExcel = async (req, res) => {
           teams,
           index: i + 1,
         };
-      })
+      }),
     );
 
     // ── Sheet 1: Supervisors Overview ────────────────────────────
-const overviewData = withTeams.map(({ supervisor: s, teams, index }) => ({
-  "Name":        `${s.prefix}. ${s.name}`,
-  "SUP ID":      s.sup_code    || "—",
-  "Email":       s.email       || "—",
-  "WhatsApp":    s.whatsapp    || "—",
-  "Designation": s.designation || "—",
-  "Role":        s.is_chairman ? "Chairman / HOD" : "Supervisor",
-  "Batch":       s.batch       || "—",
-  "Total Teams": teams.length,
-  "Joined": s.createdAt
-    ? new Date(s.createdAt).toLocaleDateString("en-PK")
-    : "—",
-}));
+    const overviewData = withTeams.map(({ supervisor: s, teams, index }) => ({
+      Name: `${s.prefix}. ${s.name}`,
+      "SUP ID": s.sup_code || "—",
+      Email: s.email || "—",
+      WhatsApp: s.whatsapp || "—",
+      Designation: s.designation || "—",
+      Role: s.is_chairman ? "Chairman / HOD" : "Supervisor",
+      Batch: s.batch || "—",
+      "Total Teams": teams.length,
+      Joined: s.createdAt
+        ? new Date(s.createdAt).toLocaleDateString("en-PK")
+        : "—",
+    }));
     // ── Sheet 2: Supervisor Teams Detail ─────────────────────────
     const teamsDetailData = [];
     for (const { supervisor: s, teams } of withTeams) {
       if (!teams.length) {
         teamsDetailData.push({
-          "Supervisor":      `${s.prefix}. ${s.name}`,
-          "SUP ID":          s.sup_code || "—",
-          "Batch":           s.batch    || "—",
-          "Team ID":         "No teams assigned",
-          "Project Title":   "—",
+          Supervisor: `${s.prefix}. ${s.name}`,
+          "SUP ID": s.sup_code || "—",
+          Batch: s.batch || "—",
+          "Team ID": "No teams assigned",
+          "Project Title": "—",
           "Proposal Status": "—",
-          "Team Status":     "—",
-          "Team Batch":      "—",
+          "Team Status": "—",
+          "Team Batch": "—",
         });
         continue;
       }
 
       for (const t of teams) {
         teamsDetailData.push({
-          "Supervisor":      `${s.prefix}. ${s.name}`,
-          "SUP ID":          s.sup_code          || "—",
-          "Batch":           s.batch             || "—",
-          "Team ID":         t.team_code         || "—",
-          "Project Title":   t.project_title     || "—",
-          "Proposal Status": t.proposal_status   || "—",
-          "Team Status":     t.status            || "—",
-          "Team Batch":      t.batch             || "—",
+          Supervisor: `${s.prefix}. ${s.name}`,
+          "SUP ID": s.sup_code || "—",
+          Batch: s.batch || "—",
+          "Team ID": t.team_code || "—",
+          "Project Title": t.project_title || "—",
+          "Proposal Status": t.proposal_status || "—",
+          "Team Status": t.status || "—",
+          "Team Batch": t.batch || "—",
         });
       }
     }
@@ -943,61 +1059,59 @@ const overviewData = withTeams.map(({ supervisor: s, teams, index }) => ({
 
       for (const team of teams) {
         const fullGroup = await Group.findById(team._id)
-          .populate("leader",  "name student_code")
+          .populate("leader", "name student_code")
           .populate("members", "name student_code")
           .lean();
 
         if (!fullGroup) continue;
 
         const allStudents = [
-          fullGroup.leader
-            ? { ...fullGroup.leader, role: "Leader" }
-            : null,
-          ...(fullGroup.members || []).map(m => ({ ...m, role: "Member" })),
+          fullGroup.leader ? { ...fullGroup.leader, role: "Leader" } : null,
+          ...(fullGroup.members || []).map((m) => ({ ...m, role: "Member" })),
         ].filter(Boolean);
 
         for (const student of allStudents) {
           const marks = await Marks.findOne({ student: student._id }).lean();
           marksData.push({
-            "Supervisor":    `${s.prefix}. ${s.name}`,
-            "SUP ID":        s.sup_code         || "—",
-            "Team ID":       team.team_code      || "—",
-            "Student":       student.name        || "—",
-            "Student ID":    student.student_code || "—",
-            "Role":          student.role,
-            "Oct":           marks?.monthly?.oct          ?? "—",
-            "Nov":           marks?.monthly?.nov          ?? "—",
-            "Dec":           marks?.monthly?.dec          ?? "—",
-            "Feb":           marks?.monthly?.feb          ?? "—",
-            "Mar":           marks?.monthly?.mar          ?? "—",
-            "Proposal":      marks?.submissions?.proposal ?? "—",
-            "Progress":      marks?.submissions?.progress ?? "—",
-            "Thesis":        marks?.documentation?.final  ?? "—",
-            "Code":          marks?.submissions?.code     ?? "—",
-            "Prog Sim":      marks?.submissions?.prog_sim ?? "—",
-            "Thesis Sim":    marks?.submissions?.thesis_sim ?? "—",
-            "IV1":           marks?.viva?.internal1       ?? "—",
-            "IV2":           marks?.viva?.internal2       ?? "—",
-            "External":      marks?.viva?.external        ?? "—",
-            "Total":         marks?.total                 || 0,
+            Supervisor: `${s.prefix}. ${s.name}`,
+            "SUP ID": s.sup_code || "—",
+            "Team ID": team.team_code || "—",
+            Student: student.name || "—",
+            "Student ID": student.student_code || "—",
+            Role: student.role,
+            Oct: marks?.monthly?.oct ?? "—",
+            Nov: marks?.monthly?.nov ?? "—",
+            Dec: marks?.monthly?.dec ?? "—",
+            Feb: marks?.monthly?.feb ?? "—",
+            Mar: marks?.monthly?.mar ?? "—",
+            Proposal: marks?.submissions?.proposal ?? "—",
+            Progress: marks?.submissions?.progress ?? "—",
+            Thesis: marks?.documentation?.final ?? "—",
+            Code: marks?.submissions?.code ?? "—",
+            "Prog Sim": marks?.submissions?.prog_sim ?? "—",
+            "Thesis Sim": marks?.submissions?.thesis_sim ?? "—",
+            IV1: marks?.viva?.internal1 ?? "—",
+            IV2: marks?.viva?.internal2 ?? "—",
+            External: marks?.viva?.external ?? "—",
+            Total: marks?.total || 0,
           });
         }
       }
     }
 
     // ── Build Workbook ────────────────────────────────────────────
-    const wb  = XLSX.utils.book_new();
+    const wb = XLSX.utils.book_new();
 
     const ws1 = XLSX.utils.json_to_sheet(overviewData);
     const ws2 = XLSX.utils.json_to_sheet(teamsDetailData);
     const ws3 = marksData.length
       ? XLSX.utils.json_to_sheet(marksData)
-      : XLSX.utils.json_to_sheet([{ "Info": "No marks data available" }]);
+      : XLSX.utils.json_to_sheet([{ Info: "No marks data available" }]);
 
     // Auto column widths
     const setColWidths = (ws, data) => {
       if (!data.length) return;
-      ws["!cols"] = Object.keys(data[0]).map(key => ({
+      ws["!cols"] = Object.keys(data[0]).map((key) => ({
         wch: Math.max(key.length + 2, 14),
       }));
     };
@@ -1011,14 +1125,16 @@ const overviewData = withTeams.map(({ supervisor: s, teams, index }) => ({
     XLSX.utils.book_append_sheet(wb, ws3, "Marks Given");
 
     const batchLabel = batch && batch !== "all" ? batch : "all";
-    const filename   = `FYP-Supervisors-${batchLabel}-${new Date().getFullYear()}.xlsx`;
-    const buffer     = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
+    const filename = `FYP-Supervisors-${batchLabel}-${new Date().getFullYear()}.xlsx`;
+    const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-    res.setHeader("Content-Type",        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
     res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-    res.setHeader("Content-Length",       buffer.length);
+    res.setHeader("Content-Length", buffer.length);
     res.send(buffer);
-
   } catch (err) {
     console.error("exportSupervisorsExcel error:", err);
     res.status(500).json({ message: err.message });
