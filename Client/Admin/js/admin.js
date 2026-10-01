@@ -1,6 +1,5 @@
 const API_BASE = window.API_BASE || "http://127.0.0.1:5001";
 
-
 /* SAFE FETCH — prevents JSON parse error on 404 */
 async function safeFetch(url, options = {}) {
   const res = await fetch(url, options);
@@ -104,6 +103,32 @@ function matches(haystack, query) {
     .includes(query.trim().toLowerCase());
 }
 
+/* ── Team helpers (leader / size / role) ── */
+function getGroupLeaderId(group) {
+  return String(group?.leader?._id || group?.leader || "");
+}
+
+function getTeamSize(group) {
+  if (!group) return 0;
+  const ids = new Set();
+  const leaderId = getGroupLeaderId(group);
+  if (leaderId) ids.add(leaderId);
+  (group.members || []).forEach((m) => {
+    const id = String(m?._id || m || "");
+    if (id) ids.add(id);
+  });
+  return ids.size;
+}
+
+function getStudentTeamRole(student) {
+  if (!student?.group) return "-";
+  const leaderId = getGroupLeaderId(student.group);
+  if (leaderId) {
+    return String(student._id) === leaderId ? "Leader" : "Member";
+  }
+  // fallback if the API didn't return group.leader
+  return student.team_role || "Member";
+}
 /* ════════════════════════════════════
    TOAST
 ══════════════════════════════════════ */
@@ -232,19 +257,21 @@ function switchView(view) {
   $$(".nav-item").forEach((n) => n.classList.remove("active"));
   const target = $(`#view-${view}`);
   if (target) target.classList.add("active");
-  $$(`.nav-item[data-view="${view}"]`).forEach((n) => n.classList.add("active"));
+  $$(`.nav-item[data-view="${view}"]`).forEach((n) =>
+    n.classList.add("active"),
+  );
   $("#sidebar").classList.remove("open");
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  if (view === "deadlines")      renderDeadlines();
-  if (view === "settings")       loadGlobalToggles();
-  if (view === "supervisors")    renderSupervisors();
-  if (view === "teams")          renderTeams();
-  if (view === "students")       renderStudents();
-  if (view === "internship")     renderInternships();
+  if (view === "deadlines") renderDeadlines();
+  if (view === "settings") loadGlobalToggles();
+  if (view === "supervisors") renderSupervisors();
+  if (view === "teams") renderTeams();
+  if (view === "students") renderStudents();
+  if (view === "internship") renderInternships();
   if (view === "system-control") loadSystemSettings();
   if (view === "student-lookup") runStudentLookup();
-  if (view === "maintenance")    loadMaintenanceStatus();
+  if (view === "maintenance") loadMaintenanceStatus();
 }
 
 $$(".nav-item").forEach((item) => {
@@ -274,7 +301,7 @@ async function fetchDashboardStats() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${admin.token}`,
         },
-      }
+      },
     );
     const data = await res.json();
     if (!res.ok) return console.error("Stats fetch failed:", data.message);
@@ -294,7 +321,7 @@ async function fetchDashboardStats() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${admin.token}`,
         },
-      }
+      },
     );
     const data = await res.json();
     const el = document.getElementById("stat-internship-count");
@@ -308,9 +335,9 @@ function updateDashboardStats(stats) {
   const s = document.getElementById("stat-students");
   const sup = document.getElementById("stat-supervisors");
   const t = document.getElementById("stat-teams");
-  if (s)   s.textContent   = stats.students;
+  if (s) s.textContent = stats.students;
   if (sup) sup.textContent = stats.supervisors;
-  if (t)   t.textContent   = stats.teams;
+  if (t) t.textContent = stats.teams;
 }
 
 function updateSidebarBadges(stats) {
@@ -328,7 +355,10 @@ function updateSidebarBadges(stats) {
 async function renderRecentTeams() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   const tbody = document.getElementById("recentTeamsTbody");
-  if (!tbody) { console.warn("recentTeamsTbody not found"); return; }
+  if (!tbody) {
+    console.warn("recentTeamsTbody not found");
+    return;
+  }
 
   tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-mute)">Loading…</td></tr>`;
 
@@ -341,7 +371,7 @@ async function renderRecentTeams() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${admin.token}`,
         },
-      }
+      },
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -353,34 +383,37 @@ async function renderRecentTeams() {
       return;
     }
 
-    tbody.innerHTML = teams.map((g) => {
-      const code           = g.team_code || g.group_code || "—";
-      const title          = g.project_title || "—";
-      const members        = 1 + (g.members?.length || 0);
-      const supName        = g.supervisor ? formatName(g.supervisor.prefix, g.supervisor.name) : "Unassigned";
-      const proposalUrl    = g.proposal_url || "";
-      const proposalStatus = g.proposal_status || "pending";
+    tbody.innerHTML = teams
+      .map((g) => {
+        const code = g.team_code || g.group_code || "—";
+        const title = g.project_title || "—";
+      const members        = getTeamSize(g);
+        const supName = g.supervisor
+          ? formatName(g.supervisor.prefix, g.supervisor.name)
+          : "Unassigned";
+        const proposalUrl = g.proposal_url || "";
+        const proposalStatus = g.proposal_status || "pending";
 
-      let proposalBadge = "";
-      if (proposalStatus === "approved") {
-        proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(21,128,61,.1);color:#15803d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>Approved</span>`;
-      } else if (proposalStatus === "rejected") {
-        proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(220,38,38,.08);color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rejected</span>`;
-      } else {
-        proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(234,179,8,.1);color:#a16207"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Pending</span>`;
-      }
+        let proposalBadge = "";
+        if (proposalStatus === "approved") {
+          proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(21,128,61,.1);color:#15803d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>Approved</span>`;
+        } else if (proposalStatus === "rejected") {
+          proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(220,38,38,.08);color:#dc2626"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Rejected</span>`;
+        } else {
+          proposalBadge = `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:6px;font-size:.7rem;font-weight:700;background:rgba(234,179,8,.1);color:#a16207"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Pending</span>`;
+        }
 
-      let proposalActions = "";
-      if (proposalUrl && proposalStatus === "pending") {
-        proposalActions = `
+        let proposalActions = "";
+        if (proposalUrl && proposalStatus === "pending") {
+          proposalActions = `
           <div style="display:flex;gap:5px;margin-top:6px;flex-wrap:wrap">
             <button onclick="viewDoc('${proposalUrl}')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(0,75,45,.2);background:rgba(0,75,45,.06);color:var(--primary)">View</button>
             <button onclick="updateProposalStatus('${g._id}','approved')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(21,128,61,.2);background:rgba(21,128,61,.06);color:#15803d">Accept</button>
             <button onclick="updateProposalStatus('${g._id}','rejected')" style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:.66rem;font-weight:700;cursor:pointer;border:1px solid rgba(220,38,38,.2);background:rgba(220,38,38,.05);color:#dc2626">Reject</button>
           </div>`;
-      }
+        }
 
-      return `
+        return `
         <tr>
           <td><div class="team-info"><strong>${title.length > 28 ? title.slice(0, 28) + "…" : title}</strong><span style="display:block;font-size:.72rem;color:var(--text-mute)">${members} member${members !== 1 ? "s" : ""}</span></div></td>
           <td><span class="id-pill gold">${code}</span></td>
@@ -397,8 +430,8 @@ async function renderRecentTeams() {
             </div>
           </td>
         </tr>`;
-    }).join("");
-
+      })
+      .join("");
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:20px">${err.message}</td></tr>`;
   }
@@ -419,7 +452,7 @@ async function renderSupervisors() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${admin.token}`,
         },
-      }
+      },
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -784,9 +817,14 @@ async function openSupDetail(supId) {
    TEAM BLOCK WITH MARKS
 ══════════════════════════════════════ */
 function renderTeamBlockFromDB(group) {
+  const _leaderId = getGroupLeaderId(group);
   const allStudents = [
-    group.leader ? { ...group.leader, role: "Leader" } : null,
-    ...(group.members || []).map((m) => ({ ...m, role: "Member" })),
+    group.leader && typeof group.leader === "object"
+      ? { ...group.leader, role: "Leader" }
+      : null,
+    ...(group.members || [])
+      .filter((m) => m && typeof m === "object" && String(m._id) !== _leaderId)
+      .map((m) => ({ ...m, role: "Member" })),
   ].filter(Boolean);
 
   // ── Empty team (no students) ──
@@ -1052,7 +1090,10 @@ async function renderTeams() {
     // ← Changed to /api/admin/groups
     const url = `${API_BASE}/api/admin/groups?batch=${encodeURIComponent(_activeBatch)}`;
     const res = await fetch(url, {
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${admin.token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const ct = res.headers.get("content-type") || "";
     if (!ct.includes("application/json"))
@@ -1292,19 +1333,19 @@ function renderStudentsTable(list, query = "", matchSet = new Set()) {
 
   tbody.innerHTML = list
     .map((s) => {
-      const isMatch    = query && matchSet.has(s._id);
-      const supId      = s.group?.supervisor?._id || "";
-      const supName    = s.group?.supervisor
+      const isMatch = query && matchSet.has(s._id);
+      const supId = s.group?.supervisor?._id || "";
+      const supName = s.group?.supervisor
         ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
         : "—";
-      const totalMarks  = s.total_marks || 0;
-      const safeName    = (s.name || "").replace(/'/g, "\\'");
-      const whatsapp    = s.whatsapp || "—";
-      const cvUrl       = s.cv_url || "";
-      const certUrl     = s.certificates_url || "";
+      const totalMarks = s.total_marks || 0;
+      const safeName = (s.name || "").replace(/'/g, "\\'");
+      const whatsapp = s.whatsapp || "—";
+      const cvUrl = s.cv_url || "";
+      const certUrl = s.certificates_url || "";
       const proposalUrl = s.group?.proposal_url || "";
       const proposalUploader = s.group?.proposal_uploaded_by?.name || "";
-      const proposalStatus   = s.group?.proposal_status || "";
+      const proposalStatus = s.group?.proposal_status || "";
 
       return `
       <tr class="${isMatch ? "search-match" : ""}">
@@ -1444,7 +1485,7 @@ async function confirmReassign() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
     const res = await fetch(
-      `${API_BASE}/api/groups/${reassignTeamId}/reassign`,  // ← this one stays /api/groups (it's a group action, not admin list)
+      `${API_BASE}/api/groups/${reassignTeamId}/reassign`, // ← this one stays /api/groups (it's a group action, not admin list)
       {
         method: "PUT",
         headers: {
@@ -1479,7 +1520,10 @@ async function renderStudents() {
   try {
     const url = `${API_BASE}/api/admin/students?batch=${encodeURIComponent(_activeBatch)}`;
     const res = await fetch(url, {
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${admin.token}` },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed");
@@ -1707,15 +1751,15 @@ function updateProposalStatus(groupId, status) {
    DELETE STUDENT
 ══════════════════════════════════════ */
 // ── Delete student state ──
-let _deleteStudentId   = null;
+let _deleteStudentId = null;
 let _deleteStudentName = null;
 
 function deleteStudent(studentId, studentName) {
-  _deleteStudentId   = studentId;
+  _deleteStudentId = studentId;
   _deleteStudentName = studentName;
 
   // Find student to check if leader or member
-  const s = STUDENTS_DATA.find(s => s._id === studentId);
+  const s = STUDENTS_DATA.find((s) => s._id === studentId);
   const isLeader = s?.team_role === "Leader";
 
   // Set modal content
@@ -1745,7 +1789,7 @@ function deleteStudent(studentId, studentName) {
   // Reset button state
   const btn = document.getElementById("confirmDeleteStudentBtn");
   if (btn) {
-    btn.disabled      = false;
+    btn.disabled = false;
     btn.style.opacity = "1";
     btn.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -1761,7 +1805,7 @@ function deleteStudent(studentId, studentName) {
 }
 
 function closeDeleteStudentModal() {
-  _deleteStudentId   = null;
+  _deleteStudentId = null;
   _deleteStudentName = null;
   document.getElementById("deleteStudentModal").classList.remove("open");
 }
@@ -1771,9 +1815,9 @@ async function confirmDeleteStudent() {
 
   const btn = document.getElementById("confirmDeleteStudentBtn");
   if (btn) {
-    btn.disabled      = true;
+    btn.disabled = true;
     btn.style.opacity = ".6";
-    btn.textContent   = "Deleting…";
+    btn.textContent = "Deleting…";
   }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
@@ -1781,27 +1825,30 @@ async function confirmDeleteStudent() {
     const res = await fetch(
       `${API_BASE}/api/admin/student/${_deleteStudentId}`,
       {
-        method:  "DELETE",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization:  `Bearer ${admin.token}`,
+          Authorization: `Bearer ${admin.token}`,
         },
-      }
+      },
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to delete");
 
     closeDeleteStudentModal();
-    toast("Student deleted", `${_deleteStudentName} has been removed`, "success");
+    toast(
+      "Student deleted",
+      `${_deleteStudentName} has been removed`,
+      "success",
+    );
     await fetchDashboardStats();
     await renderStudents();
     await renderTeams();
     await renderSupervisors();
-
   } catch (err) {
     toast("Error", err.message, "error");
     if (btn) {
-      btn.disabled      = false;
+      btn.disabled = false;
       btn.style.opacity = "1";
       btn.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -2942,7 +2989,7 @@ function renderStudentLookupCard(s, query = "") {
   const cvUrl = s.cv_url || "";
   const proposalUrl = s.group?.proposal_url || "";
   const propStatus = s.group?.proposal_status || "";
-  const memberCount = (s.group?.members?.length || 0) + 1;
+  const teamSize = s.group ? getTeamSize(s.group) : 0;
 
   // Proposal status badge
   const propBadge = !proposalUrl
@@ -2994,7 +3041,7 @@ function renderStudentLookupCard(s, query = "") {
           <span class="id-pill gold">${highlightText(teamCode, query)}</span>
           <span style="padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:700;
                        background:rgba(0,75,45,.08);color:var(--primary)">
-            ${s.team_role || "Member"}
+            ${getStudentTeamRole(s)}
           </span>
           <span style="padding:4px 10px;border-radius:6px;font-size:.72rem;font-weight:700;
                        background:rgba(${markColor === "#15803d" ? "21,128,61" : markColor === "#a16207" ? "161,98,7" : "220,38,38"},.1);
@@ -3044,7 +3091,7 @@ function renderStudentLookupCard(s, query = "") {
           </div>
           <div class="proj-row">
             <span class="proj-key">Team Size</span>
-            <span class="proj-val">${memberCount} member${memberCount !== 1 ? "s" : ""}</span>
+            <span class="proj-val">${teamSize ? `${teamSize} member${teamSize !== 1 ? "s" : ""}` : "-"}</span>
           </div>
           <div class="proj-row">
             <span class="proj-key">Proposal</span>
@@ -3171,38 +3218,38 @@ async function loadMaintenanceStatus() {
    MAINTENANCE UI UPDATE
 ══════════════════════════════════════ */
 function updateMaintenanceUI(data) {
-  const dot      = document.getElementById("maintenance-status-dot");
-  const text     = document.getElementById("maintenance-status-text");
-  const toggle   = document.getElementById("maintenance-toggle");
-  const body     = document.getElementById("maintenance-detail-body");
+  const dot = document.getElementById("maintenance-status-dot");
+  const text = document.getElementById("maintenance-status-text");
+  const toggle = document.getElementById("maintenance-toggle");
+  const body = document.getElementById("maintenance-detail-body");
   const staticEl = document.getElementById("maintenance-static-info");
-  const card     = document.getElementById("maintenance-card");
+  const card = document.getElementById("maintenance-card");
   const reasonIn = document.getElementById("maintenance-reason-input");
   const startedEl = document.getElementById("maintenance-started-info");
 
   if (!dot) return;
 
   if (data.maintenance_mode) {
-    dot.style.background  = "#dc2626";
-    dot.style.boxShadow   = "0 0 0 3px rgba(220,38,38,.15)";
-    text.textContent      = "Maintenance active — only admin has access";
-    text.style.color      = "#dc2626";
-    toggle.checked        = true;
+    dot.style.background = "#dc2626";
+    dot.style.boxShadow = "0 0 0 3px rgba(220,38,38,.15)";
+    text.textContent = "Maintenance active — only admin has access";
+    text.style.color = "#dc2626";
+    toggle.checked = true;
     if (staticEl) staticEl.style.display = "none";
-    if (body)     body.style.display     = "block";
+    if (body) body.style.display = "block";
     card.style.borderColor = "rgba(220,38,38,.3)";
-    if (reasonIn)  reasonIn.value = data.maintenance_reason || "";
+    if (reasonIn) reasonIn.value = data.maintenance_reason || "";
     if (startedEl && data.maintenance_started_at) {
       startedEl.textContent = `Started: ${new Date(data.maintenance_started_at).toLocaleString()}`;
     }
   } else {
-    dot.style.background  = "#15803d";
-    dot.style.boxShadow   = "0 0 0 3px rgba(21,128,61,.15)";
-    text.textContent      = "Site is LIVE — all users have full access";
-    text.style.color      = "";
-    toggle.checked        = false;
+    dot.style.background = "#15803d";
+    dot.style.boxShadow = "0 0 0 3px rgba(21,128,61,.15)";
+    text.textContent = "Site is LIVE — all users have full access";
+    text.style.color = "";
+    toggle.checked = false;
     if (staticEl) staticEl.style.display = "block";
-    if (body)     body.style.display     = "none";
+    if (body) body.style.display = "none";
     card.style.borderColor = "transparent";
   }
 }
@@ -3222,7 +3269,9 @@ function openMaintenanceModeConfirmModal() {
 }
 
 function closeMaintenanceModeConfirmModal() {
-  document.getElementById("maintenanceModeConfirmModal").classList.remove("open");
+  document
+    .getElementById("maintenanceModeConfirmModal")
+    .classList.remove("open");
 }
 
 async function confirmEnableMaintenanceMode() {
@@ -3232,7 +3281,8 @@ async function confirmEnableMaintenanceMode() {
 
 async function _applyMaintenanceToggle(enabled) {
   const admin = JSON.parse(localStorage.getItem("admin"));
-  const reason = document.getElementById("maintenance-reason-input")?.value.trim() || "";
+  const reason =
+    document.getElementById("maintenance-reason-input")?.value.trim() || "";
 
   try {
     const res = await fetch(`${API_BASE}/api/admin/maintenance`, {
@@ -3261,41 +3311,40 @@ async function _applyMaintenanceToggle(enabled) {
 }
 
 function updateMaintenanceUI(data) {
-  const dot       = document.getElementById("maintenance-status-dot");
-  const text      = document.getElementById("maintenance-status-text");
-  const toggle    = document.getElementById("maintenance-toggle");
-  const body      = document.getElementById("maintenance-detail-body");
-  const card      = document.getElementById("maintenance-card");
-  const reasonIn  = document.getElementById("maintenance-reason-input");
+  const dot = document.getElementById("maintenance-status-dot");
+  const text = document.getElementById("maintenance-status-text");
+  const toggle = document.getElementById("maintenance-toggle");
+  const body = document.getElementById("maintenance-detail-body");
+  const card = document.getElementById("maintenance-card");
+  const reasonIn = document.getElementById("maintenance-reason-input");
   const startedEl = document.getElementById("maintenance-started-info");
 
   if (!dot) return;
 
-
   if (data.maintenance_mode) {
     dot.style.background = "#dc2626";
-    dot.style.boxShadow  = "0 0 0 4px rgba(220,38,38,.18)";
-    text.textContent     = "Site is in MAINTENANCE MODE — only Admin can access";
-    text.style.color     = "#dc2626";
+    dot.style.boxShadow = "0 0 0 4px rgba(220,38,38,.18)";
+    text.textContent = "Site is in MAINTENANCE MODE — only Admin can access";
+    text.style.color = "#dc2626";
     text.style.fontWeight = "700";
-    toggle.checked       = true;
-    body.style.display   = "block";
+    toggle.checked = true;
+    body.style.display = "block";
     card.style.borderColor = "rgba(220,38,38,.3)";
-    card.style.background  = "rgba(220,38,38,.02)";
+    card.style.background = "rgba(220,38,38,.02)";
     if (reasonIn) reasonIn.value = data.maintenance_reason || "";
     if (data.maintenance_started_at && startedEl) {
       startedEl.textContent = `Started: ${new Date(data.maintenance_started_at).toLocaleString()}`;
     }
   } else {
-    dot.style.background  = "#15803d";
-    dot.style.boxShadow   = "0 0 0 4px rgba(21,128,61,.18)";
-    text.textContent      = "Site is LIVE — all users have full access";
-    text.style.color      = "";
+    dot.style.background = "#15803d";
+    dot.style.boxShadow = "0 0 0 4px rgba(21,128,61,.18)";
+    text.textContent = "Site is LIVE — all users have full access";
+    text.style.color = "";
     text.style.fontWeight = "";
-    toggle.checked        = false;
-    body.style.display    = "none";
+    toggle.checked = false;
+    body.style.display = "none";
     card.style.borderColor = "transparent";
-    card.style.background  = "";
+    card.style.background = "";
   }
 }
 
@@ -3318,7 +3367,7 @@ async function renderInternships() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${admin.token}`,
         },
-      }
+      },
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to load");
@@ -3408,19 +3457,18 @@ function renderInternshipTable(list) {
     .join("");
 }
 
-
 // ── Delete internship state ──
-let _deleteInternshipId   = null;
+let _deleteInternshipId = null;
 let _deleteInternshipName = null;
 
 function openDeleteInternshipModal(id, name) {
-  _deleteInternshipId   = id;
+  _deleteInternshipId = id;
   _deleteInternshipName = name;
   document.getElementById("deleteInternshipName").textContent = name;
   const btn = document.getElementById("confirmDeleteInternshipBtn");
   if (btn) {
-    btn.disabled       = false;
-    btn.style.opacity  = "1";
+    btn.disabled = false;
+    btn.style.opacity = "1";
     btn.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
            stroke-width="2.2" stroke-linecap="round"
@@ -3434,7 +3482,7 @@ function openDeleteInternshipModal(id, name) {
 }
 
 function closeDeleteInternshipModal() {
-  _deleteInternshipId   = null;
+  _deleteInternshipId = null;
   _deleteInternshipName = null;
   document.getElementById("deleteInternshipModal").classList.remove("open");
 }
@@ -3444,9 +3492,9 @@ async function confirmDeleteInternship() {
 
   const btn = document.getElementById("confirmDeleteInternshipBtn");
   if (btn) {
-    btn.disabled      = true;
+    btn.disabled = true;
     btn.style.opacity = ".6";
-    btn.textContent   = "Deleting…";
+    btn.textContent = "Deleting…";
   }
 
   const admin = JSON.parse(localStorage.getItem("admin"));
@@ -3454,24 +3502,28 @@ async function confirmDeleteInternship() {
     const res = await fetch(
       `${API_BASE}/api/internship/admin/${_deleteInternshipId}`,
       {
-        method:  "DELETE",
+        method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization:  `Bearer ${admin.token}`,
+          Authorization: `Bearer ${admin.token}`,
         },
-      }
+      },
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Failed to delete");
 
     closeDeleteInternshipModal();
-    toast("Deleted", `${_deleteInternshipName}'s submission removed`, "success");
+    toast(
+      "Deleted",
+      `${_deleteInternshipName}'s submission removed`,
+      "success",
+    );
     await renderInternships();
     await fetchDashboardStats();
   } catch (err) {
     toast("Error", err.message, "error");
     if (btn) {
-      btn.disabled      = false;
+      btn.disabled = false;
       btn.style.opacity = "1";
       btn.innerHTML = `
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -3504,8 +3556,8 @@ function openStudentViewModal(studentId) {
   if (!body) return;
 
   const projTitle = s.group?.project_title || "Not assigned";
-  const teamCode  = s.group?.team_code || s.group?.group_code || "—";
-  const supName   = s.group?.supervisor
+  const teamCode = s.group?.team_code || s.group?.group_code || "—";
+  const supName = s.group?.supervisor
     ? formatName(s.group.supervisor.prefix, s.group.supervisor.name)
     : "Not assigned";
 
@@ -3525,7 +3577,16 @@ function openStudentViewModal(studentId) {
     letter-spacing:.08em;color:var(--text-mute);margin-bottom:12px`;
 
   // ── Document row builder ──
-  function docRow(label, subtitle, iconColor, iconPath, url, btnColor, btnBorder, statusBadge = "") {
+  function docRow(
+    label,
+    subtitle,
+    iconColor,
+    iconPath,
+    url,
+    btnColor,
+    btnBorder,
+    statusBadge = "",
+  ) {
     return `
       <div style="display:flex;align-items:center;justify-content:space-between;
                   padding:11px 14px;border-radius:10px;
@@ -3544,8 +3605,9 @@ function openStudentViewModal(studentId) {
             </div>
           </div>
         </div>
-        ${url
-          ? `<button onclick="viewDoc('${url}')"
+        ${
+          url
+            ? `<button onclick="viewDoc('${url}')"
                style="flex-shrink:0;padding:6px 16px;border-radius:7px;
                       font-size:.74rem;font-weight:700;cursor:pointer;
                       border:1.5px solid ${btnBorder};
@@ -3559,7 +3621,7 @@ function openStudentViewModal(studentId) {
                </svg>
                View
              </button>`
-          : `<span style="flex-shrink:0;font-size:.72rem;color:var(--text-mute);
+            : `<span style="flex-shrink:0;font-size:.72rem;color:var(--text-mute);
                           font-style:italic;padding:6px 10px">Not uploaded</span>`
         }
       </div>`;
@@ -3567,16 +3629,24 @@ function openStudentViewModal(studentId) {
 
   // ── Proposal status badge ──
   const proposalStatus = s.group?.proposal_status || "";
-  const proposalBadge  = proposalStatus
+  const proposalBadge = proposalStatus
     ? `<span style="
           font-size:.64rem;font-weight:700;padding:2px 7px;
           border-radius:5px;margin-left:5px;vertical-align:middle;
-          background:${proposalStatus === "approved" ? "rgba(21,128,61,.1)"
-                     : proposalStatus === "rejected" ? "rgba(220,38,38,.1)"
-                     : "rgba(234,179,8,.1)"};
-          color:${proposalStatus === "approved" ? "#15803d"
-                : proposalStatus === "rejected" ? "#dc2626"
-                : "#a16207"}">
+          background:${
+            proposalStatus === "approved"
+              ? "rgba(21,128,61,.1)"
+              : proposalStatus === "rejected"
+                ? "rgba(220,38,38,.1)"
+                : "rgba(234,179,8,.1)"
+          };
+          color:${
+            proposalStatus === "approved"
+              ? "#15803d"
+              : proposalStatus === "rejected"
+                ? "#dc2626"
+                : "#a16207"
+          }">
           ${proposalStatus.charAt(0).toUpperCase() + proposalStatus.slice(1)}
         </span>`
     : "";
@@ -3602,12 +3672,14 @@ function openStudentViewModal(studentId) {
         </div>
         <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
           <span class="id-pill">${escapeHtml(s.student_code || "—")}</span>
-          ${teamCode !== "—"
-            ? `<span class="id-pill gold">${escapeHtml(teamCode)}</span>`
-            : ""}
+          ${
+            teamCode !== "—"
+              ? `<span class="id-pill gold">${escapeHtml(teamCode)}</span>`
+              : ""
+          }
           <span style="padding:3px 8px;border-radius:5px;font-size:.68rem;
                         font-weight:700;background:rgba(0,75,45,.08);color:var(--primary)">
-            ${s.team_role || "Member"}
+            ${getStudentTeamRole(s)}
           </span>
         </div>
       </div>
@@ -3656,7 +3728,15 @@ function openStudentViewModal(studentId) {
       <div style="${sectionHeadStyle}">Team &amp; Project</div>
       <div style="display:grid;grid-template-columns:1fr;gap:12px">
 
-        <div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label style="${labelStyle}">Team Size</label>
+            <div style="${fieldStyle}">${s.group ? getTeamSize(s.group) : "-"}</div>
+          </div>
+          <div>
+            <label style="${labelStyle}">Role</label>
+            <div style="${fieldStyle}">${getStudentTeamRole(s)}</div>
+          </div>
         </div>
         <div>
           <label style="${labelStyle}">Supervisor</label>
@@ -3690,7 +3770,7 @@ function openStudentViewModal(studentId) {
            </svg>`,
           s.cv_url || "",
           "rgba(0,75,45,.06)",
-          "rgba(0,75,45,.2)"
+          "rgba(0,75,45,.2)",
         )}
 
         ${docRow(
@@ -3705,7 +3785,7 @@ function openStudentViewModal(studentId) {
            </svg>`,
           s.certificates_url || "",
           "rgba(191,161,74,.08)",
-          "rgba(191,161,74,.3)"
+          "rgba(191,161,74,.3)",
         )}
 
         ${docRow(
@@ -3723,7 +3803,7 @@ function openStudentViewModal(studentId) {
           s.group?.proposal_url || "",
           "rgba(99,102,241,.06)",
           "rgba(99,102,241,.25)",
-          proposalBadge
+          proposalBadge,
         )}
 
       </div>
@@ -3833,10 +3913,10 @@ async function loadSystemSettings() {
   if (!admin?.token) return;
 
   try {
-    const res  = await fetch(`${API_BASE}/admin/maintenance`, {
+    const res = await fetch(`${API_BASE}/admin/maintenance`, {
       headers: {
         "Content-Type": "application/json",
-        Authorization:  `Bearer ${admin.token}`,
+        Authorization: `Bearer ${admin.token}`,
       },
     });
 
@@ -3847,8 +3927,7 @@ async function loadSystemSettings() {
     if (!res.ok) return;
 
     updateMaintenanceUI(data);
-    updateChairmanModeUI(data); 
-
+    updateChairmanModeUI(data);
   } catch (err) {
     console.error("System settings load error:", err.message);
   }
@@ -4158,7 +4237,6 @@ async function downloadInternships() {
   }
 }
 
-
 async function streamDownload(res, filename) {
   const contentLength = res.headers.get("Content-Length");
   const total = contentLength ? parseInt(contentLength) : null;
@@ -4203,8 +4281,11 @@ async function streamDownload(res, filename) {
 async function loadSystemSettings() {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/system-settings`, {
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${admin.token}` }
+    const res = await fetch(`${API_BASE}/api/admin/system-settings`, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${admin.token}`,
+      },
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
@@ -4214,7 +4295,6 @@ async function loadSystemSettings() {
 
     // Update chairman mode UI
     updateChairmanModeUI(data);
-
   } catch (err) {
     console.error("System settings load error:", err);
     toast("Failed to load system settings", err.message, "error");
@@ -4222,35 +4302,37 @@ async function loadSystemSettings() {
 }
 
 function updateChairmanModeUI(data) {
-  const dot     = document.getElementById("chairman-mode-dot");
-  const text    = document.getElementById("chairman-mode-text");
-  const toggle  = document.getElementById("chairman-mode-toggle");
-  const card    = document.getElementById("chairman-mode-card");
-  const info    = document.getElementById("chairman-mode-enabled-info");
+  const dot = document.getElementById("chairman-mode-dot");
+  const text = document.getElementById("chairman-mode-text");
+  const toggle = document.getElementById("chairman-mode-toggle");
+  const card = document.getElementById("chairman-mode-card");
+  const info = document.getElementById("chairman-mode-enabled-info");
 
   if (!dot) return;
 
   if (data.chairman_monitoring_mode) {
-    dot.style.background  = "var(--primary,#004b2d)";
-    dot.style.boxShadow   = "0 0 0 4px rgba(0,75,45,.2)";
-    text.textContent      = "Analytics ENABLED — Chairman has full monitoring access";
-    text.style.color      = "var(--primary)";
+    dot.style.background = "var(--primary,#004b2d)";
+    dot.style.boxShadow = "0 0 0 4px rgba(0,75,45,.2)";
+    text.textContent =
+      "Analytics ENABLED — Chairman has full monitoring access";
+    text.style.color = "var(--primary)";
     text.style.fontWeight = "700";
-    toggle.checked        = true;
+    toggle.checked = true;
     card.style.borderColor = "rgba(0,75,45,.25)";
 
     if (data.chairman_mode_enabled_at && info) {
       const d = new Date(data.chairman_mode_enabled_at);
-      info.textContent  = `Enabled since: ${d.toLocaleString()}`;
+      info.textContent = `Enabled since: ${d.toLocaleString()}`;
       info.style.display = "block";
     }
   } else {
-    dot.style.background  = "#6b7280";
-    dot.style.boxShadow   = "0 0 0 4px rgba(107,114,128,.18)";
-    text.textContent      = "Analytics disabled — Chairman sees basic read-only data";
-    text.style.color      = "";
+    dot.style.background = "#6b7280";
+    dot.style.boxShadow = "0 0 0 4px rgba(107,114,128,.18)";
+    text.textContent =
+      "Analytics disabled — Chairman sees basic read-only data";
+    text.style.color = "";
     text.style.fontWeight = "";
-    toggle.checked        = false;
+    toggle.checked = false;
     card.style.borderColor = "transparent";
     if (info) info.style.display = "none";
   }
@@ -4258,7 +4340,6 @@ function updateChairmanModeUI(data) {
 
 async function toggleChairmanMode(enabled) {
   if (enabled) {
-
     document.getElementById("chairman-mode-toggle").checked = false;
     openChairmanModeConfirmModal();
     return;
@@ -4279,15 +4360,14 @@ async function confirmEnableChairmanMode() {
   await _applyChairmanModeToggle(true);
 }
 
-
 async function _applyChairmanModeToggle(enabled) {
   const admin = JSON.parse(localStorage.getItem("admin"));
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/system/chairman-mode`, {
-      method:  "POST",
+    const res = await fetch(`${API_BASE}/api/admin/system/chairman-mode`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization:  `Bearer ${admin.token}`,
+        Authorization: `Bearer ${admin.token}`,
       },
       body: JSON.stringify({ enabled }),
     });
@@ -4302,8 +4382,10 @@ async function _applyChairmanModeToggle(enabled) {
 
     toast(
       enabled ? "Chairman Analytics ENABLED" : "Chairman Analytics DISABLED",
-      enabled ? "Chairman now has full monitoring access" : "Chairman reverted to basic view",
-      enabled ? "success" : "warn"
+      enabled
+        ? "Chairman now has full monitoring access"
+        : "Chairman reverted to basic view",
+      enabled ? "success" : "warn",
     );
   } catch (err) {
     toast("Error", err.message, "error");
@@ -4312,15 +4394,16 @@ async function _applyChairmanModeToggle(enabled) {
 }
 
 async function updateMaintenanceReason() {
-  const admin  = JSON.parse(localStorage.getItem("admin"));
-  const reason = document.getElementById("maintenance-reason-input")?.value.trim() || "";
+  const admin = JSON.parse(localStorage.getItem("admin"));
+  const reason =
+    document.getElementById("maintenance-reason-input")?.value.trim() || "";
 
   try {
-    const res  = await fetch(`${API_BASE}/api/admin/maintenance`, {
-      method:  "POST",
+    const res = await fetch(`${API_BASE}/api/admin/maintenance`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization:  `Bearer ${admin.token}`,
+        Authorization: `Bearer ${admin.token}`,
       },
       body: JSON.stringify({ enabled: true, reason }),
     });
@@ -4338,8 +4421,8 @@ async function updateMaintenanceReason() {
 let _activeBatch = localStorage.getItem("admin_batch") || null;
 
 function getCurrentBatch() {
-  const now   = new Date();
-  const year  = now.getFullYear();
+  const now = new Date();
+  const year = now.getFullYear();
   const month = now.getMonth() + 1;
   return month >= 9
     ? `${year}-${String(year + 1).slice(2)}`
@@ -4356,10 +4439,10 @@ async function loadBatches() {
   }
 
   try {
-    const res   = await fetch(`${API_BASE}/api/admin/batches`, {
+    const res = await fetch(`${API_BASE}/api/admin/batches`, {
       headers: { Authorization: `Bearer ${admin.token}` },
     });
-    const data  = await res.json();
+    const data = await res.json();
     const batches = data.batches || [];
 
     const current = getCurrentBatch();
@@ -4393,9 +4476,13 @@ function renderBatchSelector(batches) {
                background:var(--surface);color:var(--text);font-size:.82rem;
                font-weight:600;cursor:pointer;outline:none">
         <option value="all" ${_activeBatch === "all" ? "selected" : ""}>All Years</option>
-        ${batches.map(b => `
+        ${batches
+          .map(
+            (b) => `
           <option value="${b}" ${_activeBatch === b ? "selected" : ""}>${b}</option>
-        `).join("")}
+        `,
+          )
+          .join("")}
       </select>
       <span id="batch-label" style="font-size:.72rem;color:var(--text-mute);font-weight:600">
         ${_activeBatch === "all" ? "Showing all batches" : `Showing batch ${_activeBatch}`}
@@ -4409,9 +4496,8 @@ async function onBatchChange(batch) {
 
   const label = document.getElementById("batch-label");
   if (label) {
-    label.textContent = batch === "all"
-      ? "Showing all batches"
-      : `Showing batch ${batch}`;
+    label.textContent =
+      batch === "all" ? "Showing all batches" : `Showing batch ${batch}`;
   }
 
   toast("Switching batch…", batch === "all" ? "All years" : batch, "success");
@@ -4419,7 +4505,7 @@ async function onBatchChange(batch) {
   await Promise.all([
     fetchDashboardStats(),
     renderRecentTeams(),
-    renderSupervisors(),       
+    renderSupervisors(),
     renderTeams(),
     renderStudents(),
     renderInternships(),
@@ -4434,8 +4520,8 @@ async function exportToExcel(type = "students") {
   if (!admin?.token)
     return toast("Not authenticated", "Please log in again", "error");
 
-  const batch    = _activeBatch;
-  const label    = batch === "all" ? "all" : batch;
+  const batch = _activeBatch;
+  const label = batch === "all" ? "all" : batch;
   const filename = `FYP-${type}-${label}.xlsx`;
 
   showDownloadProgress(filename);
@@ -4464,17 +4550,18 @@ async function exportSupervisors() {
   if (!admin?.token)
     return toast("Not authenticated", "Please log in again", "error");
 
-  const batch    = _activeBatch;
-  const label    = batch === "all" ? "all" : batch;
+  const batch = _activeBatch;
+  const label = batch === "all" ? "all" : batch;
   const filename = `FYP-Supervisors-${label}.xlsx`;
 
   showDownloadProgress(filename);
-  document.getElementById("dl-prog-sub").textContent = "Generating supervisors report…";
+  document.getElementById("dl-prog-sub").textContent =
+    "Generating supervisors report…";
 
   try {
     const res = await fetch(
       `${API_BASE}/api/admin/export/supervisors?batch=${encodeURIComponent(batch)}`,
-      { headers: { Authorization: `Bearer ${admin.token}` } }
+      { headers: { Authorization: `Bearer ${admin.token}` } },
     );
 
     if (!res.ok) {
@@ -4503,20 +4590,19 @@ function closeMobileSidebar() {
 }
 
 // Hamburger button
-document.getElementById("mobileMenuBtn")
-  ?.addEventListener("click", () => {
-    const isOpen = document.getElementById("sidebar")?.classList.contains("open");
-    if (isOpen) closeMobileSidebar();
-    else openMobileSidebar();
-  });
+document.getElementById("mobileMenuBtn")?.addEventListener("click", () => {
+  const isOpen = document.getElementById("sidebar")?.classList.contains("open");
+  if (isOpen) closeMobileSidebar();
+  else openMobileSidebar();
+});
 
-document.querySelectorAll(".nav-item").forEach(item => {
+document.querySelectorAll(".nav-item").forEach((item) => {
   item.addEventListener("click", () => {
     if (window.innerWidth <= 768) closeMobileSidebar();
   });
 });
 
-document.addEventListener("keydown", e => {
+document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeMobileSidebar();
 });
 
@@ -4534,17 +4620,19 @@ function toggleMobileSidebar() {
 }
 
 // Wire up the hamburger button
-document.getElementById("mobileMenuBtn")?.addEventListener("click", toggleMobileSidebar);
+document
+  .getElementById("mobileMenuBtn")
+  ?.addEventListener("click", toggleMobileSidebar);
 
 // Close sidebar when any nav item is clicked on mobile
-document.querySelectorAll(".nav-item").forEach(item => {
+document.querySelectorAll(".nav-item").forEach((item) => {
   item.addEventListener("click", () => {
     if (window.innerWidth <= 768) closeMobileSidebar();
   });
 });
 
 // Close on Escape key
-document.addEventListener("keydown", e => {
+document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeMobileSidebar();
 });
 
@@ -4552,7 +4640,7 @@ document.addEventListener("keydown", e => {
    ENTER KEY — move to next input
 ══════════════════════════════════════ */
 function enableEnterNavigation() {
-  document.addEventListener("keydown", function(e) {
+  document.addEventListener("keydown", function (e) {
     if (e.key !== "Enter") return;
 
     const tag = e.target.tagName.toLowerCase();
@@ -4571,9 +4659,9 @@ function enableEnterNavigation() {
 
     const focusable = Array.from(
       container.querySelectorAll(
-        'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled])'
-      )
-    ).filter(el => {
+        'input:not([type="hidden"]):not([disabled]):not([readonly]), select:not([disabled])',
+      ),
+    ).filter((el) => {
       // Must be visible
       return el.offsetParent !== null;
     });
@@ -4590,7 +4678,7 @@ function enableEnterNavigation() {
     } else {
       // Last field — find and click the primary button in the modal
       const primaryBtn = document.querySelector(
-        ".modal-overlay.open .modal-footer .btn-primary"
+        ".modal-overlay.open .modal-footer .btn-primary",
       );
       if (primaryBtn) primaryBtn.click();
     }
