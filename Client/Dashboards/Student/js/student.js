@@ -194,6 +194,8 @@ async function loadDashboard() {
       STATE.teamCreated = false;
       STATE.teamRole = data.student?.team_role || "Member";
       showNoTeamPlaceholders();
+      const _pill = document.getElementById("banner-team-pill");
+      if (_pill) _pill.style.display = "none";
       try {
         const profileRes = await fetch(`${API_BASE}/auth/profile`, {
           headers: API_HEADERS,
@@ -1822,6 +1824,9 @@ function renderSupervisorTab() {
 }
 
 function updateBannerForTeam() {
+  const pill = document.getElementById("banner-team-pill");
+  if (pill) pill.style.display = STATE.teamCreated && STATE.teamId ? "inline-flex" : "none";
+
   if (STATE.teamId) {
     const ids = [
       "banner-team-id",

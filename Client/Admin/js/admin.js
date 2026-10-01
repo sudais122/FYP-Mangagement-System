@@ -3013,12 +3013,6 @@ function renderStudentLookupCard(s, query = "") {
                   border-bottom:1px solid var(--border-soft);
                   display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 
-        <div style="width:52px;height:52px;border-radius:14px;flex-shrink:0;overflow:hidden;
-                    background:linear-gradient(135deg,var(--primary),var(--secondary));
-                    display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.1rem">
-          ${initials(s.name)}
-        </div>
-
         <div style="flex:1;min-width:180px">
           <div style="font-size:1rem;font-weight:800;color:var(--primary-dark);margin-bottom:3px">
             ${highlightText(s.name, query)}
