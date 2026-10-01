@@ -145,7 +145,6 @@ export const registerStudent = async (req, res) => {
   }
 };
 // ── FORGOT PASSWORD (sends OTP) ──────────────────────
-// ── FORGOT PASSWORD (sends OTP) ──────────────────────
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;

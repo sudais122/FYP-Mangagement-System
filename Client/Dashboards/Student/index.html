@@ -253,51 +253,103 @@
 
         <!-- ══════════════ HOME TAB ══════════════ -->
         <div id="tab-home" class="dash-subpage active">
-          <div class="dash-banner">
+<div class="dash-banner">
+
   <div class="banner-text">
-    <div class="banner-datetime" id="banner-datetime"></div>
-    <h2 id="banner-name"></h2>
-    <div class="banner-role-line">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round" width="13" height="13">
-        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
-        <path d="M6 12v5c3 3 9 3 12 0v-5"/>
-      </svg>
-      FYP Student &nbsp;·&nbsp; CS Department, AWKUM
-    </div>
-    <div class="banner-ids" style="margin-top:14px">
-      <span class="id-highlight id-highlight-student">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-             stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="5" width="20" height="14" rx="2" />
-          <line x1="2" y1="10" x2="22" y2="10" />
-        </svg>
-        <span id="student-id"></span>
-      </span>
-    </div>
-  </div>
-  <div class="banner-actions">
-    <button class="btn-banner btn-banner-primary"
-            onclick="switchTab('project', document.querySelectorAll('.sb-item')[2])">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-      </svg>
-      My Project
-    </button>
-    <button class="btn-banner btn-banner-ghost"
-            onclick="switchTab('progress', document.querySelectorAll('.sb-item')[4])">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-           stroke-linecap="round" stroke-linejoin="round">
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-      Evaluation
-    </button>
-  </div>
+
+<div class="banner-datetime" id="banner-datetime"></div>
+
+<h2 id="banner-name"></h2>
+
+<div class="banner-role-line">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+       width="13" height="13">
+    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+  </svg>
+  FYP Student &nbsp;·&nbsp; CS Department, AWKUM
 </div>
+
+<div class="banner-ids" style="margin-top:14px">
+  <span class="id-highlight id-highlight-student">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <line x1="2" y1="10" x2="22" y2="10" />
+    </svg>
+
+    <span id="student-id"></span>
+  </span>
+</div>
+
+  </div>
+
+  <div class="banner-actions">
+
+<!-- My Project -->
+<button class="btn-banner btn-banner-primary"
+        onclick="switchTab('project', document.querySelectorAll('.sb-item')[2])">
+
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+
+  </svg>
+
+  My Project
+</button>
+
+
+<!-- Create Team -->
+<button class="btn-banner btn-banner-ghost"
+        onclick="switchTab('team', document.querySelectorAll('.sb-item')[1])">
+
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+    <!-- Person 1 -->
+    <circle cx="9" cy="8" r="3" />
+
+    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+
+    <!-- Person 2 -->
+    <path d="M16 11c2.2 0 4-1.8 4-4" />
+
+    <path d="M17 14c2.8.5 4.5 2.8 4.5 6" />
+
+    <!-- Plus -->
+    <line x1="19" y1="3" x2="19" y2="9" />
+    <line x1="16" y1="6" x2="22" y2="6" />
+
+  </svg>
+
+  Create Team
+</button>
+
+
+<!-- Evaluation -->
+<button class="btn-banner btn-banner-ghost"
+        onclick="switchTab('progress', document.querySelectorAll('.sb-item')[4])">
+
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+
+  </svg>
+
+  Evaluation
+</button>
+
+  </div>
+
+</div>
+
 
           <div class="dash-stats">
             <div class="dstat-card"
