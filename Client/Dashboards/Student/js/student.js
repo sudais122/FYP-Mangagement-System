@@ -191,7 +191,24 @@ async function loadDashboard() {
     }
 
     if (!data.hasGroup) {
-      setTimeout(() => openSetup(), 400);
+      STATE.teamCreated = false;
+      STATE.teamRole = data.student?.team_role || "Member";
+      showNoTeamPlaceholders();
+      try {
+        const profileRes = await fetch(`${API_BASE}/auth/profile`, {
+          headers: API_HEADERS,
+        });
+        const profileData = await profileRes.json();
+        STATE.cvUrl = profileData.cv_url || null;
+        STATE.certUrl = profileData.certificates_url || null;
+      } catch {
+        STATE.cvUrl = null;
+        STATE.certUrl = null;
+      }
+      renderTeamTab();
+      renderSupervisorTab();
+      renderProjectDetails();
+      updateCreateTeamButton();
       return;
     }
 
@@ -282,6 +299,7 @@ async function loadDashboard() {
     updateBannerForTeam();
     renderSupervisorTab();
     renderProjectDetails();
+    updateCreateTeamButton();
   } catch (error) {
     console.error("Dashboard load error:", error);
     toast("Failed to load dashboard: " + error.message, "red");
@@ -1139,6 +1157,27 @@ function closeSteup() {
   updateBannerForTeam();
 }
 
+function closeSetupWizard() {
+  // Success screen: use the normal "Go to Dashboard" close
+  const doneStep = document.getElementById("setup-step-done");
+  if (doneStep && doneStep.style.display !== "none") {
+    closeSteup();
+    return;
+  }
+
+  // Abandoned before the team was created: discard half-filled data
+  if (!STATE.teamCreated) {
+    STATE.members = [];
+    STATE.selectedSupervisor = null;
+    const proj = document.getElementById("s1-proj");
+    const cat = document.getElementById("s1-cat");
+    if (proj) proj.value = "";
+    if (cat) cat.value = "";
+  }
+
+  // Hides the overlay, restores the Step 2 footer, clears search
+  closeAddMemberModal();
+}
 function showStep(n) {
   [1, 2, 3, "done"].forEach((s) => {
     const step = document.getElementById("setup-step-" + s);
@@ -1282,6 +1321,7 @@ async function finishSetup() {
 
   updateDashboardUI();
   updateBannerForTeam();
+  updateCreateTeamButton();
 
   const selSup = SUPERVISORS.find((s) => s.id === STATE.selectedSupervisor);
 
@@ -1797,6 +1837,32 @@ function updateBannerForTeam() {
   }
 }
 
+function showNoTeamPlaceholders() {
+  const ids = [
+    "banner-team-id", "ov-team-id", "team-tab-id", "proj-team-id",
+    "proj-tab-team-id", "stat-project-title", "ov-proj-title",
+    "ov-proj-category", "team-tab-proj", "proj-tab-title",
+    "proj-tab-category", "stat-supervisor-name", "proj-supervisor-name",
+    "team-created-date",
+  ];
+  ids.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = "-";
+  });
+  // Student's own ID is still valid
+  ["ov-student-id", "proj-student-id"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = STATE.studentId;
+  });
+  const dl = document.getElementById("team-nearest-deadline");
+  if (dl) dl.textContent = "-";
+}
+
+function updateCreateTeamButton() {
+  const btn = document.getElementById("banner-create-team-btn");
+  if (btn) btn.style.display = STATE.teamCreated ? "none" : "inline-flex";
+}
+
 function updateDashboardUI() {
   // Update all dashboard elements with team data
   const elements = {
@@ -2105,8 +2171,13 @@ function getGreeting(name, gender) {
   const title = gender === "female" ? "Ms" : "Mr";
   return `${greeting}, ${title}. ${name} ${icon}`;
 }
+
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeEditProjectModal();
+  if (e.key === "Escape") {
+    closeEditProjectModal();
+    const ov = document.getElementById("setup-overlay");
+    if (ov && ov.style.display !== "none") closeSetupWizard();
+  }
 });
 
 async function loadProposalSection() {

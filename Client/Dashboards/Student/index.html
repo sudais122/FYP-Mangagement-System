@@ -304,8 +304,8 @@
 
 
 <!-- Create Team -->
-<button class="btn-banner btn-banner-ghost"
-        onclick="switchTab('team', document.querySelectorAll('.sb-item')[1])">
+<button class="btn-banner btn-banner-primary" id="banner-create-team-btn"
+onclick="openSetup()">
 
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -716,8 +716,21 @@
 
     <!-- ══════════════ TEAM SETUP FLOW ══════════════ -->
     <div class="setup-overlay" id="setup-overlay" style="display:none">
-      <div class="setup-modal" id="setup-modal">
+<div class="setup-modal" id="setup-modal" style="position:relative">
 
+  <!-- Close button (visible on every step) -->
+  <button type="button" onclick="closeSetupWizard()" title="Close"
+    style="position:absolute;top:14px;right:14px;z-index:10;width:32px;height:32px;
+           display:grid;place-items:center;border:none;border-radius:50%;cursor:pointer;
+           background:rgba(255,255,255,.18);color:#fff;transition:background .2s"
+    onmouseover="this.style.background='rgba(255,255,255,.32)'"
+    onmouseout="this.style.background='rgba(255,255,255,.18)'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+         stroke-linecap="round" stroke-linejoin="round" width="16" height="16">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  </button>
         <!-- Step 1 -->
         <div id="setup-step-1">
           <div class="setup-header">
