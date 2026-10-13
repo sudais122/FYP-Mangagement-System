@@ -82,9 +82,12 @@ app.use((err, req, res, next) => {
 });
 
 // ── START SERVER — only when run directly, not when imported by tests ──
-if (process.argv[1] === __filename) {
+if (
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === __filename
+) {
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
   });
 }
 
