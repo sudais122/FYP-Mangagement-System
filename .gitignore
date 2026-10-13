@@ -16,3 +16,4 @@ Server/.env
 Server/.env.test
 coverage/
 coverage/
+uploads/
